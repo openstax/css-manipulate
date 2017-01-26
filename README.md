@@ -1,15 +1,15 @@
-Things to implement:
+### This goes through several examples and each builds on the previous one to illustrate how to describe tasks used when creating a textbook.
 
-- create end-of-chapter elements
-- Add custom attributes to elements
-- move exercises to end-of-chapter
-- add a section separator to exercises
-- number eoc exercises
-- create "See Exercise 4.3" links (optionally have the title in the link)
-- wrap a list and add label element
-- wrap the inside of a note
-- collate answer to end of book
-- Make exercises and answers link to each other
+1. create end-of-chapter elements
+1. Add custom attributes to elements
+1. move exercises to end-of-chapter
+1. add a section separator to exercises
+1. number eoc exercises
+1. create "See Exercise 4.3" links (optionally have the title in the link)
+1. wrap a list and add label element
+1. wrap the inside of a note
+1. collate answer to end of book
+1. Make exercises and answers link to each other
 
 
 **Note:** I'm using single quotes to represent strings that contain a selector and double-quotes to represent strings
