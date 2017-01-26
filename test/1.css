@@ -1,0 +1,78 @@
+/* Case 1 */
+chapter:afterX(1):beforeX(1) { content: "Conceptual Questions"; }
+chapter:afterX(2):beforeX(1) { content: "Homework Problems"; }
+
+/* Case 2 */
+chapter:afterX(1),
+chapter:afterX(2) { attrs-add: "data-type" "eoc-item"; }
+chapter:afterX(1):beforeX(1),
+chapter:afterX(2):beforeX(1) { class-add: "title"; }
+
+/* Case 3 */
+chapter:afterX(1) { content: move-here('exercise.conceptual', default); }
+chapter:afterX(2) { content: move-here('exercise.homework', default); }
+
+/* Case 4 */
+chapter:afterX(1):for-each-descendant('> section'),
+chapter:afterX(2):for-each-descendant('> section') {
+  class-add: "eoc-section";
+  content: move-here('exercise.homework', default);
+}
+chapter:afterX(1):for-each-descendant('> section'):beforeX(1),
+chapter:afterX(2):for-each-descendant('> section'):beforeX(1) {
+  class-add: "title";
+  content: target-context('> title', contents());
+}
+
+/* Case 5 */
+exercise.homework:beforeX(1),
+exercise.conceptual:beforeX(1) {
+  class-add: "number";
+  content: nth-of-type('exercise.homework, exercise.conceptual', 'chapter');
+}
+
+/* Case 6 */
+a:target('#' attr(href), 'exercise.homework', 'exercise.conceptual'):beforeX {
+  content:
+    "See Exercise "
+    target-context(attr(href), nth-of-type('chapter'))
+    "."
+    target-context(attr(href), nth-of-type('exercise.homework, exercise.conceptual', 'chapter'));
+}
+
+/* Case 7 */
+ol[data-label]:outside(1) { class-add: "list-wrapper"; }
+ol[data-label]:outside(1):beforeX(1) {
+  class-add: 'list-label';
+  content: attr(data-label);
+}
+
+/* Case 8 */
+/*note::inside(1) { class-add: 'note-body'; }*/
+note:inside(1, ':not(.title)') { class-add: "note-body"; }
+
+/* Case 9 */
+exercise.homework > answer:beforeX(1),
+exercise.conceptual > answer:beforeX(1) {
+  content:
+    nth-of-type('chapter')
+    '.'
+    nth-of-type('exercise.homework, exercise.conceptual', 'chapter');
+}
+/* Answer Key */
+body:afterX(1):beforeX(1) { content: "Answer Key"; }
+body:afterX(1) {
+  contents: move-here('exercise.homework > answer, exercise.conceptual > answer', default);
+}
+
+/* Case 10 */
+exercise.homework:has(> answer):beforeX,
+exercise.conceptual:has(> answer):beforeX {
+  tag-name-set: "a";
+  attrs-add: "href" "#" target-context('> answer', attr-ensure(id));
+}
+exercise.homework > answer:beforeX(1),
+exercise.conceptual > answer:beforeX(1) {
+  tag-name-set: "a";
+  attrs-add: "href" "#" parent-context(attr(id));
+}

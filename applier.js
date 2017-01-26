@@ -1,0 +1,276 @@
+const assert = require('assert')
+const csstree = require('css-tree')
+const jsdom = require('jsdom')
+
+module.exports = class Applier {
+  constructor(css, html) {
+    this._cssContents = css
+    this._htmlContents = html
+  }
+
+  prepare(fn) {
+    const ast = csstree.parse(this._cssContents.toString(), {positions: true})
+    console.info('Parsing HTML')
+    this._document = jsdom.jsdom(this._htmlContents)
+    // Convert the internal List structure to arrays:
+    // unfortunately that means objects are simple; can no longer do instanceof checks
+    // ast = JSON.parse(JSON.stringify(ast))
+
+
+    // Walking the DOM and calling el.matches(sel) for every selector is inefficient. (causes crash after 7min for big textbook)
+    // document.querySelectorAll(sel) is MUCH faster.
+    // So, annotate the DOM first with all the matches and then walk the DOM
+
+    // This code is not css-ish because it does not walk the DOM
+    console.info('Annotating DOM')
+    ast.children.each((rule) => {
+      // if not a rule then return
+      if (rule.type === 'Atrule') {
+        return
+      }
+      assert.equal(rule.type, 'Rule')
+      rule.selector.children.each((selector) => {
+        assert.equal(selector.type, 'Selector')
+        const browserSelector = toBrowserSelector(selector)
+        const matchedNodes = this._document.querySelectorAll(browserSelector)
+
+        // jsdom does not support matchedNodes.forEach
+        for (let i = 0; i < matchedNodes.length; i++) {
+          const el = matchedNodes.item(i)
+
+          el.MATCHED_RULES = el.MATCHED_RULES || []
+          el.MATCHED_RULES.push({rule, selector})
+        }
+      })
+    })
+  }
+
+  run(fn) {
+    walkDOMinOrder(this._document.documentElement, (el) => {
+      const matches = el.MATCHED_RULES || []
+      fn(el, matches)
+    })
+  }
+}
+
+
+
+// Compares 2 selectors as defined in http://www.w3.org/TR/CSS21/cascade.html#specificity
+//
+// - count the number of ID attributes in the selector
+// - count the number of other attributes and pseudo-classes in the selector
+// - count the number of element names and pseudo-elements in the selector
+function CSS_SELECTIVITY_COMPARATOR(cls1, cls2) {
+  const elements1 = cls1.elements;
+  const elements2 = cls2.elements;
+  if (!(elements1 || elements2)) {
+    console.error('BUG: Selectivity Comparator has null elements');
+  }
+  function compare(iterator, els1, els2) {
+    const x1 = _.reduce(elements1, iterator, 0);
+    const x2 = _.reduce(elements2, iterator, 0);
+    if (x1 < x2) {
+      return -1;
+    }
+    if (x1 > x2) {
+      return 1;
+    }
+    return 0;
+  }
+  function isIdAttrib(n, el) {
+    if (el.value && '#' === el.value[0]) {
+      return n + 1
+    } else {
+      return n
+    }
+  }
+  function isClassOrAttrib(n, el) {
+    if ('.' === el.value[0] || '[' === el.value[0]) {
+      return n + 1;
+    }
+    return n;
+  };
+  function isElementOrPseudo(n, el) {
+    if ((el.value instanceof less.tree.Attribute) || ':' === el.value[0] || /^[a-zA-Z]/.test(el.value)) {
+      return n + 1;
+    }
+    return n;
+  };
+  return compare(isIdAttrib) || compare(isClassOrAttrib) || compare(isElementOrPseudo);
+};
+
+function SPECIFICITY_SORT(autogenClasses) {
+  var autogenClass, foundDisplayRule, i, j, k, len, len1, newRules, ref, rule;
+  newRules = [];
+  // Sort the prevClasses by specificity
+  // as defined in http://www.w3.org/TR/CSS21/cascade.html#specificity
+  // TODO: Move this into the `else` clause for performance
+  autogenClasses.sort(CSS_SELECTIVITY_COMPARATOR);
+  for (j = 0, len = autogenClasses.length; j < len; j++) {
+    autogenClass = autogenClasses[j];
+    ref = autogenClass.rules;
+    for (k = 0, len1 = ref.length; k < len1; k++) {
+      rule = ref[k];
+      newRules.push(rule);
+    }
+  }
+  // Special-case `display: none;` because the DisplayNone plugin
+  // and FixedPointRunner are a little naive and do not stop early enough
+  foundDisplayRule = false;
+  // Reverse the rules (most-specific first) so the while loop peels off
+  // everything but the most-specific rule
+  newRules.reverse();
+  i = 0;
+  while (i < newRules.length) {
+    if ('display' === newRules[i].name) {
+      if (foundDisplayRule) {
+        newRules.splice(i, 1);
+        continue;
+      } else {
+        foundDisplayRule = true;
+      }
+    }
+    i += 1;
+  }
+  // Do not flip it back so most-specific is first
+  return newRules;
+};
+
+
+
+function findMatchedRules(el, ast) {
+  matches = []
+
+  ast.children.each((rule) => {
+    // if not a rule then return
+    if (rule.type === 'Atrule') {
+      return
+    }
+    assert.equal(rule.type, 'Rule')
+    rule.selector.children.each((selector) => {
+      assert.equal(selector.type, 'Selector')
+      const browserSelector = toBrowserSelector(selector)
+      if (el.matches(browserSelector)) {
+        matches.push(rule)
+      }
+    })
+  })
+  return matches
+}
+
+
+
+
+
+function walkDOMinOrder(el, fn) {
+  fn(el)
+  if (el.firstElementChild) {
+    walkDOMinOrder(el.firstElementChild, fn)
+  }
+  if (el.nextElementSibling) {
+    walkDOMinOrder(el.nextElementSibling, fn)
+  }
+}
+
+
+
+
+
+
+
+function toBrowserSelector(selector) {
+  assert.equal(selector.type, 'Selector')
+  return selector.children.map(toBrowserSelector2).join('')
+}
+
+function toBrowserSelector2(sel) {
+  switch (sel.type) {
+    case 'Type':
+      return sel.name
+    case 'Id':
+      return `#${sel.name}`
+    case 'Class':
+      return `.${sel.name}`
+    case 'Combinator':
+      if (sel.name === ' ') {
+        return ' '
+      } else {
+        return ` ${sel.name} `
+      }
+    case 'Attribute':
+      const name = sel.name
+      const value = sel.value
+      let nam
+      switch (name.type) {
+        case 'Identifier':
+          nam = name.name
+          break
+        default:
+          console.log(sel)
+      }
+      let val
+      if (value) {
+        switch (value.type) {
+          case 'String':
+            val = value.value
+            break
+          default:
+            console.log(sel)
+        }
+        return `[${nam}${sel.operator}${val}]`
+      } else {
+        return `[${nam}]`
+      }
+
+    case 'PseudoClass':
+      // Discard some but not all. For example: keep `:not(...)` but discard `:pass(1)`
+      switch (sel.name) {
+        // discard these
+        case 'pass':
+        case 'deferred':
+        case 'match':
+        case 'first-of-type':
+        case 'target': // this is new
+        // These are hacks because css-tree does not support pseudo-elements with arguments
+        case 'afterX':
+        case 'beforeX':
+        case 'outside':
+        case 'inside':
+        case 'for-each-descendant':
+        case 'has':
+          return '';
+        // keep these
+        case 'last-child':
+        case 'not':
+          if (sel.children) {
+            const children = sel.children.map((child) => {
+              assert.equal(child.type, 'SelectorList')
+              return child.children.map(toBrowserSelector).join(', ')
+            })
+            return `:${sel.name}(${children})`
+          } else {
+            return `:${sel.name}`
+          }
+
+        default:
+          throw new Error(`UNKNOWN_PSEUDOCLASS: ${sel.name}`)
+      }
+
+    case 'PseudoElement':
+      // Discard some of these because sizzle/browser does no recognize them anyway (:outside or :after(3))
+      switch (sel.name) {
+        // Discard these
+        case 'after':
+        case 'before':
+        case 'outside':
+        case 'deferred':
+          return ''
+        default:
+          throw new Error(`UNKNOWN_PSEUDOELEMENT:${sel.name}(${sel.type})`)
+      }
+    default:
+      console.log(sel);
+      throw new Error(`UNMATCHED:${sel.name}(${sel.type})`)
+  }
+
+}
