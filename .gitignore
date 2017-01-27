@@ -1,4 +1,4 @@
-
-test/apphysics.css
-
-test/apphysics.html
+/.nyc_output/
+/coverage/
+/test/apphysics.css
+/test/apphysics.html

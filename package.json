@@ -1,8 +1,14 @@
 {
+  "scripts": {
+    "start":                                    "node index.js test/1",
+    "test": "nyc --reporter html --reporter text node index.js test/1"
+  },
   "dependencies": {
     "css-tree": "^1.0.0-alpha13",
+    "jquery": "^3.1.1",
     "jsdom": "^9.9.1",
     "lodash": "^4.17.4",
+    "nyc": "^10.1.2",
     "parse5": "^3.0.1",
     "yargs": "^6.6.0"
   }

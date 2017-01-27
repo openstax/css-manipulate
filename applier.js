@@ -1,6 +1,7 @@
 const assert = require('assert')
 const csstree = require('css-tree')
 const jsdom = require('jsdom')
+const jquery = require('jquery')
 
 module.exports = class Applier {
   constructor(css, html) {
@@ -8,10 +9,15 @@ module.exports = class Applier {
     this._htmlContents = html
   }
 
+  // getWindow() { return this._document.defaultView }
+  getRoot() { return this._document.documentElement }
+
   prepare(fn) {
     const ast = csstree.parse(this._cssContents.toString(), {positions: true})
     console.info('Parsing HTML')
     this._document = jsdom.jsdom(this._htmlContents)
+    this._$ = jquery(this._document.defaultView)
+
     // Convert the internal List structure to arrays:
     // unfortunately that means objects are simple; can no longer do instanceof checks
     // ast = JSON.parse(JSON.stringify(ast))
@@ -48,7 +54,7 @@ module.exports = class Applier {
   run(fn) {
     walkDOMinOrder(this._document.documentElement, (el) => {
       const matches = el.MATCHED_RULES || []
-      fn(el, matches)
+      fn(this._$(el), matches)
     })
   }
 }
@@ -232,8 +238,8 @@ function toBrowserSelector2(sel) {
         case 'first-of-type':
         case 'target': // this is new
         // These are hacks because css-tree does not support pseudo-elements with arguments
-        case 'afterX':
-        case 'beforeX':
+        case 'Xafter':
+        case 'Xbefore':
         case 'outside':
         case 'inside':
         case 'for-each-descendant':
