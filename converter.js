@@ -27,12 +27,12 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
   class FunctionEvaluator {
     constructor(name, fn, preFn) {
       this._name = name
-      this._fn = fn ? fn : ($, context, vals) => { return vals }
+      this._fn = fn ? fn : ($, context, $currentEl, vals) => { return vals }
       this._preFn = preFn ? preFn : ($, context, evaluator, args) => { return context }
     }
     getFunctionName() { return this._name }
     preEvaluateChildren() { return this._preFn.apply(null, arguments) }
-    evaluateFunction($, context, args) { return this._fn.apply(null, arguments) }
+    evaluateFunction($, context, $currentEl, args) { return this._fn.apply(null, arguments) }
   }
 
   // I promise that I will give you back at least 1 element that has been added to el
@@ -63,19 +63,19 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
   app.addRuleDeclaration(new RuleDeclaration('class-set', ($lookupEl, $els, vals) => $els.attr('class', vals.join(' '))))
   app.addRuleDeclaration(new RuleDeclaration('class-remove', ($lookupEl, $els, vals) => $els.removeClass(vals.join(' '))))
 
-  app.addFunction(new FunctionEvaluator('attr', ($, {$contextEl}, vals) => $contextEl.attr(vals.join('')) ))
-  app.addFunction(new FunctionEvaluator('move-here', ($, {$contextEl}, vals) => {
+  app.addFunction(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, vals) => { return $contextEl.attr(vals.join('')) } ))
+  app.addFunction(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, vals) => {
     const [selector] = vals
     const ret = $(selector)
     ret.detach() // detach (instead of remove) because we do not want to destroy the elements
     return ret
   }))
-  app.addFunction(new FunctionEvaluator('count-of-type', ($, {$contextEl}, vals) => {
+  app.addFunction(new FunctionEvaluator('count-of-type', ($, {$contextEl}, $currentEl, vals) => {
     const [selector] = vals
     // const $matches = $contextEl.find(selector)
     // const $closest = $currentEl.closest(selector)
     const $matches = $contextEl.find(selector)
-    const $closest = $contextEl.closest(selector)
+    const $closest = $currentEl.closest(selector)
 
     let count = 0
     let isDoneCounting = false
@@ -89,17 +89,17 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
     })
     return count
   }))
-  app.addFunction(new FunctionEvaluator('parent-context', null, ($, {$contextEl}, evaluator, args) => {
+  app.addFunction(new FunctionEvaluator('parent-context', null, ($, {$contextEl}, $currentEl, evaluator, args) => {
     return {$contextEl: $contextEl.parent() }
   }))
   app.addFunction(new FunctionEvaluator('target-context',
-    ($, context, vals) => {
+    ($, context, $currentEl, vals) => {
       // skip the 1st arg which is the selector
       return vals.slice(1)
     },
-    ($, context, evaluator, args) => {
+    ($, context, $currentEl, evaluator, args) => {
       const {$contextEl} = context
-      const selector = evaluator(context, [args[0]]).join('')
+      const selector = evaluator(context, $currentEl, [args[0]]).join('')
       // If we are looking up an id then look up against the whole document
       if ('#' === selector[0]) {
         return {$contextEl: $(selector) }

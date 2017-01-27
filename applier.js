@@ -85,7 +85,7 @@ module.exports = class Applier {
     })
   }
 
-  _evaluateVals(context, vals) {
+  _evaluateVals(context, $currentEl, vals) {
     return vals.map((arg) => {
       switch (arg.type) {
         case 'String':
@@ -102,9 +102,9 @@ module.exports = class Applier {
           if (!theFunction) {
             throwError(`BUG: Unsupported function ${arg.name}`, arg)
           }
-          const newContext = theFunction.preEvaluateChildren(this._$, context, this._evaluateVals.bind(this), arg.children.toArray())
-          const fnArgs = this._evaluateVals(newContext, arg.children.toArray())
-          return theFunction.evaluateFunction(this._$, newContext, fnArgs) // Should not matter if this is context or newContext
+          const newContext = theFunction.preEvaluateChildren(this._$, context, $currentEl, this._evaluateVals.bind(this), arg.children.toArray())
+          const fnArgs = this._evaluateVals(newContext, $currentEl, arg.children.toArray())
+          return theFunction.evaluateFunction(this._$, newContext, $currentEl, fnArgs) // Should not matter if this is context or newContext
         default:
           throwError('BUG: Unsupported value type ' + arg.type, arg)
       }
@@ -112,7 +112,7 @@ module.exports = class Applier {
 
   }
 
-  _evaluateRules(depth, rules, $lookupEl, $newEl) {
+  _evaluateRules(depth, rules, $currentEl, $newEl) {
     // Pull out all the declarations for this rule, TODO: sort by selectivity
     const hackDeclarations = {}
     // TODO: Decide if rule declarations should be evaluated before or after nested pseudoselectors
@@ -131,8 +131,8 @@ module.exports = class Applier {
     this._ruleDeclarationPlugins.forEach((ruleDeclarationPlugin) => {
       const value = hackDeclarations[ruleDeclarationPlugin.getRuleName()]
       if (value) {
-        const vals = this._evaluateVals({$contextEl: $lookupEl}, value.children.toArray())
-        ruleDeclarationPlugin.evaluateRule($lookupEl, $newEl, vals)
+        const vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, value.children.toArray())
+        ruleDeclarationPlugin.evaluateRule($currentEl, $newEl, vals)
       }
     })
 
