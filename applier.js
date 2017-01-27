@@ -11,6 +11,7 @@ module.exports = class Applier {
     this._htmlContents = html
     this._pseudoElementPlugins = []
     this._ruleDeclarationPlugins = []
+    this._functionPlugins = []
   }
 
   // getWindow() { return this._document.defaultView }
@@ -28,6 +29,12 @@ module.exports = class Applier {
     assert.equal(typeof plugin.evaluateRule, 'function')
     assert.equal(typeof plugin.getRuleName(), 'string')
     this._ruleDeclarationPlugins.push(plugin)
+  }
+
+  addFunction(plugin) {
+    assert.equal(typeof plugin.evaluateFunction, 'function')
+    assert.equal(typeof plugin.getFunctionName(), 'string')
+    this._functionPlugins.push(plugin)
   }
 
   prepare(fn) {
@@ -75,10 +82,45 @@ module.exports = class Applier {
         case 'String':
           // strip off the leading and trailing quote characters
           return arg.value.substring(1, arg.value.length - 1)
+        case 'Identifier':
+          return arg.name
         case 'Space':
           return ''
+        case 'Function':
+          const fnArgs = this._evaluateVals($lookupEl, arg.children.toArray())
+          const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0]
+          if (!theFunction) {
+            throwError(`BUG: Unsupported function ${arg.name}`, arg)
+          }
+          return theFunction.evaluateFunction($lookupEl, fnArgs)
         default:
           throwError('BUG: Unsupported value type ' + arg.type, arg)
+      }
+    })
+
+  }
+
+  _evaluateRules(depth, rules, $lookupEl, $newEl) {
+    // Pull out all the declarations for this rule, TODO: sort by selectivity
+    const hackDeclarations = {}
+    // TODO: Decide if rule declarations should be evaluated before or after nested pseudoselectors
+    rules.forEach((matchedRule) => {
+      // Only evaluate rules that do not have additional pseudoselectors (more depth available)
+      if (matchedRule.getDepth() - 1 === depth) {
+        matchedRule.getRule().rule.block.children.toArray().forEach((declaration) => {
+          const {type, important, property, value} = declaration
+          hackDeclarations[property] = value
+        })
+      }
+    })
+
+    // now that all the declarations are sorted by selectivity (and filtered so they only occur once)
+    // apply the declarations
+    this._ruleDeclarationPlugins.forEach((ruleDeclarationPlugin) => {
+      const value = hackDeclarations[ruleDeclarationPlugin.getRuleName()]
+      if (value) {
+        const vals = this._evaluateVals($lookupEl, value.children.toArray())
+        ruleDeclarationPlugin.evaluateRule($lookupEl, $newEl, vals)
       }
     })
 
@@ -126,37 +168,16 @@ module.exports = class Applier {
             for (let index = 0; index < reducedRules.length; index++) {
               recursePseudoElements(depth + 1, reducedRules[index], $lookupEl, newNodes[index])
 
-              // Pull out all the declarations for this rule, TODO: sort by selectivity
-              const hackDeclarations = {}
-              // TODO: Decide if rule declarations should be evaluated before or after nested pseudoselectors
-              reducedRules[index].forEach((matchedRule) => {
-                // Only evaluate rules that do not have additional pseudoselectors (more depth available)
-                if (matchedRule.getDepth() - 1 === depth) {
-                  matchedRule.getRule().rule.block.children.toArray().forEach((declaration) => {
-                    const {type, important, property, value} = declaration
-                    hackDeclarations[property] = value
-                  })
-                }
-              })
-
-              // now that all the declarations are sorted by selectivity (and filtered so they only occur once)
-              // apply the declarations
-              this._ruleDeclarationPlugins.forEach((ruleDeclarationPlugin) => {
-                const value = hackDeclarations[ruleDeclarationPlugin.getRuleName()]
-                if (value) {
-                  const vals = this._evaluateVals($lookupEl, value.children.toArray())
-                  ruleDeclarationPlugin.evaluateRule($lookupEl, newNodes[index], vals)
-                }
-              })
-
+              this._evaluateRules(depth, reducedRules[index], $lookupEl, newNodes[index])
             }
-
 
           })
 
         }
         // Start the evaluation
         recursePseudoElements(0, rulesWithPseudos, $el, $el)
+
+        this._evaluateRules(-1 /*depth*/, rulesWithPseudos, $el, $el)
       }
 
     })
