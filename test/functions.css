@@ -3,3 +3,5 @@ a {
 }
 
 .bucket { content: 'Exercises: ' move-here('.exercise'); }
+
+note > label { content: parent-context(attr(data-label)); }

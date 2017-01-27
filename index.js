@@ -22,7 +22,7 @@ class FunctionEvaluator {
   constructor(name, fn, preFn) {
     this._name = name
     this._fn = fn ? fn : ($, context, vals) => { return vals }
-    this._preFn = preFn ? preFn : (context, args) => { return context }
+    this._preFn = preFn ? preFn : (context, evaluator, args) => { return context }
   }
   getFunctionName() { return this._name }
   preEvaluateChildren() { return this._preFn.apply(null, arguments) }
@@ -49,7 +49,9 @@ app.addRuleDeclaration(new RuleDeclaration('class-set', ($lookupEl, $els, vals) 
 app.addRuleDeclaration(new RuleDeclaration('class-remove', ($lookupEl, $els, vals) => $els.removeClass(vals.join(' '))))
 
 app.addFunction(new FunctionEvaluator('attr', ($, {$contextEl}, vals) => $contextEl.attr(vals.join('')) ))
-// app.addFunction(new FunctionEvaluator('parent', ($lookupEl, vals) => $lookupEl.attr(vals.join('')) ))
+app.addFunction(new FunctionEvaluator('parent-context', null, ({$contextEl}, evaluator, args) => {
+  return {$contextEl: $contextEl.parent() }
+}))
 app.addFunction(new FunctionEvaluator('move-here', ($, {$contextEl}, vals) => {
   const [selector] = vals
   const ret = $(selector)

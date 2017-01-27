@@ -88,12 +88,13 @@ module.exports = class Applier {
         case 'Space':
           return ''
         case 'Function':
-          const fnArgs = this._evaluateVals(context, arg.children.toArray())
           const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0]
           if (!theFunction) {
             throwError(`BUG: Unsupported function ${arg.name}`, arg)
           }
-          return theFunction.evaluateFunction(this._$, context, fnArgs)
+          const newContext = theFunction.preEvaluateChildren(context, this._evaluateVals, arg.children.toArray())
+          const fnArgs = this._evaluateVals(newContext, arg.children.toArray())
+          return theFunction.evaluateFunction(this._$, newContext, fnArgs) // Should not matter if this is context or newContext
         default:
           throwError('BUG: Unsupported value type ' + arg.type, arg)
       }
