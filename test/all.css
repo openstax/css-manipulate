@@ -16,13 +16,13 @@ chapter:Xafter(1) { content: move-here('exercise.conceptual', default); }
 chapter:Xafter(2) { content: move-here('exercise.homework', default); }
 
 /* Case 4 */
-chapter:Xafter(1):for-each-descendant('> section'),
-chapter:Xafter(2):for-each-descendant('> section') {
+chapter:Xafter(1):Xfor-each-descendant('> section'),
+chapter:Xafter(2):Xfor-each-descendant('> section') {
   class-add: "eoc-section";
   content: move-here('exercise.homework', default);
 }
-chapter:Xafter(1):for-each-descendant('> section'):Xbefore(1),
-chapter:Xafter(2):for-each-descendant('> section'):Xbefore(1) {
+chapter:Xafter(1):Xfor-each-descendant('> section'):Xbefore(1),
+chapter:Xafter(2):Xfor-each-descendant('> section'):Xbefore(1) {
   class-add: "title";
   content: target-context('> title', contents());
 }
@@ -44,15 +44,15 @@ a:target('#' attr(href), 'exercise.homework', 'exercise.conceptual'):Xbefore {
 }
 
 /* Case 7 */
-ol[data-label]:outside(1) { class-add: "list-wrapper"; }
-ol[data-label]:outside(1):Xbefore(1) {
+ol[data-label]:Xoutside(1) { class-add: "list-wrapper"; }
+ol[data-label]:Xoutside(1):Xbefore(1) {
   class-add: 'list-label';
   content: attr(data-label);
 }
 
 /* Case 8 */
-note:inside(1) { class-add: 'note-body'; }
-/*note:inside(1, ':not(.title)') { class-add: "note-body"; }*/
+note:Xinside(1) { class-add: 'note-body'; }
+/*note:Xinside(1, ':not(.title)') { class-add: "note-body"; }*/
 
 /* Case 9 */
 exercise.homework > answer:Xbefore(1),

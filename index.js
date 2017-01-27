@@ -21,8 +21,8 @@ class RuleDeclaration {
 // I promise that I will give you back at least 1 element that has been added to el
 app.addPseudoElement(new PseudoElementEvaluator('Xafter', ($contextEls, $newEl) => $contextEls.append($newEl)))
 app.addPseudoElement(new PseudoElementEvaluator('Xbefore', ($contextEls, $newEl) => $contextEls.prepend($newEl))) // TODO: These are evaluated in reverse order
-app.addPseudoElement(new PseudoElementEvaluator('outside', ($contextEls, $newEl) => $contextEls.wrap($newEl)))
-app.addPseudoElement(new PseudoElementEvaluator('inside', ($contextEls, $newEl) => $contextEls.wrapInner($newEl)))
+app.addPseudoElement(new PseudoElementEvaluator('Xoutside', ($contextEls, $newEl) => $contextEls.wrap($newEl)))
+app.addPseudoElement(new PseudoElementEvaluator('Xinside', ($contextEls, $newEl) => $contextEls.wrapInner($newEl)))
 // 'for-each-descendant': () => { }
 
 app.addRuleDeclaration(new RuleDeclaration('content', ($lookupEl, $els, vals) => {

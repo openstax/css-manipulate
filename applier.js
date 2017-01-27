@@ -333,9 +333,9 @@ function toBrowserSelector2(sel) {
         // These are hacks because css-tree does not support pseudo-elements with arguments
         case 'Xafter':
         case 'Xbefore':
-        case 'outside':
-        case 'inside':
-        case 'for-each-descendant':
+        case 'Xoutside':
+        case 'Xinside':
+        case 'Xfor-each-descendant':
         case 'has':
           return '';
         // keep these
@@ -356,7 +356,7 @@ function toBrowserSelector2(sel) {
       }
 
     case 'PseudoElement':
-      // Discard some of these because sizzle/browser does no recognize them anyway (:outside or :after(3))
+      // Discard some of these because sizzle/browser does no recognize them anyway (:Xoutside or :after(3))
       switch (sel.name) {
         // Discard these
         case 'after':
