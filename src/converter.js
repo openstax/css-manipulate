@@ -35,6 +35,16 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
     evaluateFunction($, context, $currentEl, args) { return this._fn.apply(null, arguments) }
   }
 
+  function flattenVals(vals) {
+    return vals.map((val) => {
+      if (Array.isArray(val)) {
+        return val.join('')
+      } else {
+        return val
+      }
+    })
+  }
+
   // I promise that I will give you back at least 1 element that has been added to el
   app.addPseudoElement(new PseudoElementEvaluator('Xafter', ($contextEls, $newEl) => $contextEls.append($newEl)))
   app.addPseudoElement(new PseudoElementEvaluator('Xbefore', ($contextEls, $newEl) => $contextEls.prepend($newEl))) // TODO: These are evaluated in reverse order
@@ -50,18 +60,9 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
       $els.append(val)
     })
   }))
-  app.addRuleDeclaration(new RuleDeclaration('class-add', ($lookupEl, $els, vals) => {
-    vals = vals.map((val) => {
-      if (Array.isArray(val)) {
-        return val.join('')
-      } else {
-        return val
-      }
-    })
-    $els.addClass(vals.join(' '))
-  }))
-  app.addRuleDeclaration(new RuleDeclaration('class-set', ($lookupEl, $els, vals) => $els.attr('class', vals.join(' '))))
-  app.addRuleDeclaration(new RuleDeclaration('class-remove', ($lookupEl, $els, vals) => $els.removeClass(vals.join(' '))))
+  app.addRuleDeclaration(new RuleDeclaration('class-add', ($lookupEl, $els, vals) => $els.addClass(flattenVals(vals).join(' ')) ))
+  app.addRuleDeclaration(new RuleDeclaration('class-set', ($lookupEl, $els, vals) => $els.attr('class', flattenVals(vals).join(' '))))
+  app.addRuleDeclaration(new RuleDeclaration('class-remove', ($lookupEl, $els, vals) => $els.removeClass(flattenVals(vals).join(' '))))
 
   app.addFunction(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, vals) => { return $contextEl.attr(vals.join('')) } ))
   app.addFunction(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, vals) => {

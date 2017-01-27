@@ -1,6 +1,6 @@
 const fs = require('fs')
 const test = require('ava')
-const converter = require('../converter')
+const converter = require('../src/converter')
 
 
 
