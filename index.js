@@ -22,7 +22,7 @@ class FunctionEvaluator {
   constructor(name, fn, preFn) {
     this._name = name
     this._fn = fn ? fn : ($, context, vals) => { return vals }
-    this._preFn = preFn ? preFn : (context, evaluator, args) => { return context }
+    this._preFn = preFn ? preFn : ($, context, evaluator, args) => { return context }
   }
   getFunctionName() { return this._name }
   preEvaluateChildren() { return this._preFn.apply(null, arguments) }
@@ -44,19 +44,44 @@ app.addRuleDeclaration(new RuleDeclaration('content', ($lookupEl, $els, vals) =>
     $els.append(val)
   })
 }))
-app.addRuleDeclaration(new RuleDeclaration('class-add', ($lookupEl, $els, vals) => $els.addClass(vals.join(' '))))
+app.addRuleDeclaration(new RuleDeclaration('class-add', ($lookupEl, $els, vals) => {
+  vals = vals.map((val) => {
+    if (Array.isArray(val)) {
+      return val.join('')
+    } else {
+      return val
+    }
+  })
+  $els.addClass(vals.join(' '))
+}))
 app.addRuleDeclaration(new RuleDeclaration('class-set', ($lookupEl, $els, vals) => $els.attr('class', vals.join(' '))))
 app.addRuleDeclaration(new RuleDeclaration('class-remove', ($lookupEl, $els, vals) => $els.removeClass(vals.join(' '))))
 
 app.addFunction(new FunctionEvaluator('attr', ($, {$contextEl}, vals) => $contextEl.attr(vals.join('')) ))
-app.addFunction(new FunctionEvaluator('parent-context', null, ({$contextEl}, evaluator, args) => {
-  return {$contextEl: $contextEl.parent() }
-}))
 app.addFunction(new FunctionEvaluator('move-here', ($, {$contextEl}, vals) => {
   const [selector] = vals
   const ret = $(selector)
   ret.detach() // detach (instead of remove) because we do not want to destroy the elements
   return ret
+}))
+app.addFunction(new FunctionEvaluator('parent-context', null, ({$contextEl}, evaluator, args) => {
+  return {$contextEl: $contextEl.parent() }
+}))
+app.addFunction(new FunctionEvaluator('target-context',
+  ($, context, vals) => {
+    // skip the 1st arg which is the selector
+    return vals.slice(1)
+  },
+  ($, context, evaluator, args) => {
+    const {$contextEl} = context
+    const selector = evaluator(context, [args[0]]).join('')
+    // If we are looking up an id then look up against the whole document
+    if ('#' === selector[0]) {
+      return {$contextEl: $(selector) }
+    } else {
+      return {$contextEl: $contextEl.find(selector) }
+    }
+
 }))
 
 

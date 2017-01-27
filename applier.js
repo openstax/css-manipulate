@@ -87,12 +87,14 @@ module.exports = class Applier {
           return arg.name
         case 'Space':
           return ''
+        case 'Operator': // comma TODO: Group items based on this operator
+          return ''
         case 'Function':
           const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0]
           if (!theFunction) {
             throwError(`BUG: Unsupported function ${arg.name}`, arg)
           }
-          const newContext = theFunction.preEvaluateChildren(context, this._evaluateVals, arg.children.toArray())
+          const newContext = theFunction.preEvaluateChildren(this._$, context, this._evaluateVals.bind(this), arg.children.toArray())
           const fnArgs = this._evaluateVals(newContext, arg.children.toArray())
           return theFunction.evaluateFunction(this._$, newContext, fnArgs) // Should not matter if this is context or newContext
         default:
