@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start":                                    "node index.js test/1",
+    "start":                                    "node index.js test/functions",
     "test": "nyc --reporter html --reporter text node index.js test/1"
   },
   "dependencies": {

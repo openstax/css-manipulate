@@ -33,6 +33,7 @@ module.exports = class Applier {
 
   addFunction(plugin) {
     assert.equal(typeof plugin.evaluateFunction, 'function')
+    assert.equal(typeof plugin.preEvaluateChildren, 'function')
     assert.equal(typeof plugin.getFunctionName(), 'string')
     this._functionPlugins.push(plugin)
   }
@@ -76,7 +77,7 @@ module.exports = class Applier {
     })
   }
 
-  _evaluateVals($lookupEl, vals) {
+  _evaluateVals(context, vals) {
     return vals.map((arg) => {
       switch (arg.type) {
         case 'String':
@@ -87,12 +88,12 @@ module.exports = class Applier {
         case 'Space':
           return ''
         case 'Function':
-          const fnArgs = this._evaluateVals($lookupEl, arg.children.toArray())
+          const fnArgs = this._evaluateVals(context, arg.children.toArray())
           const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0]
           if (!theFunction) {
             throwError(`BUG: Unsupported function ${arg.name}`, arg)
           }
-          return theFunction.evaluateFunction($lookupEl, fnArgs)
+          return theFunction.evaluateFunction(this._$, context, fnArgs)
         default:
           throwError('BUG: Unsupported value type ' + arg.type, arg)
       }
@@ -119,7 +120,7 @@ module.exports = class Applier {
     this._ruleDeclarationPlugins.forEach((ruleDeclarationPlugin) => {
       const value = hackDeclarations[ruleDeclarationPlugin.getRuleName()]
       if (value) {
-        const vals = this._evaluateVals($lookupEl, value.children.toArray())
+        const vals = this._evaluateVals({$contextEl: $lookupEl}, value.children.toArray())
         ruleDeclarationPlugin.evaluateRule($lookupEl, $newEl, vals)
       }
     })

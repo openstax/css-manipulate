@@ -15,16 +15,18 @@ class RuleDeclaration {
     this._fn = fn
   }
   getRuleName() { return this._name }
-  evaluateRule($lookupEl, $els, args) { return this._fn($lookupEl, $els, args) }
+  evaluateRule($lookupEl, $els, args) { return this._fn.apply(null, arguments) }
 }
 
 class FunctionEvaluator {
-  constructor(name, fn) {
+  constructor(name, fn, preFn) {
     this._name = name
-    this._fn = fn
+    this._fn = fn ? fn : ($, context, vals) => { return vals }
+    this._preFn = preFn ? preFn : (context, args) => { return context }
   }
   getFunctionName() { return this._name }
-  evaluateFunction($lookupEl, args) { return this._fn($lookupEl, args) }
+  preEvaluateChildren() { return this._preFn.apply(null, arguments) }
+  evaluateFunction($, context, args) { return this._fn.apply(null, arguments) }
 }
 
 // I promise that I will give you back at least 1 element that has been added to el
@@ -35,14 +37,26 @@ app.addPseudoElement(new PseudoElementEvaluator('Xinside', ($contextEls, $newEl)
 // 'for-each-descendant': () => { }
 
 app.addRuleDeclaration(new RuleDeclaration('content', ($lookupEl, $els, vals) => {
-  $els.children().remove()
-  $els.append(vals.join(''))
+  assert.equal($els.length, 1)
+  $els.contents().remove() // remove so the text nodes are removed as well
+  // Vals could be string, or elements (from `move-here(...)` or `content()`)
+  vals.forEach((val) => {
+    $els.append(val)
+  })
 }))
 app.addRuleDeclaration(new RuleDeclaration('class-add', ($lookupEl, $els, vals) => $els.addClass(vals.join(' '))))
 app.addRuleDeclaration(new RuleDeclaration('class-set', ($lookupEl, $els, vals) => $els.attr('class', vals.join(' '))))
 app.addRuleDeclaration(new RuleDeclaration('class-remove', ($lookupEl, $els, vals) => $els.removeClass(vals.join(' '))))
 
-app.addFunction(new FunctionEvaluator('attr', ($lookupEl, vals) => $lookupEl.attr(vals.join('')) ))
+app.addFunction(new FunctionEvaluator('attr', ($, {$contextEl}, vals) => $contextEl.attr(vals.join('')) ))
+// app.addFunction(new FunctionEvaluator('parent', ($lookupEl, vals) => $lookupEl.attr(vals.join('')) ))
+app.addFunction(new FunctionEvaluator('move-here', ($, {$contextEl}, vals) => {
+  const [selector] = vals
+  const ret = $(selector)
+  ret.detach() // detach (instead of remove) because we do not want to destroy the elements
+  return ret
+}))
+
 
 app.prepare()
 app.process()

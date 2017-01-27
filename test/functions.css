@@ -1,3 +1,5 @@
 a {
   content: attr(href);
 }
+
+.bucket { content: 'Exercises: ' move-here('.exercise'); }
