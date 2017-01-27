@@ -1,0 +1,9 @@
+/* TODO: remove the :Xafter for extra-hard testing */
+/*.chapter:Xafter {
+  content: 'Expected: 4 2 . Actual: ', count-of-type('li'), ' ', target-context('.scope-to-me', count-of-type('li'));
+}*/
+
+li:Xbefore {
+  /*content: target-context('ol,ul', count-of-type('li'));*/
+  content: parent-context(count-of-type('li'));
+}

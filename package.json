@@ -1,13 +1,16 @@
 {
   "scripts": {
-    "start":                                    "node index.js test/functions2",
-    "test": "nyc --reporter html --reporter text node index.js test/1"
+    "start": "ava ./test/index.js",
+    "test": "nyc --reporter html --reporter text ava ./test/index.js"
   },
   "dependencies": {
+    "ava": "^0.17.0",
     "css-tree": "^1.0.0-alpha13",
+    "glob": "^7.1.1",
     "jquery": "^3.1.1",
     "jsdom": "^9.9.1",
     "lodash": "^4.17.4",
+    "mocha": "^3.2.0",
     "nyc": "^10.1.2",
     "parse5": "^3.0.1",
     "yargs": "^6.6.0"

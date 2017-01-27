@@ -6,9 +6,7 @@ const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {throwError} = require('./helper/error')
 
 module.exports = class Applier {
-  constructor(css, html) {
-    this._cssContents = css
-    this._htmlContents = html
+  constructor() {
     this._pseudoElementPlugins = []
     this._ruleDeclarationPlugins = []
     this._functionPlugins = []
@@ -16,6 +14,16 @@ module.exports = class Applier {
 
   // getWindow() { return this._document.defaultView }
   getRoot() { return this._document.documentElement }
+
+  setCSSContents(css, sourcePath) {
+    this._cssContents = css
+    // TODO: do something wit hthe source path
+  }
+
+  setHTMLContents(html, sourcePath) {
+    this._htmlContents = html
+    // TODO: do something wit hthe source path
+  }
 
   addPseudoElement(plugin) {
     assert.equal(typeof plugin.selectorReducer, 'function')
