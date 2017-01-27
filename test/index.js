@@ -1,40 +1,34 @@
 const fs = require('fs')
 const test = require('ava')
-const glob = require('glob')
 const converter = require('../converter')
 
 
-test('Generates all the HTML files', async (t) => {
 
-  return new Promise((resolve, reject) => {
-    glob('test/*.css', (err, files) => {
-      if (err) {
-        reject(err)
-      }
+const FILES_TO_TEST = [
+  '1',
+  'functions',
+  'functions2',
+  'functions3',
+]
 
-      console.log('Testing the following files', files);
 
-      files.forEach((cssPath) => {
-        console.log(`Converting ${cssPath}`)
-        const htmlPath = cssPath.replace('.css', '.in.html')
-        const htmlOutputPath = cssPath.replace('.css', '.out.html')
-        const cssContents = fs.readFileSync(cssPath)
-        const htmlContents = fs.readFileSync(htmlPath)
-        const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
+function buildTest(filename) {
+  const cssPath = `test/${filename}.css`
+  test(`Generates ${cssPath}`, (t) => {
+    const htmlPath = cssPath.replace('.css', '.in.html')
+    const htmlOutputPath = cssPath.replace('.css', '.out.html')
+    const cssContents = fs.readFileSync(cssPath)
+    const htmlContents = fs.readFileSync(htmlPath)
+    const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
 
-        const actualOutput = converter(cssContents, htmlContents, cssPath, htmlPath)
-        if (actualOutput.trim() != expectedOutput.trim()) {
-          // console.log(actualOutput)
-          console.log('Mismatched output');
-          fs.writeFileSync(htmlOutputPath, actualOutput)
-          reject(cssPath)
-        }
-
-      })
-
-      resolve(true)
-    })
+    const actualOutput = converter(cssContents, htmlContents, cssPath, htmlPath)
+    if (actualOutput.trim() != expectedOutput.trim()) {
+      fs.writeFileSync(htmlOutputPath, actualOutput)
+      t.fail('Mismatched output')
+    }
 
   })
+}
 
-})
+
+FILES_TO_TEST.forEach(buildTest)
