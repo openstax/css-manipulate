@@ -1,9 +1,14 @@
-chapter:Xafter(1):Xbefore(1) { content: "Conceptual Questions"; }
-chapter:Xafter(2):Xbefore(1) { content: "Homework Problems"; }
-chapter:Xafter(2):Xbefore(2) { content: "Homework Problems"; }
-chapter:Xafter(2):Xbefore(2) { content: "Homework Problems"; }
-chapter:Xafter:Xbefore { content: "Conceptual Questions"; }
+chapter:Xafter(1):Xbefore(1) { content: "DONOTSHOWME(1)"; }
+chapter:Xafter(2):Xbefore(1) { content: "after2-before1 content"; }
+chapter:Xafter(2):Xbefore(2) { content: "DONOTSHOWME(2)"; }
+chapter:Xafter(2):Xbefore(2) { content: "after2-before2 content"; }
+chapter:Xafter:Xbefore { content: "after1-before1 content"; }
+chapter:Xafter(3) {
+  content: "DONOTSHOWME(3)";
+  content: "after3 content";
+}
+chapter:Xafter(3):Xbefore(3) { content: "DONOTSHOWME(4)"; }
 
-/*assert.equal(app._$('[pseudo="Xafter"]').length, 2)
+/*assert.equal(app._$('[pseudo="Xafter"]').length, 3)
 assert.equal(app._$('[pseudo="Xbefore"]').length, 3)
 assert.equal(app._$('[pseudo="Xafter"] > [pseudo="Xbefore"]').length, 3)*/

@@ -2,15 +2,32 @@ const assert = require('assert')
 const csstree = require('css-tree')
 const jsdom = require('jsdom')
 const jquery = require('jquery')
+const RuleWithPseudos = require('./helper/rule-with-pseudos')
 
 module.exports = class Applier {
   constructor(css, html) {
     this._cssContents = css
     this._htmlContents = html
+    this._pseudoElementPlugins = []
+    this._ruleDeclarationPlugins = []
   }
 
   // getWindow() { return this._document.defaultView }
   getRoot() { return this._document.documentElement }
+
+  addPseudoElement(plugin) {
+    assert.equal(typeof plugin.selectorReducer, 'function')
+    assert.equal(typeof plugin.nodeCreator, 'function')
+    assert.equal(typeof plugin.getPseudoElementName, 'function')
+    assert.equal(typeof plugin.getPseudoElementName(), 'string')
+    this._pseudoElementPlugins.push(plugin)
+  }
+
+  addRuleDeclaration(plugin) {
+    assert.equal(typeof plugin.evaluateRule, 'function')
+    assert.equal(typeof plugin.getRuleName(), 'string')
+    this._ruleDeclarationPlugins.push(plugin)
+  }
 
   prepare(fn) {
     const ast = csstree.parse(this._cssContents.toString(), {positions: true})
@@ -52,9 +69,80 @@ module.exports = class Applier {
   }
 
   run(fn) {
-    walkDOMinOrder(this._document.documentElement, (el) => {
+    this._$('*').each((index, el) => {
       const matches = el.MATCHED_RULES || []
       fn(this._$(el), matches)
+    })
+  }
+
+  process() {
+    const allPseudoElementNames = this._pseudoElementPlugins.map((plugin) => plugin.getPseudoElementName())
+    this.run(($el, rules) => {
+      if (rules.length > 0) {
+
+        const rulesWithPseudos = rules.map((rule) => new RuleWithPseudos(rule, allPseudoElementNames))
+
+        // Recursively walk through the pseudoelements (::after::before(3)::after)
+        // from left-to-right, creating new nodes along the way.
+        // TODO: delay creating the nodes (or at least appending them to the DOM)
+        // until other evaluations have finished.
+        const recursePseudoElements = (depth, rulesWithPseudos, $lookupEl, $contextEls) => {
+
+          const rulesAtDepth = rulesWithPseudos.filter((matchedRuleWithPseudo) => {
+            return matchedRuleWithPseudo.hasDepth(depth)
+          })
+
+          if (rulesAtDepth.length === 0) {
+            return
+          }
+
+          this._pseudoElementPlugins.forEach((pseudoElementPlugin) => {
+            const pseudoElementName = pseudoElementPlugin.getPseudoElementName()
+
+            const matchedRulesAtDepth = rulesAtDepth.filter((rule) => {
+              return rule.getPseudoAt(depth).name === pseudoElementName
+            })
+            const reducedRules = pseudoElementPlugin.selectorReducer(matchedRulesAtDepth, depth)
+            const newNodes = pseudoElementPlugin.nodeCreator(this._$, reducedRules, $contextEls)
+
+            // Zip up the reducedRules with the new DOM nodes that were created and recurse
+            assert.equal(reducedRules.length, newNodes.length)
+            for (let index = 0; index < reducedRules.length; index++) {
+              recursePseudoElements(depth + 1, reducedRules[index], $lookupEl, newNodes[index])
+
+              // Pull out all the declarations for this rule, TODO: sort by selectivity
+              const hackDeclarations = {}
+              // TODO: Decide if rule declarations should be evaluated before or after nested pseudoselectors
+              reducedRules[index].forEach((matchedRule) => {
+                // Only evaluate rules that do not have additional pseudoselectors (more depth available)
+                if (matchedRule.getDepth() - 1 === depth) {
+                  console.log('applying rule declarations at', depth);
+                  matchedRule.getRule().rule.block.children.toArray().forEach((declaration) => {
+                    const {type, important, property, value} = declaration
+                    hackDeclarations[property] = value
+                  })
+                }
+              })
+
+              // now that all the declarations are sorted by selectivity (and filtered so they only occur once)
+              // apply the declarations
+              this._ruleDeclarationPlugins.forEach((ruleDeclarationPlugin) => {
+                const value = hackDeclarations[ruleDeclarationPlugin.getRuleName()]
+                if (value) {
+                  ruleDeclarationPlugin.evaluateRule($lookupEl, newNodes[index], value.children.toArray())
+                }
+              })
+
+            }
+
+
+          })
+
+        }
+        // Start the evaluation
+        recursePseudoElements(0, rulesWithPseudos, $el, $el)
+      }
+
     })
   }
 }
@@ -166,17 +254,6 @@ function findMatchedRules(el, ast) {
 
 
 
-
-
-function walkDOMinOrder(el, fn) {
-  fn(el)
-  if (el.firstElementChild) {
-    walkDOMinOrder(el.firstElementChild, fn)
-  }
-  if (el.nextElementSibling) {
-    walkDOMinOrder(el.nextElementSibling, fn)
-  }
-}
 
 
 
