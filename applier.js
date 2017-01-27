@@ -3,6 +3,7 @@ const csstree = require('css-tree')
 const jsdom = require('jsdom')
 const jquery = require('jquery')
 const RuleWithPseudos = require('./helper/rule-with-pseudos')
+const {throwError} = require('./helper/error')
 
 module.exports = class Applier {
   constructor(css, html) {
@@ -68,6 +69,21 @@ module.exports = class Applier {
     })
   }
 
+  _evaluateVals($lookupEl, vals) {
+    return vals.map((arg) => {
+      switch (arg.type) {
+        case 'String':
+          // strip off the leading and trailing quote characters
+          return arg.value.substring(1, arg.value.length - 1)
+        case 'Space':
+          return ''
+        default:
+          throwError('BUG: Unsupported value type ' + arg.type, arg)
+      }
+    })
+
+  }
+
   run(fn) {
     this._$('*').each((index, el) => {
       const matches = el.MATCHED_RULES || []
@@ -116,7 +132,6 @@ module.exports = class Applier {
               reducedRules[index].forEach((matchedRule) => {
                 // Only evaluate rules that do not have additional pseudoselectors (more depth available)
                 if (matchedRule.getDepth() - 1 === depth) {
-                  console.log('applying rule declarations at', depth);
                   matchedRule.getRule().rule.block.children.toArray().forEach((declaration) => {
                     const {type, important, property, value} = declaration
                     hackDeclarations[property] = value
@@ -129,7 +144,8 @@ module.exports = class Applier {
               this._ruleDeclarationPlugins.forEach((ruleDeclarationPlugin) => {
                 const value = hackDeclarations[ruleDeclarationPlugin.getRuleName()]
                 if (value) {
-                  ruleDeclarationPlugin.evaluateRule($lookupEl, newNodes[index], value.children.toArray())
+                  const vals = this._evaluateVals($lookupEl, value.children.toArray())
+                  ruleDeclarationPlugin.evaluateRule($lookupEl, newNodes[index], vals)
                 }
               })
 

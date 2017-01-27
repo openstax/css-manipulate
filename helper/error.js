@@ -1,7 +1,12 @@
 // Generate pretty messages with source lines for debugging
 function createMessage(message, cssSnippet, $el) {
-  const {start: {line: startLine, column: startColumn}, end: {line: endLine, column: endColumn}} = cssSnippet.loc
-  const cssInfo = `${startLine}:${startColumn}-${endLine}:${endColumn}`
+  let cssInfo
+  if (cssSnippet.loc) {
+    const {start: {line: startLine, column: startColumn}, end: {line: endLine, column: endColumn}} = cssSnippet.loc
+    cssInfo = `${startLine}:${startColumn}-${endLine}:${endColumn}`
+  } else {
+    cssInfo = `(BUG: Invalid cssSnippet) ${JSON.stringify(cssSnippet)}`
+  }
   if ($el) {
     // https://github.com/tmpvar/jsdom/issues/1194
     // jsdom.nodeLocation(el) =

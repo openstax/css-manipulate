@@ -25,19 +25,15 @@ app.addPseudoElement(new PseudoElementEvaluator('outside', ($contextEls, $newEl)
 app.addPseudoElement(new PseudoElementEvaluator('inside', ($contextEls, $newEl) => $contextEls.wrapInner($newEl)))
 // 'for-each-descendant': () => { }
 
-app.addRuleDeclaration(new RuleDeclaration('content', ($lookupEl, $els, args) => {
-  const vals = args.map((arg) => {
-    switch (arg.type) {
-      case 'String':
-        // strip off the leading and trailing quote characters
-        return arg.value.substring(1, arg.value.length - 1)
-      default:
-        throwError('BUG: Unsupported value type ' + arg.type, arg)
-    }
-  })
+app.addRuleDeclaration(new RuleDeclaration('content', ($lookupEl, $els, vals) => {
   $els.children().remove()
   $els.append(vals.join(''))
 }))
+app.addRuleDeclaration(new RuleDeclaration('class-add', ($lookupEl, $els, vals) => $els.addClass(vals.join(' '))))
+app.addRuleDeclaration(new RuleDeclaration('class-set', ($lookupEl, $els, vals) => $els.attr('class', vals.join(' '))))
+app.addRuleDeclaration(new RuleDeclaration('class-remove', ($lookupEl, $els, vals) => $els.removeClass(vals.join(' '))))
+
+// app.addFunction(new FunctionEvaluator())
 
 app.prepare()
 app.process()
