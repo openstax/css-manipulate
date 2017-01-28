@@ -17,12 +17,12 @@ module.exports = class Applier {
 
   setCSSContents(css, sourcePath) {
     this._cssContents = css
-    // TODO: do something wit hthe source path
+    this._cssSourcePath = sourcePath
   }
 
   setHTMLContents(html, sourcePath) {
     this._htmlContents = html
-    // TODO: do something wit hthe source path
+    this._htmlSourcePath = sourcePath
   }
 
   addPseudoElement(plugin) {
@@ -47,7 +47,7 @@ module.exports = class Applier {
   }
 
   prepare(fn) {
-    const ast = csstree.parse(this._cssContents.toString(), {positions: true})
+    const ast = csstree.parse(this._cssContents.toString(), {positions: true, filename: this._cssSourcePath})
     console.info('Parsing HTML')
     this._document = jsdom.jsdom(this._htmlContents)
     this._$ = jquery(this._document.defaultView)
@@ -339,6 +339,7 @@ function toBrowserSelector2(sel) {
           break
         default:
           console.log(sel)
+          throwError(`BUG: Unmatched nameType=${name.type}`, name)
       }
       let val
       if (value) {
@@ -348,6 +349,7 @@ function toBrowserSelector2(sel) {
             break
           default:
             console.log(sel)
+            throwError(`BUG: Unmatched valueType=${value.type}`, value)
         }
         return `[${nam}${sel.operator}${val}]`
       } else {
@@ -385,7 +387,7 @@ function toBrowserSelector2(sel) {
           }
 
         default:
-          throw new Error(`UNKNOWN_PSEUDOCLASS: ${sel.name}`)
+          throwError(`UNKNOWN_PSEUDOCLASS: ${sel.name}`, sel)
       }
 
     case 'PseudoElement':
@@ -398,11 +400,11 @@ function toBrowserSelector2(sel) {
         case 'deferred':
           return ''
         default:
-          throw new Error(`UNKNOWN_PSEUDOELEMENT:${sel.name}(${sel.type})`)
+          throwError(`UNKNOWN_PSEUDOELEMENT:${sel.name}(${sel.type})`, sel)
       }
     default:
       console.log(sel);
-      throw new Error(`UNMATCHED:${sel.name}(${sel.type})`)
+      throwError(`BUG: Unsupported ${sel.name}(${sel.type})`, sel)
   }
 
 }

@@ -9,6 +9,9 @@ const FILES_TO_TEST = [
   'functions',
   'functions2',
   'functions3',
+  'ancestor-context',
+  'inside',
+  // 'outside',
 ]
 
 
@@ -19,12 +22,17 @@ function buildTest(filename) {
     const htmlOutputPath = cssPath.replace('.css', '.out.html')
     const cssContents = fs.readFileSync(cssPath)
     const htmlContents = fs.readFileSync(htmlPath)
-    const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
 
     const actualOutput = converter(cssContents, htmlContents, cssPath, htmlPath)
-    if (actualOutput.trim() != expectedOutput.trim()) {
+
+    if (fs.existsSync(htmlOutputPath)) {
+      const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
+      if (actualOutput.trim() != expectedOutput.trim()) {
+        fs.writeFileSync(htmlOutputPath, actualOutput)
+        t.fail('Mismatched output')
+      }
+    } else {
       fs.writeFileSync(htmlOutputPath, actualOutput)
-      t.fail('Mismatched output')
     }
 
   })

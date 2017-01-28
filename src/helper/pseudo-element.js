@@ -63,8 +63,8 @@ module.exports = class PseudoElementEvaluator {
     return reducedSelectors.map((selectors) => {
       const $newEl = $('<div>')
       $newEl.attr('pseudo', this._pseudoName)
-      this._creator($contextEls, $newEl)
-      return $newEl
+      return this._creator($contextEls, $newEl)
+      // return $newEl
     })
   }
 }

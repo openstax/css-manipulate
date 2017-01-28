@@ -7,53 +7,59 @@ const Applier = require('./applier')
 const PseudoElementEvaluator = require('./helper/pseudo-element')
 const {createMessage, throwError} = require('./helper/error')
 
+class RuleDeclaration {
+  constructor(name, fn) {
+    this._name = name
+    this._fn = fn
+  }
+  getRuleName() { return this._name }
+  evaluateRule($lookupEl, $els, args) { return this._fn.apply(null, arguments) }
+}
+
+class FunctionEvaluator {
+  constructor(name, fn, preFn) {
+    this._name = name
+    this._fn = fn ? fn : ($, context, $currentEl, vals) => { return vals }
+    this._preFn = preFn ? preFn : ($, context, evaluator, args) => { return context }
+  }
+  getFunctionName() { return this._name }
+  preEvaluateChildren() { return this._preFn.apply(null, arguments) }
+  evaluateFunction($, context, $currentEl, args) { return this._fn.apply(null, arguments) }
+}
+
+function flattenVals(vals) {
+  return vals.map((val) => {
+    if (Array.isArray(val)) {
+      return val.join('')
+    } else {
+      return val
+    }
+  })
+}
+
+
+
+
+
 
 module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
 
   const app = new Applier()
 
-  app.setCSSContents(cssContents)
-  app.setHTMLContents(htmlContents)
+  app.setCSSContents(cssContents, cssSourcePath)
+  app.setHTMLContents(htmlContents, htmlSourcePath)
 
-  class RuleDeclaration {
-    constructor(name, fn) {
-      this._name = name
-      this._fn = fn
-    }
-    getRuleName() { return this._name }
-    evaluateRule($lookupEl, $els, args) { return this._fn.apply(null, arguments) }
-  }
-
-  class FunctionEvaluator {
-    constructor(name, fn, preFn) {
-      this._name = name
-      this._fn = fn ? fn : ($, context, $currentEl, vals) => { return vals }
-      this._preFn = preFn ? preFn : ($, context, evaluator, args) => { return context }
-    }
-    getFunctionName() { return this._name }
-    preEvaluateChildren() { return this._preFn.apply(null, arguments) }
-    evaluateFunction($, context, $currentEl, args) { return this._fn.apply(null, arguments) }
-  }
-
-  function flattenVals(vals) {
-    return vals.map((val) => {
-      if (Array.isArray(val)) {
-        return val.join('')
-      } else {
-        return val
-      }
-    })
-  }
 
   // I promise that I will give you back at least 1 element that has been added to el
-  app.addPseudoElement(new PseudoElementEvaluator('Xafter', ($contextEls, $newEl) => $contextEls.append($newEl)))
-  app.addPseudoElement(new PseudoElementEvaluator('Xbefore', ($contextEls, $newEl) => $contextEls.prepend($newEl))) // TODO: These are evaluated in reverse order
-  app.addPseudoElement(new PseudoElementEvaluator('Xoutside', ($contextEls, $newEl) => $contextEls.wrap($newEl)))
-  app.addPseudoElement(new PseudoElementEvaluator('Xinside', ($contextEls, $newEl) => $contextEls.wrapInner($newEl)))
+  app.addPseudoElement(new PseudoElementEvaluator('Xafter', ($contextEls, $newEl) => { $contextEls.append($newEl); return $newEl }))
+  app.addPseudoElement(new PseudoElementEvaluator('Xbefore', ($contextEls, $newEl) => { $contextEls.prepend($newEl); return $newEl })) // TODO: These are evaluated in reverse order
+  app.addPseudoElement(new PseudoElementEvaluator('Xoutside', ($contextEls, $newEl) => { return $contextEls.wrap($newEl).parent() }))
+  app.addPseudoElement(new PseudoElementEvaluator('Xinside', ($contextEls, $newEl) => { return $contextEls.wrapInner($newEl).find(':first-child') })) // Gotta get the first-child because those are the $newEl
   // 'for-each-descendant': () => { }
 
+
   app.addRuleDeclaration(new RuleDeclaration('content', ($lookupEl, $els, vals) => {
-    assert.equal($els.length, 1)
+    // assert.equal($els.length, 1)
     $els.contents().remove() // remove so the text nodes are removed as well
     // Vals could be string, or elements (from `move-here(...)` or `content()`)
     vals.forEach((val) => {
@@ -64,6 +70,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
   app.addRuleDeclaration(new RuleDeclaration('class-set', ($lookupEl, $els, vals) => $els.attr('class', flattenVals(vals).join(' '))))
   app.addRuleDeclaration(new RuleDeclaration('class-remove', ($lookupEl, $els, vals) => $els.removeClass(flattenVals(vals).join(' '))))
 
+
   app.addFunction(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, vals) => { return $contextEl.attr(vals.join('')) } ))
   app.addFunction(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, vals) => {
     const [selector] = vals
@@ -73,8 +80,6 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
   }))
   app.addFunction(new FunctionEvaluator('count-of-type', ($, {$contextEl}, $currentEl, vals) => {
     const [selector] = vals
-    // const $matches = $contextEl.find(selector)
-    // const $closest = $currentEl.closest(selector)
     const $matches = $contextEl.find(selector)
     const $closest = $currentEl.closest(selector)
 
@@ -105,8 +110,25 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
       if ('#' === selector[0]) {
         return {$contextEl: $(selector) }
       } else {
-        return {$contextEl: $contextEl.find(selector) }
+        throwError(`ERROR: Only selectors starting with "#" are supported for now`, args[0], $currentEl)
+        // return {$contextEl: $contextEl.find(selector) }
       }
+  }))
+  app.addFunction(new FunctionEvaluator('ancestor-context',
+    ($, context, $currentEl, vals) => {
+      // skip the 1st arg which is the selector
+      return vals.slice(1)
+    },
+    ($, context, $currentEl, evaluator, args) => {
+      const {$contextEl} = context
+      const selector = evaluator(context, $currentEl, [args[0]]).join('')
+
+      const $closestAncestor = $contextEl.closest(selector)
+      if ($closestAncestor.length !== 1) {
+        throwError('ERROR: Could not find ancestor-context', args[0], $currentEl)
+      }
+      // If we are looking up an id then look up against the whole document
+      return {$contextEl: $closestAncestor }
   }))
 
 

@@ -1,9 +1,11 @@
+const jsdom = require('jsdom')
+
 // Generate pretty messages with source lines for debugging
 function createMessage(message, cssSnippet, $el) {
   let cssInfo
   if (cssSnippet.loc) {
-    const {start: {line: startLine, column: startColumn}, end: {line: endLine, column: endColumn}} = cssSnippet.loc
-    cssInfo = `${startLine}:${startColumn}-${endLine}:${endColumn}`
+    const {source: cssSourcePath, start: {line: startLine, column: startColumn}, end: {line: endLine, column: endColumn}} = cssSnippet.loc
+    cssInfo = `${cssSourcePath} @ ${startLine}:${startColumn}-${endLine}:${endColumn}`
   } else {
     cssInfo = `(BUG: Invalid cssSnippet) ${JSON.stringify(cssSnippet)}`
   }
