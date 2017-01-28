@@ -5,6 +5,18 @@ const jquery = require('jquery')
 const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {throwError} = require('./helper/error')
 
+
+function walkDOMinOrder(el, fn) {
+  fn(el)
+  if (el.firstElementChild) {
+    walkDOMinOrder(el.firstElementChild, fn)
+  }
+  if (el.nextElementSibling) {
+    walkDOMinOrder(el.nextElementSibling, fn)
+  }
+}
+
+
 module.exports = class Applier {
   constructor() {
     this._pseudoElementPlugins = []
@@ -72,15 +84,12 @@ module.exports = class Applier {
       rule.selector.children.each((selector) => {
         assert.equal(selector.type, 'Selector')
         const browserSelector = toBrowserSelector(selector)
-        const matchedNodes = this._document.querySelectorAll(browserSelector)
+        const $matchedNodes = this._$(browserSelector)
 
-        // jsdom does not support matchedNodes.forEach
-        for (let i = 0; i < matchedNodes.length; i++) {
-          const el = matchedNodes.item(i)
-
+        $matchedNodes.each((index, el) => {
           el.MATCHED_RULES = el.MATCHED_RULES || []
           el.MATCHED_RULES.push({rule, selector})
-        }
+        })
       })
     })
   }
@@ -100,7 +109,7 @@ module.exports = class Applier {
         case 'Function':
           const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0]
           if (!theFunction) {
-            throwError(`BUG: Unsupported function ${arg.name}`, arg)
+            throwError(`BUG: Unsupported function named ${arg.name}`, arg)
           }
           const newContext = theFunction.preEvaluateChildren(this._$, context, $currentEl, this._evaluateVals.bind(this), arg.children.toArray())
           const fnArgs = this._evaluateVals(newContext, $currentEl, arg.children.toArray())
@@ -139,7 +148,7 @@ module.exports = class Applier {
   }
 
   run(fn) {
-    this._$('*').each((index, el) => {
+    walkDOMinOrder(this._document.documentElement, (el) => {
       const matches = el.MATCHED_RULES || []
       fn(this._$(el), matches)
     })
@@ -317,6 +326,8 @@ function toBrowserSelector(selector) {
 
 function toBrowserSelector2(sel) {
   switch (sel.type) {
+    case 'Universal':
+      return sel.name
     case 'Type':
       return sel.name
     case 'Id':
@@ -371,9 +382,9 @@ function toBrowserSelector2(sel) {
         case 'Xoutside':
         case 'Xinside':
         case 'Xfor-each-descendant':
-        case 'has':
           return '';
         // keep these
+        case 'has':
         case 'last-child':
         case 'not':
           if (sel.children) {
