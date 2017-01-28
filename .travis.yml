@@ -1,0 +1,5 @@
+language: node_js
+
+after_script:
+  # Report coverage to codecov
+  - bash <(curl -s https://codecov.io/bash)

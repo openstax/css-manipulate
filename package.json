@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "ava --watch --source '**/*.{js}' --source 'test/*.{css,in.html}' ./test/index.js",
-    "test": "nyc --reporter html --reporter text ava ./test/index.js"
+    "test": "nyc --reporter html --reporter text --reporter json ava ./test/index.js"
   },
   "dependencies": {
     "css-tree": "^1.0.0-alpha13",
