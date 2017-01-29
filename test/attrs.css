@@ -1,0 +1,16 @@
+/* Please wrap everyhtin in quotes. `class` and `calculus` are just for testing. TODO: Validation error otherwise*/
+p { attrs-add: 'id' 'id3.1415', class calculus; }
+ol {
+  /*TODO: Flip these 2 for extra testing*/
+  attrs-remove: 'data-remove-me', data-remove-me-too, 'data-non-existent-attribute';
+  attrs-add: 'data-show-me' 'kit' 'tens', 'data-show-me-too' 'puppies';
+}
+
+
+ul {
+  /* TODO: Flip these to test selectivity */
+  attrs-add: 'ERRROR-BUG' 'this should not be in the resulting HTML';
+  attrs-remove: 'data-keep-me';
+  attrs-add: none;
+  attrs-remove: none;
+}

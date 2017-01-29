@@ -570,3 +570,9 @@ exercise.conceptual {
 # All things combined
 
 Since these are composable, all of the examples combined together should yield what each one does independently :smile:
+
+
+
+# TODO:
+
+would `attrs-remove: *` or something work better than `attrs-set: name1 val1, name2 val2` (given that there is also `attrs-add:`)

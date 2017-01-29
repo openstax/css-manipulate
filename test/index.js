@@ -14,6 +14,8 @@ const FILES_TO_TEST = [
   'functions3',
   'ancestor-context',
   'inside',
+  'attrs',
+  'class',
 
   // 'apphysics',
   // 'outside',

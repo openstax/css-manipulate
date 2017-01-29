@@ -12,3 +12,8 @@ chapter:Xafter(3):Xbefore(3) { content: "DONOTSHOWME(4)"; }
 /*assert.equal(app._$('[pseudo="Xafter"]').length, 3)
 assert.equal(app._$('[pseudo="Xbefore"]').length, 3)
 assert.equal(app._$('[pseudo="Xafter"] > [pseudo="Xbefore"]').length, 3)*/
+
+
+/* TODO: if there are no rules (and no nested pseudoelements that would require this on to be generated) then the pseudoelement should not be rendered
+chapter:XOutside(100) { }
+*/

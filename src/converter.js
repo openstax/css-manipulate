@@ -76,9 +76,66 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
       $els.append(val)
     })
   }))
-  app.addRuleDeclaration(new RuleDeclaration('class-add', ($lookupEl, $els, vals) => $els.addClass(flattenVals(vals).join(' ')) ))
-  app.addRuleDeclaration(new RuleDeclaration('class-set', ($lookupEl, $els, vals) => $els.attr('class', flattenVals(vals).join(' '))))
-  app.addRuleDeclaration(new RuleDeclaration('class-remove', ($lookupEl, $els, vals) => $els.removeClass(flattenVals(vals).join(' '))))
+  app.addRuleDeclaration(new RuleDeclaration('class-add', ($lookupEl, $els, vals) => {
+    assert(vals.length >= 1)
+    // Do nothing when set to none;
+    // TODO: verify that it is not the string "none" (also needed for format-number())
+    if (vals[0][0] === 'none') {
+      assert.equal(vals.length, 1)
+      assert.equal(vals[0].length, 1)
+      return
+    }
+    vals.forEach((val) => {
+      $els.addClass(val.join(' ')) // use space so people can write `class-add: 'foo' 'bar'`
+    })
+  }))
+  app.addRuleDeclaration(new RuleDeclaration('class-remove', ($lookupEl, $els, vals) => {
+    // Do nothing when set to none;
+    // TODO: verify that it is not the string "none" (also needed for format-number())
+    if (vals[0][0] === 'none') {
+      assert.equal(vals.length, 1)
+      assert.equal(vals[0].length, 1)
+      return
+    }
+    vals.forEach((val) => {
+      $els.removeClass(val.join(' '))
+    })
+  }))
+// TODO: Support class-add: none; class-remove: none;
+
+  app.addRuleDeclaration(new RuleDeclaration('attrs-add', ($lookupEl, $els, vals) => {
+    // attrs-add: attr1Name attr1Value attr1AdditionalValue , attr2Name ...
+    assert(vals.length >= 1)
+    // Do nothing when set to none;
+    // TODO: verify that it is not the string "none" (also needed for format-number())
+    if (vals[0][0] === 'none') {
+      assert.equal(vals.length, 1)
+      assert.equal(vals[0].length, 1)
+      return
+    }
+    vals.forEach((val) => {
+      assert(val.length >= 2)
+      const attrName = val[0]
+      const attrValue = val.slice(1).join('')
+      $els.attr(attrName, attrValue)
+    })
+  }))
+  app.addRuleDeclaration(new RuleDeclaration('attrs-remove', ($lookupEl, $els, vals) => {
+    // attrs-remove: attr1Name, attr2Name ...
+    assert(vals.length >= 1)
+    // Do nothing when set to none;
+    // TODO: verify that it is not the string "none" (also needed for format-number())
+    if (vals[0][0] === 'none') {
+      assert.equal(vals.length, 1)
+      assert.equal(vals[0].length, 1)
+      return
+    }
+    vals.forEach((val) => {
+      assert.equal(val.length, 1)
+      const attrName = val[0]
+      $els.removeAttr(attrName)
+    })
+  }))
 
 
   app.addFunction(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, vals) => {
