@@ -1,10 +1,12 @@
 {
   "scripts": {
+    "rebuild-tests": "WRITE_TEST_RESULTS=true ava ./test/index.js",
     "start": "ava --watch --source '**/*.{js}' --source 'test/*.{css,in.html}' ./test/index.js",
     "test": "nyc --reporter html --reporter text --reporter json ava ./test/index.js"
   },
   "dependencies": {
     "css-tree": "^1.0.0-alpha13",
+    "fast-diff": "^1.1.1",
     "jquery": "^3.1.1",
     "jsdom": "^9.9.1",
     "lodash": "^4.17.4",

@@ -1,7 +1,9 @@
 const fs = require('fs')
 const test = require('ava')
 const converter = require('../src/converter')
+const diff = require('fast-diff')
 
+const {WRITE_TEST_RESULTS} = process.env
 
 
 const FILES_TO_TEST = [
@@ -12,6 +14,7 @@ const FILES_TO_TEST = [
   'functions3',
   'ancestor-context',
   'inside',
+
   // 'apphysics',
   // 'outside',
 ]
@@ -33,11 +36,18 @@ function buildTest(filename) {
     if (fs.existsSync(htmlOutputPath)) {
       const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
       if (actualOutput.trim() != expectedOutput.trim()) {
-        fs.writeFileSync(htmlOutputPath, actualOutput)
-        t.fail('Mismatched output')
+        if (WRITE_TEST_RESULTS === 'true') {
+          fs.writeFileSync(htmlOutputPath, actualOutput)
+        } else {
+          console.log(diff(expectedOutput.trim(), actualOutput.trim()))
+          t.fail('Mismatched output')
+        }
       }
     } else {
+      // If the file does not exist yet then write it out to disk
+      // if (WRITE_TEST_RESULTS === 'true') {
       fs.writeFileSync(htmlOutputPath, actualOutput)
+      // }
     }
 
   })
