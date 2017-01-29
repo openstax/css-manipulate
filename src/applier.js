@@ -95,17 +95,25 @@ module.exports = class Applier {
   }
 
   _evaluateVals(context, $currentEl, vals) {
-    return vals.map((arg) => {
+    // use comma ('Operator') to denote multiple arguments
+    const ret = []
+    let index = 0
+    ret[index] = []
+    vals.forEach((arg) => {
       switch (arg.type) {
         case 'String':
           // strip off the leading and trailing quote characters
-          return arg.value.substring(1, arg.value.length - 1)
+          ret[index].push(arg.value.substring(1, arg.value.length - 1))
+          break
         case 'Identifier':
-          return arg.name
+          ret[index].push(arg.name)
+          break
         case 'Space':
           return ''
         case 'Operator': // comma TODO: Group items based on this operator
-          return ''
+          index += 1
+          ret[index] = []
+          break
         case 'Function':
           const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0]
           if (!theFunction) {
@@ -113,11 +121,17 @@ module.exports = class Applier {
           }
           const newContext = theFunction.preEvaluateChildren(this._$, context, $currentEl, this._evaluateVals.bind(this), arg.children.toArray())
           const fnArgs = this._evaluateVals(newContext, $currentEl, arg.children.toArray())
-          return theFunction.evaluateFunction(this._$, newContext, $currentEl, fnArgs) // Should not matter if this is context or newContext
+          const fnReturnVal = theFunction.evaluateFunction(this._$, newContext, $currentEl, fnArgs)
+          if (!(typeof fnReturnVal === 'string' || typeof fnReturnVal === 'number' || (typeof fnReturnVal === 'object' && typeof fnReturnVal.appendTo === 'function'))) {
+            throwError(`BUG: CSS function should return a string or number. Found ${typeof fnReturnVal} while evaluating ${theFunction.getFunctionName()}.`, arg, $currentEl)
+          }
+          ret[index].push(fnReturnVal) // Should not matter if this is context or newContext
+          break
         default:
           throwError('BUG: Unsupported value type ' + arg.type, arg)
       }
     })
+    return ret
 
   }
 
@@ -141,7 +155,11 @@ module.exports = class Applier {
       const value = hackDeclarations[ruleDeclarationPlugin.getRuleName()]
       if (value) {
         const vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, value.children.toArray())
-        ruleDeclarationPlugin.evaluateRule($currentEl, $newEl, vals)
+        try {
+          ruleDeclarationPlugin.evaluateRule($currentEl, $newEl, vals)
+        } catch (e) {
+          throwError(`BUG: evaluating ${ruleDeclarationPlugin.getRuleName()}`, value, $currentEl, e)
+        }
       }
     })
 

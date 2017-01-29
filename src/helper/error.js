@@ -24,8 +24,14 @@ function createMessage(message, cssSnippet, $el) {
   }
 }
 
-function throwError(message, cssSnippet, $el) {
-  throw new Error(createMessage(message, cssSnippet, $el))
+function throwError(message, cssSnippet, $el, err) {
+  const msg = createMessage(message, cssSnippet, $el)
+  if (err) {
+    console.error(msg)
+    throw err
+  } else {
+    throw new Error(msg)
+  }
 }
 
 module.exports = {createMessage, throwError}

@@ -6,7 +6,6 @@ chapter:Xafter:Xbefore { content: "after1-before1 content"; }
 chapter:Xafter(3) {
   content: "DONOTSHOWME(3)";
   content: "after3 content";
-  class-add: "foo" "bar";
 }
 chapter:Xafter(3):Xbefore(3) { content: "DONOTSHOWME(4)"; }
 
