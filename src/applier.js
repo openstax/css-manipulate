@@ -156,7 +156,7 @@ module.exports = class Applier {
       if (value) {
         const vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, value.children.toArray())
         try {
-          ruleDeclarationPlugin.evaluateRule($currentEl, $newEl, vals)
+          ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $newEl, vals)
         } catch (e) {
           throwError(`BUG: evaluating ${ruleDeclarationPlugin.getRuleName()}`, value, $currentEl, e)
         }

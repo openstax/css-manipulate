@@ -575,4 +575,13 @@ Since these are composable, all of the examples combined together should yield w
 
 # TODO:
 
-would `attrs-remove: *` or something work better than `attrs-set: name1 val1, name2 val2` (given that there is also `attrs-add:`)
+- [x] Support `tag-name-set:`
+- [ ] Support selector specificity
+- [ ] Support `!important`
+- [ ] Add `::for-each-descendant(${SELECTOR})`
+- [ ] Add `:target(${TARGET_SELECTOR}, ${MATCH_SELECTORS...})`
+- [ ] Support `::inside(1, ${SELECTORS})`
+- [ ] Show colorful error messages
+- [ ] Show colorful warnings
+- [ ] Support `attrs-remove: *` instead of `attrs-set:` because they are as interchangeable and the order-of-evaluation is easier (only need to know 2: `attr-add:` and `attr-remove:`)
+- [ ] output a sourcemap file (contains all the strings in the resulting HTML file that came from the CSS file)

@@ -62,7 +62,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
   // 'for-each-descendant': () => { }
 
 
-  app.addRuleDeclaration(new RuleDeclaration('content', ($lookupEl, $els, vals) => {
+  app.addRuleDeclaration(new RuleDeclaration('content', ($, $lookupEl, $els, vals) => {
     // content: does not allow commas so there should only be 1 arg
     // (which can contain a mix of strings and jQuery elements and numbers)
     assert.equal(vals.length, 1)
@@ -76,7 +76,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
       $els.append(val)
     })
   }))
-  app.addRuleDeclaration(new RuleDeclaration('class-add', ($lookupEl, $els, vals) => {
+  app.addRuleDeclaration(new RuleDeclaration('class-add', ($, $lookupEl, $els, vals) => {
     assert(vals.length >= 1)
     // Do nothing when set to none;
     // TODO: verify that it is not the string "none" (also needed for format-number())
@@ -89,7 +89,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
       $els.addClass(val.join(' ')) // use space so people can write `class-add: 'foo' 'bar'`
     })
   }))
-  app.addRuleDeclaration(new RuleDeclaration('class-remove', ($lookupEl, $els, vals) => {
+  app.addRuleDeclaration(new RuleDeclaration('class-remove', ($, $lookupEl, $els, vals) => {
     // Do nothing when set to none;
     // TODO: verify that it is not the string "none" (also needed for format-number())
     if (vals[0][0] === 'none') {
@@ -103,7 +103,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
   }))
 // TODO: Support class-add: none; class-remove: none;
 
-  app.addRuleDeclaration(new RuleDeclaration('attrs-add', ($lookupEl, $els, vals) => {
+  app.addRuleDeclaration(new RuleDeclaration('attrs-add', ($, $lookupEl, $els, vals) => {
     // attrs-add: attr1Name attr1Value attr1AdditionalValue , attr2Name ...
     assert(vals.length >= 1)
     // Do nothing when set to none;
@@ -120,7 +120,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
       $els.attr(attrName, attrValue)
     })
   }))
-  app.addRuleDeclaration(new RuleDeclaration('attrs-remove', ($lookupEl, $els, vals) => {
+  app.addRuleDeclaration(new RuleDeclaration('attrs-remove', ($, $lookupEl, $els, vals) => {
     // attrs-remove: attr1Name, attr2Name ...
     assert(vals.length >= 1)
     // Do nothing when set to none;
@@ -136,7 +136,42 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
       $els.removeAttr(attrName)
     })
   }))
+  app.addRuleDeclaration(new RuleDeclaration('tag-name-set', ($, $lookupEl, $els, vals) => {
+    assert($els.length === 1) // Just for now, If this gets fired then it might be fixable by looping
+    assert(vals.length === 1)
+    // Do nothing when set to default;
+    // TODO: verify that it is not the string "default" (also needed for format-number())
+    if (vals[0][0] === 'default') {
+      assert.equal(vals.length, 1)
+      assert.equal(vals[0].length, 1)
+      return
+    }
+    assert.equal(vals[0].length, 1)
+    const tagName = vals[0][0]
 
+    // http://stackoverflow.com/a/21727562
+    // http://stackoverflow.com/a/9468280
+    function replaceTagName(replaceWith) {
+        var tags = [],
+            i    = this.length;
+        while (i--) {
+            var newElement = $(`<${replaceWith}/>`)[0],
+                thisi      = this[i],
+                thisia     = thisi.attributes;
+            for (var a = thisia.length - 1; a >= 0; a--) {
+                var attrib = thisia[a];
+                newElement.setAttribute(attrib.name, attrib.value);
+            };
+            newElement.innerHTML = thisi.innerHTML;
+            $(thisi).after(newElement).remove();
+            tags[i] = newElement;
+        }
+        return $(tags);
+    }
+    return replaceTagName.bind($els)(tagName)
+  }))
+  // FIXME: tag-name-set MUST be the last rule evaluated becuase it changes the $els set.
+  // So until evaluateRule can return a new set of els this needs to be the last rule that is evaluated
 
   app.addFunction(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, vals) => {
     // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
