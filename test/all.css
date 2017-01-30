@@ -16,13 +16,13 @@ chapter:Xafter(1) { content: move-here('exercise.conceptual', default); }
 chapter:Xafter(2) { content: move-here('exercise.homework', default); }
 
 /* Case 4 */
-chapter:Xafter(1):Xfor-each-descendant('> section'),
-chapter:Xafter(2):Xfor-each-descendant('> section') {
+chapter:Xafter(1):Xfor-each-descendant(1, '> section'),
+chapter:Xafter(2):Xfor-each-descendant(1, '> section') {
   class-add: "eoc-section";
   content: move-here('exercise.homework', default);
 }
-chapter:Xafter(1):Xfor-each-descendant('> section'):Xbefore(1),
-chapter:Xafter(2):Xfor-each-descendant('> section'):Xbefore(1) {
+chapter:Xafter(1):Xfor-each-descendant(1, '> section'):Xbefore(1),
+chapter:Xafter(2):Xfor-each-descendant(1, '> section'):Xbefore(1) {
   class-add: "title";
   content: target-context('> title', contents());
 }

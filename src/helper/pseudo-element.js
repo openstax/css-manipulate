@@ -59,11 +59,14 @@ module.exports = class PseudoElementEvaluator {
     return ret
   }
 
-  nodeCreator($, reducedSelectors, $contextEls) {
+  nodeCreator($, reducedSelectors, $contextEls, depth) {
     return reducedSelectors.map((selectors) => {
+      // Some pseudoelement selectors have an additional arg (like ::for-each)
+      // HACK: Just use the 2nd arg of the first-found pseudo-selector. Eventually, loop over all selectors, find the unique 2ndargs, and run this._creator on them
+      const {secondArg} = selectors[0].getPseudoAt(depth)
       const $newEl = $('<div>')
       $newEl.attr('pseudo', this._pseudoName)
-      return this._creator($contextEls, $newEl)
+      return this._creator($contextEls, $newEl, secondArg)
       // return $newEl
     })
   }

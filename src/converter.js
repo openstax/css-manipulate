@@ -59,7 +59,12 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
   app.addPseudoElement(new PseudoElementEvaluator('Xbefore', ($contextEls, $newEl) => { $contextEls.prepend($newEl); return $newEl })) // TODO: These are evaluated in reverse order
   app.addPseudoElement(new PseudoElementEvaluator('Xoutside', ($contextEls, $newEl) => { return $contextEls.wrap($newEl).parent() }))
   app.addPseudoElement(new PseudoElementEvaluator('Xinside', ($contextEls, $newEl) => { return $contextEls.wrapInner($newEl).find(':first-child') })) // Gotta get the first-child because those are the $newEl
-  // 'for-each-descendant': () => { }
+  app.addPseudoElement(new PseudoElementEvaluator('Xfor-each-descendant', ($contextEls, $newEl, secondArg) => {
+    assert(secondArg) // it is required for for-each
+    assert.equal(secondArg.type, 'String')
+    return $newEl
+  }))
+
 
 
   app.addRuleDeclaration(new RuleDeclaration('content', ($, $lookupEl, $els, vals) => {

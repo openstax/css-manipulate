@@ -208,7 +208,7 @@ module.exports = class Applier {
               return rule.getPseudoAt(depth).name === pseudoElementName
             })
             const reducedRules = pseudoElementPlugin.selectorReducer(matchedRulesAtDepth, depth)
-            const newNodes = pseudoElementPlugin.nodeCreator(this._$, reducedRules, $contextEls)
+            const newNodes = pseudoElementPlugin.nodeCreator(this._$, reducedRules, $contextEls, depth)
 
             // Zip up the reducedRules with the new DOM nodes that were created and recurse
             assert.equal(reducedRules.length, newNodes.length)

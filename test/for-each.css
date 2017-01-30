@@ -1,0 +1,14 @@
+chapter:Xafter(1):Xfor-each-descendant(1, '> section'),
+chapter:Xafter(2):Xfor-each-descendant(1, '> section') {
+  class-add: "eoc-section";
+}
+
+chapter:Xafter(1):Xfor-each-descendant(1, '> section') { content: move-here('exercise.homework'); }
+chapter:Xafter(1):Xfor-each-descendant(1, '> section') { content: move-here('exercise.conceptual'); }
+
+chapter:Xafter(1):Xfor-each-descendant(1, '> section'):Xbefore(1),
+chapter:Xafter(2):Xfor-each-descendant(1, '> section'):Xbefore(1) {
+  class-add: "title";
+  /*content: target-context('> title', contents());*/
+  content: "PLACEHOLDER";
+}
