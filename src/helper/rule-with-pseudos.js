@@ -20,6 +20,7 @@ module.exports = class RuleWithPseudos {
     })
   }
   getRule() { return this._rule }
+  getMatchedSelector() { return this._rule.selector }
   getDepth() { return this._pseudos.length }
   hasDepth(depth) { return depth < this.getDepth() }
   getPseudoAt(depth) {
@@ -27,5 +28,6 @@ module.exports = class RuleWithPseudos {
     if (!ret) {
       throwError("BUG: Invalid depth=${depth}", this._rule)
     }
-    return ret }
+    return ret
+  }
 }

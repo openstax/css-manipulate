@@ -3,6 +3,7 @@ const csstree = require('css-tree')
 const jsdom = require('jsdom')
 const jquery = require('jquery')
 const RuleWithPseudos = require('./helper/rule-with-pseudos')
+const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
 const {throwError} = require('./helper/error')
 
 
@@ -136,15 +137,17 @@ module.exports = class Applier {
   }
 
   _evaluateRules(depth, rules, $currentEl, $newEl) {
-    // Pull out all the declarations for this rule, TODO: sort by selectivity
-    const hackDeclarations = {}
+    // Pull out all the declarations for this rule, and then later sort by specificity.
+    // The structure is {'content': [ {specificity: [1,0,1], isImportant: false}, ... ]}
+    const declarationsMap = {}
     // TODO: Decide if rule declarations should be evaluated before or after nested pseudoselectors
     rules.forEach((matchedRule) => {
       // Only evaluate rules that do not have additional pseudoselectors (more depth available)
       if (matchedRule.getDepth() - 1 === depth) {
         matchedRule.getRule().rule.block.children.toArray().forEach((declaration) => {
           const {type, important, property, value} = declaration
-          hackDeclarations[property] = value
+          declarationsMap[property] = declarationsMap[property] || []
+          declarationsMap[property].push({value, specificity: getSpecificity(matchedRule.getMatchedSelector(), depth), isImportant: important, selector: matchedRule.getMatchedSelector()})
         })
       }
     })
@@ -152,13 +155,18 @@ module.exports = class Applier {
     // now that all the declarations are sorted by selectivity (and filtered so they only occur once)
     // apply the declarations
     this._ruleDeclarationPlugins.forEach((ruleDeclarationPlugin) => {
-      const value = hackDeclarations[ruleDeclarationPlugin.getRuleName()]
-      if (value) {
-        const vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, value.children.toArray())
-        try {
-          ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $newEl, vals)
-        } catch (e) {
-          throwError(`BUG: evaluating ${ruleDeclarationPlugin.getRuleName()}`, value, $currentEl, e)
+      let declarations = declarationsMap[ruleDeclarationPlugin.getRuleName()]
+      if (declarations) {
+        declarations = declarations.sort(SPECIFICITY_COMPARATOR)
+        // use the last declaration because that's how CSS works; the last rule (all-other-things-equal) wins
+        const {value, specificity, isImportant, selector} = declarations[declarations.length - 1]
+        if (value) {
+          const vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, value.children.toArray())
+          try {
+            ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $newEl, vals)
+          } catch (e) {
+            throwError(`BUG: evaluating ${ruleDeclarationPlugin.getRuleName()}`, value, $currentEl, e)
+          }
         }
       }
     })
@@ -222,112 +230,6 @@ module.exports = class Applier {
     })
   }
 }
-
-
-
-// Compares 2 selectors as defined in http://www.w3.org/TR/CSS21/cascade.html#specificity
-//
-// - count the number of ID attributes in the selector
-// - count the number of other attributes and pseudo-classes in the selector
-// - count the number of element names and pseudo-elements in the selector
-function CSS_SELECTIVITY_COMPARATOR(cls1, cls2) {
-  const elements1 = cls1.elements;
-  const elements2 = cls2.elements;
-  if (!(elements1 || elements2)) {
-    console.error('BUG: Selectivity Comparator has null elements');
-  }
-  function compare(iterator, els1, els2) {
-    const x1 = _.reduce(elements1, iterator, 0);
-    const x2 = _.reduce(elements2, iterator, 0);
-    if (x1 < x2) {
-      return -1;
-    }
-    if (x1 > x2) {
-      return 1;
-    }
-    return 0;
-  }
-  function isIdAttrib(n, el) {
-    if (el.value && '#' === el.value[0]) {
-      return n + 1
-    } else {
-      return n
-    }
-  }
-  function isClassOrAttrib(n, el) {
-    if ('.' === el.value[0] || '[' === el.value[0]) {
-      return n + 1;
-    }
-    return n;
-  };
-  function isElementOrPseudo(n, el) {
-    if ((el.value instanceof less.tree.Attribute) || ':' === el.value[0] || /^[a-zA-Z]/.test(el.value)) {
-      return n + 1;
-    }
-    return n;
-  };
-  return compare(isIdAttrib) || compare(isClassOrAttrib) || compare(isElementOrPseudo);
-};
-
-function SPECIFICITY_SORT(autogenClasses) {
-  var autogenClass, foundDisplayRule, i, j, k, len, len1, newRules, ref, rule;
-  newRules = [];
-  // Sort the prevClasses by specificity
-  // as defined in http://www.w3.org/TR/CSS21/cascade.html#specificity
-  // TODO: Move this into the `else` clause for performance
-  autogenClasses.sort(CSS_SELECTIVITY_COMPARATOR);
-  for (j = 0, len = autogenClasses.length; j < len; j++) {
-    autogenClass = autogenClasses[j];
-    ref = autogenClass.rules;
-    for (k = 0, len1 = ref.length; k < len1; k++) {
-      rule = ref[k];
-      newRules.push(rule);
-    }
-  }
-  // Special-case `display: none;` because the DisplayNone plugin
-  // and FixedPointRunner are a little naive and do not stop early enough
-  foundDisplayRule = false;
-  // Reverse the rules (most-specific first) so the while loop peels off
-  // everything but the most-specific rule
-  newRules.reverse();
-  i = 0;
-  while (i < newRules.length) {
-    if ('display' === newRules[i].name) {
-      if (foundDisplayRule) {
-        newRules.splice(i, 1);
-        continue;
-      } else {
-        foundDisplayRule = true;
-      }
-    }
-    i += 1;
-  }
-  // Do not flip it back so most-specific is first
-  return newRules;
-};
-
-
-
-function findMatchedRules(el, ast) {
-  matches = []
-
-  ast.children.each((rule) => {
-    // if not a rule then return
-    if (rule.type === 'Atrule') {
-      return
-    }
-    assert.equal(rule.type, 'Rule')
-    rule.selector.children.each((selector) => {
-      assert.equal(selector.type, 'Selector')
-      const browserSelector = toBrowserSelector(selector)
-      if (el.matches(browserSelector)) {
-        matches.push(rule)
-      }
-    })
-  })
-  return matches
-}
-
 
 
 
