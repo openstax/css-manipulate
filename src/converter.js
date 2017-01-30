@@ -55,14 +55,30 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
 
 
   // I promise that I will give you back at least 1 element that has been added to el
-  app.addPseudoElement(new PseudoElementEvaluator('Xafter', ($contextEls, $newEl) => { $contextEls.append($newEl); return $newEl }))
-  app.addPseudoElement(new PseudoElementEvaluator('Xbefore', ($contextEls, $newEl) => { $contextEls.prepend($newEl); return $newEl })) // TODO: These are evaluated in reverse order
-  app.addPseudoElement(new PseudoElementEvaluator('Xoutside', ($contextEls, $newEl) => { return $contextEls.wrap($newEl).parent() }))
-  app.addPseudoElement(new PseudoElementEvaluator('Xinside', ($contextEls, $newEl) => { return $contextEls.wrapInner($newEl).find(':first-child') })) // Gotta get the first-child because those are the $newEl
-  app.addPseudoElement(new PseudoElementEvaluator('Xfor-each-descendant', ($contextEls, $newEl, secondArg) => {
+  app.addPseudoElement(new PseudoElementEvaluator('Xafter', ($lookupEl, $contextEls, $newEl, secondArg) => { $contextEls.append($newEl); return [{$newEl: $newEl, $newLookupEl: $lookupEl}] }))
+  app.addPseudoElement(new PseudoElementEvaluator('Xbefore', ($lookupEl, $contextEls, $newEl, secondArg) => { $contextEls.prepend($newEl); return [{$newEl: $newEl, $newLookupEl: $lookupEl}] })) // TODO: These are evaluated in reverse order
+  app.addPseudoElement(new PseudoElementEvaluator('Xoutside', ($lookupEl, $contextEls, $newEl, secondArg) => { return [{$newEl: $contextEls.wrap($newEl).parent(), $newLookupEl: $lookupEl}] }))
+  app.addPseudoElement(new PseudoElementEvaluator('Xinside', ($lookupEl, $contextEls, $newEl, secondArg) =>  { return [{$newEl: $contextEls.wrapInner($newEl).find(':first-child') , $newLookupEl: $lookupEl}] })) // Gotta get the first-child because those are the $newEl
+  app.addPseudoElement(new PseudoElementEvaluator('Xfor-each-descendant', ($lookupEl, $contextEls, $newEl, secondArg) => {
     assert(secondArg) // it is required for for-each
     assert.equal(secondArg.type, 'String')
-    return $newEl
+    // Strip off the quotes in secondArg.value
+    const selector = secondArg.value.substring(1, secondArg.value.length - 1)
+    const $newLookupEls = $lookupEl.find(selector)
+    if ($newLookupEls.length === 0) {
+      throwError(`ERROR: This for-loop does not match any elements. Eventually this could be a warning`, secondArg, $lookupEl)
+    }
+
+    const ret = []
+    $newLookupEls.each((index, newLookupEl) => {
+      const $newEl = app._$('<div/>')
+      $contextEls.append($newEl)
+      ret.push({
+        $newEl: $newEl,
+        $newLookupEl: app._$(newLookupEl)
+      })
+    })
+    return ret
   }))
 
 
@@ -191,10 +207,23 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
     }
     return ret
   } ))
+  app.addFunction(new FunctionEvaluator('text-contents', ($, {$contextEl}, $currentEl, vals) => {
+    // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
+    assert($contextEl.length, 1)
+    const ret = x=$contextEl[0].textContent // HACK! $contextEl.contents() (need to clone these if this is the case; and remove id's)
+    if (ret == null) {
+      if (IS_STRICT_MODE) {
+        throwError(`ERROR: function resulted in null. This is disallowed in IS_STRICT_MODE`, vals[0]) // TODO: FOr better messages FunctionEvaluator should know the source line for the function, not just the array of vals
+      } else {
+        return ''
+      }
+    }
+    return ret
+  } ))
   app.addFunction(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, vals) => {
     assert.equal(vals.length, 1)
     const selector = vals[0].join('')
-    const ret = $(selector)
+    const ret = $(selector) // HACK: FIXME: needs to not be global...
     ret.detach() // detach (instead of remove) because we do not want to destroy the elements
     return ret
   }))
@@ -277,6 +306,29 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
       }
       // If we are looking up an id then look up against the whole document
       return {$contextEl: $closestAncestor }
+  }))
+  app.addFunction(new FunctionEvaluator('descendant-context',
+    ($, context, $currentEl, vals) => {
+      assert.equal(vals.length, 2) // TODO: This should be validated before the function is applied so a better error message can be made
+      // skip the 1st arg which is the selector
+      // and return the 2nd arg
+
+      // The argument to this `-context` function needs to be fully-evaluated, hence this
+      // assertion below: (TODO: Change this in the future to not require full-evaluation)
+      assert.equal(vals[1].length, 1)
+      assert(vals[1][0]) // TODO: Move this assertion test to the applier
+      return vals[1][0]
+    },
+    ($, context, $currentEl, evaluator, args) => {
+      const {$contextEl} = context
+      const selector = evaluator(context, $currentEl, [args[0]]).join('')
+
+      const $firstDescendant = $contextEl.find(selector)
+      if ($firstDescendant.length !== 1) {
+        throwError(`ERROR: Could not find unique descendant-context. Found ${$firstDescendant.length}`, args[0], $currentEl)
+      }
+      // If we are looking up an id then look up against the whole document
+      return {$contextEl: $firstDescendant }
   }))
 
 

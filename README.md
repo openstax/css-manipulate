@@ -578,10 +578,12 @@ Since these are composable, all of the examples combined together should yield w
 - [x] Support `tag-name-set:`
 - [x] Support selector specificity
 - [x] Support `!important`
-- [ ] Add `::for-each-descendant(${SELECTOR})`
+- [x] Add `::for-each-descendant(1, ${SELECTOR})`
 - [ ] Add `:target(${TARGET_SELECTOR}, ${MATCH_SELECTORS...})`
 - [ ] Support `::inside(1, ${SELECTORS})`
 - [ ] Show colorful error messages
 - [ ] Show colorful warnings
 - [ ] Support `attrs-remove: *` instead of `attrs-set:` because they are as interchangeable and the order-of-evaluation is easier (only need to know 2: `attr-add:` and `attr-remove:`)
 - [ ] output a sourcemap file (contains all the strings in the resulting HTML file that came from the CSS file)
+- [ ] `::for-each-descendant(1, ${SELECTOR}, ${SELECTOR_FOR_MATCHES})` should have an additional selector argument so it only creates the element if there is something matching the selector.
+  - This way a "Homework" section will not be created if there are no Homework problems to show

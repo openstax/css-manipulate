@@ -1,14 +1,21 @@
-chapter:Xafter(1):Xfor-each-descendant(1, '> section'),
+/* TODO: Verify that '> section' works */
+/*chapter:Xafter(1):Xfor-each-descendant(1, '> section'),
 chapter:Xafter(2):Xfor-each-descendant(1, '> section') {
   class-add: "eoc-section";
+}*/
+
+chapter:Xafter(1):Xbefore { content: "Homework Exercises"; }
+chapter:Xafter(2):Xbefore { content: "Conceptual Questions"; }
+
+chapter:Xafter(1):Xfor-each-descendant(1, 'section'),
+chapter:Xafter(2):Xfor-each-descendant(1, 'section') {
+  class-add: "eoc-section";
 }
+chapter:Xafter(1):Xfor-each-descendant(1, 'section'):Xbefore(2) { class-add: "homeworks"; content: move-here('exercise.homework'); }
+chapter:Xafter(2):Xfor-each-descendant(1, 'section'):Xbefore(2) { class-add: "conceptuals"; content: move-here('exercise.conceptual'); }
 
-chapter:Xafter(1):Xfor-each-descendant(1, '> section') { content: move-here('exercise.homework'); }
-chapter:Xafter(1):Xfor-each-descendant(1, '> section') { content: move-here('exercise.conceptual'); }
-
-chapter:Xafter(1):Xfor-each-descendant(1, '> section'):Xbefore(1),
-chapter:Xafter(2):Xfor-each-descendant(1, '> section'):Xbefore(1) {
+chapter:Xafter(1):Xfor-each-descendant(1, 'section'):Xbefore(1),
+chapter:Xafter(2):Xfor-each-descendant(1, 'section'):Xbefore(1) {
   class-add: "title";
-  /*content: target-context('> title', contents());*/
-  content: "PLACEHOLDER";
+  content: descendant-context('> .title', text-contents());
 }
