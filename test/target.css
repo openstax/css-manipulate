@@ -1,0 +1,3 @@
+a:target(href, 'exercise') {
+  content: 'See Exercise: ' target-context(attr(href), text-contents());
+}

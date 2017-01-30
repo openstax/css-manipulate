@@ -304,7 +304,7 @@ Desired HTML:
 </chapter>
 ```
 
-This introduces the `:target(${TARGET_SELECTOR}, ${MATCH_SELECTORS...})` pseudo-class
+This introduces the `:target(${ATTRIBUTE_NAME}, ${MATCH_SELECTORS...})` pseudo-class
 which checks to see if the target matches one of the `${MATCH_SELECTORS}`.
 
 This also introduces `target-context(${ID_SELECTOR}, ${EXPRESSIONS})` which evaluates `${EXPRESSIONS}`
@@ -313,7 +313,7 @@ in the context of the element identified by `${ID_SELECTOR}`
 CSS:
 
 ```less
-a:target("#" attr(href), 'exercise.homework, exercise.conceptual') {
+a:target('href', 'exercise.homework, exercise.conceptual') {
   content:
     "See Exercise "
     // Chapter number
@@ -579,11 +579,11 @@ Since these are composable, all of the examples combined together should yield w
 - [x] Support selector specificity
 - [x] Support `!important`
 - [x] Add `::for-each-descendant(1, ${SELECTOR})`
-- [ ] Add `:target(${TARGET_SELECTOR}, ${MATCH_SELECTORS...})`
-- [ ] Support `::inside(1, ${SELECTORS})`
-- [ ] Show colorful error messages
-- [ ] Show colorful warnings
-- [ ] Support `attrs-remove: *` instead of `attrs-set:` because they are as interchangeable and the order-of-evaluation is easier (only need to know 2: `attr-add:` and `attr-remove:`)
+- [x] Add `:target(${ATTRIBUTE_NAME}, ${MATCH_SELECTORS...})`
 - [ ] output a sourcemap file (contains all the strings in the resulting HTML file that came from the CSS file)
+- [ ] Support `::inside(1, ${SELECTORS})`
+- [ ] Support `attrs-remove: *` instead of `attrs-set:` because they are as interchangeable and the order-of-evaluation is easier (only need to know 2: `attr-add:` and `attr-remove:`)
 - [ ] `::for-each-descendant(1, ${SELECTOR}, ${SELECTOR_FOR_MATCHES})` should have an additional selector argument so it only creates the element if there is something matching the selector.
   - This way a "Homework" section will not be created if there are no Homework problems to show
+- [ ] Show colorful error messages
+- [ ] Show colorful warnings

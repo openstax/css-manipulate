@@ -31,6 +31,17 @@ class FunctionEvaluator {
   evaluateFunction($, context, $currentEl, args) { return this._fn.apply(null, arguments) }
 }
 
+class PseudoClassFilter {
+  constructor(name, fn) {
+    this._name = name
+    this._fn = fn
+  }
+  getPseudoClassName() { return this._name }
+  matches($, $el, args) {
+    return this._fn.apply(null, arguments)
+  }
+}
+
 function flattenVals(vals) {
   return vals.map((val) => {
     if (Array.isArray(val)) {
@@ -81,6 +92,20 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
     return ret
   }))
 
+
+  app.addPseudoClass(new PseudoClassFilter('target', ($, $el, args) => {
+    const attributeName = args[0]
+    const matchSelector = args[1]
+
+    assert($el.length === 1) // for now, assume only 1 element
+    assert.equal(attributeName.length, 1)
+    assert.equal(matchSelector.length, 1)
+    assert.equal(typeof attributeName[0], 'string')
+    assert.equal(typeof matchSelector[0], 'string')
+    // TODO: Check that _all_ els match, not just one
+    const attrValue = $el.attr(attributeName[0])
+    return $(attrValue).is(matchSelector[0])
+  }))
 
 
   app.addRuleDeclaration(new RuleDeclaration('content', ($, $lookupEl, $els, vals) => {

@@ -19,6 +19,7 @@ const FILES_TO_TEST = [
   'class',
   'specificity',
   'for-each',
+  'target',
 
   // 'apphysics',
   // 'outside',

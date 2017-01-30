@@ -23,6 +23,7 @@ module.exports = class Applier {
     this._pseudoElementPlugins = []
     this._ruleDeclarationPlugins = []
     this._functionPlugins = []
+    this._pseudoClassPlugins = []
   }
 
   // getWindow() { return this._document.defaultView }
@@ -59,6 +60,13 @@ module.exports = class Applier {
     this._functionPlugins.push(plugin)
   }
 
+  addPseudoClass(plugin) {
+    assert.equal(typeof plugin.matches, 'function')
+    assert.equal(typeof plugin.getPseudoClassName, 'function')
+    assert.equal(typeof plugin.getPseudoClassName(), 'string')
+    this._pseudoClassPlugins.push(plugin)
+  }
+
   prepare(fn) {
     const ast = csstree.parse(this._cssContents.toString(), {positions: true, filename: this._cssSourcePath})
     console.info('Parsing HTML')
@@ -85,7 +93,26 @@ module.exports = class Applier {
       rule.selector.children.each((selector) => {
         assert.equal(selector.type, 'Selector')
         const browserSelector = toBrowserSelector(selector)
-        const $matchedNodes = this._$(browserSelector)
+        let $matchedNodes = this._$(browserSelector)
+
+        // Perform further filtering by checking the pseudoclasses
+        const pseudoClassElements = selector.children.toArray().filter((selectorElement) => {
+          return selectorElement.type === 'PseudoClass'
+        })
+        pseudoClassElements.forEach((pseudoClassElement) => {
+          this._pseudoClassPlugins.forEach((pseudoClassPlugin) => {
+            if (pseudoClassPlugin.getPseudoClassName() === pseudoClassElement.name) {
+              // update the set of matched nodes
+              $matchedNodes = $matchedNodes.filter((index, matchedNode) => {
+                const $matchedNode = this._$(matchedNode)
+                const context = {$contextEl: $matchedNode}
+                const args = this._evaluateVals(context, $matchedNode, pseudoClassElement.children.toArray())
+                return pseudoClassPlugin.matches(this._$, $matchedNode, args)
+              })
+            }
+          })
+
+        })
 
         $matchedNodes.each((index, el) => {
           el.MATCHED_RULES = el.MATCHED_RULES || []
