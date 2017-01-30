@@ -576,8 +576,8 @@ Since these are composable, all of the examples combined together should yield w
 # TODO:
 
 - [x] Support `tag-name-set:`
-- [ ] Support selector specificity
-- [ ] Support `!important`
+- [x] Support selector specificity
+- [x] Support `!important`
 - [ ] Add `::for-each-descendant(${SELECTOR})`
 - [ ] Add `:target(${TARGET_SELECTOR}, ${MATCH_SELECTORS...})`
 - [ ] Support `::inside(1, ${SELECTORS})`
