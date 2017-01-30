@@ -1,2 +1,6 @@
-::explode { content: invalid-function(); }
-/*{ attrs-add: 'data-with-no-value'; }*/
+::explode { content: "invalid pseudo-element"; }
+:expode { content: "invalid pseudo-class"; }
+body { content: invalid-function(); }
+body:Xafter(non-numeric-arg) { content: "bug"; }
+body { attrs-add: 'data-with-no-value'; }
+/*:Xafter(non-numeric-arg) { content: "bug"; } this should error but does not*/

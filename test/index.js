@@ -23,9 +23,7 @@ const FILES_TO_TEST = [
   // 'outside',
 ]
 
-const ERROR_TESTS = [
-  '_errors',
-]
+const ERROR_TEST_FILENAME = '_errors'
 
 function buildTest(filename) {
   const cssPath = `test/${filename}.css`
@@ -57,21 +55,27 @@ function buildTest(filename) {
   })
 }
 
-function buildErrorTest(filename) {
-  const cssPath = `test/${filename}.css`
-  test(`Errors while trying to generate ${cssPath}`, (t) => {
-    const htmlPath = cssPath.replace('.css', '.in.html')
-    const htmlOutputPath = cssPath.replace('.css', '.out.html')
-    const cssContents = fs.readFileSync(cssPath)
-    const htmlContents = fs.readFileSync(htmlPath)
+function buildErrorTests() {
+  const cssPath = `test/${ERROR_TEST_FILENAME}.css`
+  const errorRules = fs.readFileSync(cssPath).toString().split('\n')
+  const htmlPath = cssPath.replace('.css', '.in.html')
+  const htmlContents = fs.readFileSync(htmlPath)
 
-    try {
-      converter(cssContents, htmlContents, cssPath, htmlPath)
-      t.fail('Expected to fail but succeeded')
-    } catch (e) {
+  errorRules.forEach((cssContents) => {
+    if (!cssContents || cssContents[0] === '/' && cssContents[1] === '*') {
+      // Skip empty newlines (like at the end of the file) or lines that start with a comment
+      return
     }
+    test(`Errors while trying to evaluate ${cssContents}`, (t) => {
+      try {
+        converter(cssContents, htmlContents, cssPath, htmlPath)
+        t.fail('Expected to fail but succeeded')
+      } catch (e) {
+      }
+    })
 
   })
+
 }
 
 function specificityTest(msg, correct, items) {
@@ -83,7 +87,7 @@ function specificityTest(msg, correct, items) {
 
 
 FILES_TO_TEST.forEach(buildTest)
-ERROR_TESTS.forEach(buildErrorTest)
+buildErrorTests()
 
 
 let correct
