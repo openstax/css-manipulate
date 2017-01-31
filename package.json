@@ -1,8 +1,8 @@
 {
   "scripts": {
-    "prerebuild-tests": "./script/compile-css.sh",
-    "prestart": "./script/compile-css.sh",
-    "pretest": "./script/compile-css.sh",
+    "prerebuild-tests": "./script/compile-css",
+    "prestart": "./script/compile-css",
+    "pretest": "./script/compile-css",
     "rebuild-tests": "WRITE_TEST_RESULTS=true ava ./test/index.js",
     "start": "ava --watch --source '**/*.{js}' --source 'test/*.{css,in.html}' ./test/index.js",
     "test": "nyc --reporter html --reporter text --reporter json ava ./test/index.js"
