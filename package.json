@@ -1,5 +1,8 @@
 {
   "scripts": {
+    "prerebuild-tests": "./script/compile-css.sh",
+    "prestart": "./script/compile-css.sh",
+    "pretest": "./script/compile-css.sh",
     "rebuild-tests": "WRITE_TEST_RESULTS=true ava ./test/index.js",
     "start": "ava --watch --source '**/*.{js}' --source 'test/*.{css,in.html}' ./test/index.js",
     "test": "nyc --reporter html --reporter text --reporter json ava ./test/index.js"
@@ -9,6 +12,7 @@
     "fast-diff": "^1.1.1",
     "jquery": "^3.1.1",
     "jsdom": "^9.9.1",
+    "less": "^2.7.2",
     "lodash": "^4.17.4",
     "parse5": "^3.0.1",
     "yargs": "^6.6.0"

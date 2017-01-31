@@ -294,7 +294,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
       // The argument to this `-context` function needs to be fully-evaluated, hence this
       // assertion below: (TODO: Change this in the future to not require full-evaluation)
       assert.equal(vals[1].length, 1)
-      assert(vals[1][0])
+      assert(vals[1][0] !== null)
       return vals[1][0]
     },
     ($, context, $currentEl, evaluator, args) => {
@@ -318,7 +318,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
       // The argument to this `-context` function needs to be fully-evaluated, hence this
       // assertion below: (TODO: Change this in the future to not require full-evaluation)
       assert.equal(vals[1].length, 1)
-      assert(vals[1][0]) // TODO: Move this assertion test to the applier
+      assert(vals[1][0] !== null) // TODO: Move this assertion test to the applier
       return vals[1][0]
     },
     ($, context, $currentEl, evaluator, args) => {
@@ -341,7 +341,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
       // The argument to this `-context` function needs to be fully-evaluated, hence this
       // assertion below: (TODO: Change this in the future to not require full-evaluation)
       assert.equal(vals[1].length, 1)
-      assert(vals[1][0]) // TODO: Move this assertion test to the applier
+      assert(vals[1][0] !== null) // TODO: Move this assertion test to the applier
       return vals[1][0]
     },
     ($, context, $currentEl, evaluator, args) => {

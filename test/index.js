@@ -7,7 +7,7 @@ const {SPECIFICITY_COMPARATOR} = require('../src/helper/specificity')
 const {WRITE_TEST_RESULTS} = process.env
 
 
-const FILES_TO_TEST = [
+const UNIT_FILES_TO_TEST = [
   './unit/before-after',
   './unit/simple-selectors',
   './unit/functions',
@@ -25,12 +25,26 @@ const FILES_TO_TEST = [
   // 'outside',
 ]
 
+const MOTIVATION_INPUT_HTML_PATH = `./motivation/_input.html`
+const MOTIVATION_FILES_TO_TEST = [
+  './motivation/1',
+  './motivation/2',
+  './motivation/3',
+  './motivation/4',
+  './motivation/5',
+  './motivation/6',
+  './motivation/7',
+  './motivation/8',
+  // './motivation/9',
+  './motivation/10',
+]
+
 const ERROR_TEST_FILENAME = '_errors'
 
-function buildTest(filename) {
-  const cssPath = `test/${filename}.css`
+function buildTest(cssFilename, htmlFilename) {
+  const cssPath = `test/${cssFilename}`
+  const htmlPath = `test/${htmlFilename}`
   test(`Generates ${cssPath}`, (t) => {
-    const htmlPath = cssPath.replace('.css', '.in.html')
     const htmlOutputPath = cssPath.replace('.css', '.out.html')
     const cssContents = fs.readFileSync(cssPath)
     const htmlContents = fs.readFileSync(htmlPath)
@@ -88,7 +102,8 @@ function specificityTest(msg, correct, items) {
 }
 
 
-FILES_TO_TEST.forEach(buildTest)
+MOTIVATION_FILES_TO_TEST.forEach((filename) => buildTest(`${filename}.css`, MOTIVATION_INPUT_HTML_PATH))
+UNIT_FILES_TO_TEST.forEach((filename) => buildTest(`${filename}.css`, `${filename}.in.html`))
 buildErrorTests()
 
 

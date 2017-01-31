@@ -1,0 +1,8 @@
+@import './1.less';
+chapter {
+  &:Xafter(1),
+  &:Xafter(2) {
+    &:Xbefore(1) { class-add: "title"; }
+    attrs-add: "data-type" "eoc-item";
+  }
+}

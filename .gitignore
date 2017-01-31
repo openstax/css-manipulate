@@ -4,3 +4,7 @@
 /test/apphysics.css.skip
 /test/apphysics.in.html
 /test/apphysics.out.html
+
+
+/test/motivation/*.css
+/test/motivation/*.css.map

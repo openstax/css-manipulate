@@ -1,0 +1,11 @@
+@import './5.less';
+
+a:target('href', 'exercise.homework, exercise.conceptual') {
+  content:
+    "See Exercise "
+    // Chapter number
+    target-context(attr(href), ancestor-context('body', count-of-type('chapter')))
+    "."
+    // Exercise number
+    target-context(attr(href), ancestor-context('chapter', count-of-type('exercise.homework, exercise.conceptual')));
+}

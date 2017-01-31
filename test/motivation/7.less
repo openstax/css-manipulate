@@ -1,0 +1,9 @@
+@import './6.less';
+
+ol[data-label]:Xoutside(1) {
+  &:Xbefore(1) {
+    class-add: "list-label";
+    content: attr(data-label);
+  }
+  class-add: "list-wrapper";
+}

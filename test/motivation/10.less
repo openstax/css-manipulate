@@ -1,0 +1,20 @@
+// FIXME: Import 9 once it is working again
+@import './8.less';
+
+exercise.homework,
+exercise.conceptual {
+  > answer:Xbefore(1) {
+    // see previous for how the numbers are added here
+
+    // Make this thing a link to the exercise
+    tag-name-set: "a";
+    attrs-add: "href" "#" parent-context(attr(id));
+  }
+
+  &:has(> answer):Xbefore(1) {
+    tag-name-set: "a";
+    // TODO: implement attr-ensure()
+    // attrs-add: "href" "#" descendant-context('> answer', attr-ensure(id));
+    attrs-add: "href" "#" descendant-context('> answer', attr(id));
+  }
+}

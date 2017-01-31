@@ -1,0 +1,9 @@
+@import './4.less';
+
+exercise.homework,
+exercise.conceptual {
+  &:Xbefore(1) {
+    class-add: "number";
+    content: ancestor-context('chapter', count-of-type('exercise.homework, exercise.conceptual'));
+  }
+}

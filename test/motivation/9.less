@@ -1,0 +1,24 @@
+@import './8.less';
+
+exercise.homework,
+exercise.conceptual {
+  > answer:Xbefore(1) {
+    content:
+      // Chapter number
+      ancestor-context('body', count-of-type('chapter'))
+      "."
+      // Exercise number
+      // TODO: This is not currently being evaluated before stuff is moved which causes this test to fail
+      ancestor-context('chapter', count-of-type('exercise.homework, exercise.conceptual'));
+  }
+}
+
+// answer key
+body:Xafter(1) {
+  &:Xbefore(1) { content: "Answer Key"; }
+
+  // TODO: Remove this element-maker once the order-of-evaluation does current node, then :before, then :after
+  &:Xafter(1) {
+    content: move-here('answer');
+  }
+}

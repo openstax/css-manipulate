@@ -1,0 +1,20 @@
+// Intentionally skip importing 3 because we are changing where the move-to happens
+@import './2.less';
+
+// Generic styling for all end-of-chapter items
+chapter:Xafter(1),
+chapter:Xafter(2) {
+  &:Xfor-each-descendant(1, '> section') {
+    // TODO: Support something like this in the middle here: &:has('exercise.homework') {}
+    &:Xbefore(1) {
+      class-add: "title";
+      content: descendant-context('> .title', text-contents()); // TODO: denote that this is a copy? Maybe it's clear because it's not move-here() ?
+    }
+    class-add: "eoc-section";
+  }
+}
+
+// Select the proper exercises to move here
+// use parent-context here so that we find all exercises in the chapter
+chapter:Xafter(1):Xfor-each-descendant(1, '> section'):Xafter { content: parent-context(move-here('exercise.conceptual')); }
+chapter:Xafter(2):Xfor-each-descendant(1, '> section'):Xafter { content: parent-context(move-here('exercise.homework')); }

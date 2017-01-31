@@ -11,6 +11,7 @@
 1. collate answer to end of book
 1. Make exercises and answers link to each other
 
+To see the actual LESS files for each step (and output HTML), check out [./test/motivation/](./test/motivation/)
 
 **Note:** I'm using single quotes to represent strings that contain a selector and double-quotes to represent strings
 
@@ -156,15 +157,10 @@ the items within `${CONTEXT_SELECTOR}` that match `${SELECTOR}`.
 CSS:
 
 ```less
-chapter::after(1) {
-  // Conceptual Questions
-  content: move-here('exercise.conceptual', default); // here default is the chapter
-}
-
-chapter::after(2) {
-  // Homework Problems
-  content: move-here('exercise.homework', default); // here default is the chapter
-}
+// Move Conceptual Questions and Homework.
+// the context for move-here is the current chapter.
+chapter::after(1) { content: move-here('exercise.conceptual'); }
+chapter::after(2) { content: move-here('exercise.homework'); }
 ```
 
 
@@ -212,15 +208,19 @@ This also introduces `target-context(${SELECTOR}, ${EXPRESSIONS})` which evaluat
 CSS:
 
 ```less
+// Generic styling for all end-of-chapter items
 chapter::after(1),
 chapter::after(2) {
-  &::for-each-descendant(> section) {
+  &::for-each-descendant(1, '> section') {
     &::before(1) {
       class-add: "title";
-      content: target-context('> title', contents()); // TODO: denote that this is a copy? Maybe it's clear because it's not move-here() ?
+      content: descendant-context('> .title', text-contents());
     }
     class-add: "eoc-section";
-    content: move-here('exercise.homework', default); // here default is the section
+
+    // Select the proper exercises to move here
+    // use parent-context here so that we find all exercises in the chapter
+    content: parent-context(move-here('exercise.conceptual'));
   }
 }
 ```
@@ -281,7 +281,7 @@ exercise.homework,
 exercise.conceptual {
   &::before(1) {
     class-add: "number";
-    content: count-of-type('exercise.homework, exercise.conceptual', 'chapter');
+    content: ancestor-context('chapter', count-of-type('exercise.homework, exercise.conceptual'));
   }
 }
 ```
@@ -317,10 +317,10 @@ a:target('href', 'exercise.homework, exercise.conceptual') {
   content:
     "See Exercise "
     // Chapter number
-    target-context(attr(href), count-of-type('chapter'))
+    target-context(attr(href), ancestor-context('body', count-of-type('chapter')))
     "."
     // Exercise number
-    target-context(attr(href), count-of-type('exercise.homework, exercise.conceptual', 'chapter'));
+    target-context(attr(href), ancestor-context('chapter', count-of-type('exercise.homework, exercise.conceptual')));
 }
 ```
 
@@ -465,23 +465,18 @@ exercise.conceptual {
   > answer::before(1) {
     content:
       // Chapter number
-      count-of-type('chapter')
+      ancestor-context('body', count-of-type('chapter'))
       "."
       // Exercise number
-      count-of-type('exercise.homework, exercise.conceptual', 'chapter');
+      ancestor-context('chapter', count-of-type('exercise.homework, exercise.conceptual'));
   }
-}
-
-// Nothing interesting, just collate Exercises to end of chapter
-chapter::after(1) {
-  contents: move-here('exercise.homework', default);
 }
 
 // answer key
 body::after(1) {
   &::before(1) { content: "Answer Key"; }
 
-  contents: move-here('exercise.homework > answer, exercise.conceptual > answer', default);
+  content: move-here('answer');
 }
 ```
 
@@ -559,9 +554,9 @@ exercise.conceptual {
     attrs-add: "href" "#" parent-context(attr(id));
   }
 
-  &:has(> answer)::before {
+  &:has('> answer')::before {
     tag-name-set: "a";
-    attrs-add: "href" "#" target-context('> answer', attr-ensure(id));
+    attrs-add: "href" "#" descendant-context('> answer', attr-ensure(id));
   }
 }
 ```
