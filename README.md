@@ -575,10 +575,12 @@ Since these are composable, all of the examples combined together should yield w
 - [x] Support `!important`
 - [x] Add `::for-each-descendant(1, ${SELECTOR})`
 - [x] Add `:target(${ATTRIBUTE_NAME}, ${MATCH_SELECTORS...})`
+- [ ] Use Promises to defer DOM Manipulation to all be after selector/rule/attribute evaluation is done
 - [ ] output a sourcemap file (contains all the strings in the resulting HTML file that came from the CSS file)
 - [ ] Support `::inside(1, ${SELECTORS})`
 - [ ] Support `attrs-remove: *` instead of `attrs-set:` because they are as interchangeable and the order-of-evaluation is easier (only need to know 2: `attr-add:` and `attr-remove:`)
-- [ ] `::for-each-descendant(1, ${SELECTOR}, ${SELECTOR_FOR_MATCHES})` should have an additional selector argument so it only creates the element if there is something matching the selector.
+- [x] `::for-each-descendant(1, ${SELECTOR}):has(${SELECTOR_FOR_MATCHES})` should have an additional selector argument
+  - [ ] so it only creates the element if there is something matching the selector
   - This way a "Homework" section will not be created if there are no Homework problems to show
-- [ ] Show colorful error messages
+- [x] Show colorful error messages
 - [ ] Show colorful warnings

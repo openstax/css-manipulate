@@ -19,6 +19,7 @@ const UNIT_FILES_TO_TEST = [
   './unit/class',
   './unit/specificity',
   './unit/for-each',
+  './unit/for-each-advanced',
   './unit/target',
 
   // 'apphysics',
@@ -102,8 +103,8 @@ function specificityTest(msg, correct, items) {
 }
 
 
-MOTIVATION_FILES_TO_TEST.forEach((filename) => buildTest(`${filename}.css`, MOTIVATION_INPUT_HTML_PATH))
 UNIT_FILES_TO_TEST.forEach((filename) => buildTest(`${filename}.css`, `${filename}.in.html`))
+MOTIVATION_FILES_TO_TEST.forEach((filename) => buildTest(`${filename}.css`, MOTIVATION_INPUT_HTML_PATH))
 buildErrorTests()
 
 

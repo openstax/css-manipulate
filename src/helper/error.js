@@ -3,11 +3,12 @@ const jsdom = require('jsdom')
 // Generate pretty messages with source lines for debugging
 function createMessage(message, cssSnippet, $el) {
   let cssInfo
-  if (cssSnippet.loc) {
+  // matches input format for https://github.com/feross/snazzy
+  if (cssSnippet && cssSnippet.loc) {
     const {source: cssSourcePath, start: {line: startLine, column: startColumn}, end: {line: endLine, column: endColumn}} = cssSnippet.loc
-    cssInfo = `${cssSourcePath} @ ${startLine}:${startColumn}-${endLine}:${endColumn}`
+    cssInfo = `  ${cssSourcePath}:${startLine}:${startColumn}:`
   } else {
-    cssInfo = `(BUG: Invalid cssSnippet) ${JSON.stringify(cssSnippet)}`
+    cssInfo = `  unknown:0:0: [BUG: Invalid cssSnippet] ${JSON.stringify(cssSnippet)}`
   }
   if ($el) {
     // https://github.com/tmpvar/jsdom/issues/1194
@@ -18,9 +19,9 @@ function createMessage(message, cssSnippet, $el) {
     //   endTag: { start: 38, end: 44 }
     // }
     const htmlOffset = jsdom.nodeLocation($el[0]).start
-    return `${message} HTML=${htmlOffset} CSS=${cssInfo}`
+    return `${cssInfo} ${message} (HTMLchar=${htmlOffset})`
   } else {
-    return `${message} CSS=${cssInfo}`
+    return `${cssInfo} ${message}`
   }
 }
 
@@ -34,4 +35,14 @@ function throwError(message, cssSnippet, $el, err) {
   }
 }
 
-module.exports = {createMessage, throwError}
+function showWarning(message, cssSnippet, $el) {
+  const msg = createMessage(`WARNING: ${message}`, cssSnippet, $el)
+  console.warn(msg)
+}
+
+function showLog(message, cssSnippet, $el) {
+  const msg = createMessage(`LOG: ${message}`, cssSnippet, $el)
+  console.log(msg)
+}
+
+module.exports = {createMessage, throwError, showWarning, showLog}

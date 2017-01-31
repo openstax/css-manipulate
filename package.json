@@ -5,7 +5,9 @@
     "pretest": "./script/compile-css",
     "rebuild-tests": "WRITE_TEST_RESULTS=true ava ./test/index.js",
     "start": "ava --watch --source '**/*.{js}' --source 'test/*.{css,in.html}' ./test/index.js",
-    "test": "nyc --reporter html --reporter text --reporter json ava ./test/index.js"
+    "test": "nyc --reporter html --reporter text --reporter json ava ./test/index.js",
+    "lint": "eslint src/**/*.js",
+    "snazzy": "nyc --reporter html --reporter text --reporter json ava ./test/index.js 2>&1 | snazzy"
   },
   "dependencies": {
     "css-tree": "^1.0.0-alpha13",
@@ -15,10 +17,12 @@
     "less": "^2.7.2",
     "lodash": "^4.17.4",
     "parse5": "^3.0.1",
+    "snazzy": "^6.0.0",
     "yargs": "^6.6.0"
   },
   "devDependencies": {
     "ava": "^0.17.0",
+    "eslint": "^3.14.1",
     "nyc": "^10.1.2"
   }
 }

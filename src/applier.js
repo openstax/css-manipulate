@@ -4,7 +4,7 @@ const jsdom = require('jsdom')
 const jquery = require('jquery')
 const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
-const {throwError} = require('./helper/error')
+const {throwError, showWarning} = require('./helper/error')
 
 
 function walkDOMinOrder(el, fn) {
@@ -24,6 +24,10 @@ module.exports = class Applier {
     this._ruleDeclarationPlugins = []
     this._functionPlugins = []
     this._pseudoClassPlugins = []
+    this._ruleDeclarationByName = {}
+    // This is a HACK until we can use real pseudo elements
+    this._pseudoElementPluginByName = {}
+    this._pseudoClassPluginByName = {}
   }
 
   // getWindow() { return this._document.defaultView }
@@ -45,12 +49,14 @@ module.exports = class Applier {
     assert.equal(typeof plugin.getPseudoElementName, 'function')
     assert.equal(typeof plugin.getPseudoElementName(), 'string')
     this._pseudoElementPlugins.push(plugin)
+    this._pseudoElementPluginByName[plugin.getPseudoElementName()] = plugin
   }
 
   addRuleDeclaration(plugin) {
     assert.equal(typeof plugin.evaluateRule, 'function')
     assert.equal(typeof plugin.getRuleName(), 'string')
     this._ruleDeclarationPlugins.push(plugin)
+    this._ruleDeclarationByName[plugin.getRuleName()] = plugin
   }
 
   addFunction(plugin) {
@@ -65,6 +71,7 @@ module.exports = class Applier {
     assert.equal(typeof plugin.getPseudoClassName, 'function')
     assert.equal(typeof plugin.getPseudoClassName(), 'string')
     this._pseudoClassPlugins.push(plugin)
+    this._pseudoClassPluginByName[plugin.getPseudoClassName()] = plugin
   }
 
   prepare(fn) {
@@ -92,27 +99,10 @@ module.exports = class Applier {
       assert.equal(rule.type, 'Rule')
       rule.selector.children.each((selector) => {
         assert.equal(selector.type, 'Selector')
-        const browserSelector = toBrowserSelector(selector)
+        const browserSelector = this.toBrowserSelector(selector)
         let $matchedNodes = this._$(browserSelector)
 
-        // Perform further filtering by checking the pseudoclasses
-        const pseudoClassElements = selector.children.toArray().filter((selectorElement) => {
-          return selectorElement.type === 'PseudoClass'
-        })
-        pseudoClassElements.forEach((pseudoClassElement) => {
-          this._pseudoClassPlugins.forEach((pseudoClassPlugin) => {
-            if (pseudoClassPlugin.getPseudoClassName() === pseudoClassElement.name) {
-              // update the set of matched nodes
-              $matchedNodes = $matchedNodes.filter((index, matchedNode) => {
-                const $matchedNode = this._$(matchedNode)
-                const context = {$contextEl: $matchedNode}
-                const args = this._evaluateVals(context, $matchedNode, pseudoClassElement.children.toArray())
-                return pseudoClassPlugin.matches(this._$, $matchedNode, args)
-              })
-            }
-          })
-
-        })
+        $matchedNodes = this._filterByPseudoClassName($matchedNodes, selector, -1/*depth*/)
 
         $matchedNodes.each((index, el) => {
           el.MATCHED_RULES = el.MATCHED_RULES || []
@@ -120,6 +110,78 @@ module.exports = class Applier {
         })
       })
     })
+  }
+
+  _isPseudoElementSelectorElement(selectorElement) {
+    if(selectorElement.type !== 'PseudoClass') {
+      return false
+    }
+    return !! this._pseudoElementPluginByName[selectorElement.name]
+  }
+
+  _isPseudoClassSelectorElement(selectorElement) {
+    if(selectorElement.type !== 'PseudoClass') {
+      return false
+    }
+    return !! this._pseudoClassPluginByName[selectorElement.name]
+  }
+
+  _isRuleDeclarationName(name) {
+    return !! this._ruleDeclarationByName[name]
+  }
+
+  _filterByPseudoClassName($matchedNodes, selector, startDepth) {
+    let depth = -1
+    const browserSelectorElements = []
+    const pseudoClassElements = []
+    selector.children.toArray().forEach((selectorElement) => {
+      if (selectorElement.type === 'PseudoClass') {
+        if (this._isPseudoElementSelectorElement(selectorElement)) {
+          depth += 1
+        } else {
+          // it's a real PseudoClass
+          if (startDepth === depth) {
+            if (this._isPseudoClassSelectorElement(selectorElement)) {
+              pseudoClassElements.push(selectorElement)
+            } else {
+              browserSelectorElements.push(selectorElement)
+            }
+          } else if (depth <= -1 && -1 === startDepth) {
+            browserSelectorElements.push(selectorElement)
+          }
+        }
+      } else if (depth <= -1 && -1 === startDepth) {
+        // include all of the "vanilla" selectors like #id123 or .class-name or [href]
+        browserSelectorElements.push(selectorElement)
+      }
+    })
+
+    const browserSelector = browserSelectorElements.map((selectorElement) => {
+      return this.toBrowserSelector2(selectorElement)
+    }).join('')
+
+    if (startDepth >= 0 && browserSelector) { // it could be an empty string
+      $matchedNodes = $matchedNodes.filter(browserSelector)
+    }
+
+    // Perform additional filtering only if there are nodes to filter on
+    if ($matchedNodes.length >= 1) {
+      pseudoClassElements.forEach((pseudoClassElement) => {
+        this._pseudoClassPlugins.forEach((pseudoClassPlugin) => {
+          if (pseudoClassPlugin.getPseudoClassName() === pseudoClassElement.name) {
+            // update the set of matched nodes
+            $matchedNodes = $matchedNodes.filter((index, matchedNode) => {
+              const $matchedNode = this._$(matchedNode)
+              const context = {$contextEl: $matchedNode}
+              const args = this._evaluateVals(context, $matchedNode, pseudoClassElement.children.toArray())
+              return pseudoClassPlugin.matches(this._$, $matchedNode, args)
+            })
+          }
+        })
+
+      })
+    }
+    return $matchedNodes
   }
 
   _evaluateVals(context, $currentEl, vals) {
@@ -173,6 +235,11 @@ module.exports = class Applier {
       if (matchedRule.getDepth() - 1 === depth) {
         matchedRule.getRule().rule.block.children.toArray().forEach((declaration) => {
           const {type, important, property, value} = declaration
+
+          if (!this._isRuleDeclarationName(property)) {
+            showWarning(`Skipping because I do not understand the rule ${property}, maybe a typo?`, value, $currentEl)
+            return
+          }
           declarationsMap[property] = declarationsMap[property] || []
           declarationsMap[property].push({value, specificity: getSpecificity(matchedRule.getMatchedSelector(), depth), isImportant: important, selector: matchedRule.getMatchedSelector()})
         })
@@ -187,10 +254,15 @@ module.exports = class Applier {
         declarations = declarations.sort(SPECIFICITY_COMPARATOR)
         // use the last declaration because that's how CSS works; the last rule (all-other-things-equal) wins
         const {value, specificity, isImportant, selector} = declarations[declarations.length - 1]
+        // Log that other rules were skipped because they were overridden
+        declarations.slice(0, declarations.length - 1).forEach(({value}) => {
+          showWarning(`Skipping because this was overridden by [TODO: insert other CSS snippet here]`, value, $currentEl)
+        })
+
         if (value) {
           const vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, value.children.toArray())
           try {
-            ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $newEl, vals)
+            ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $newEl, vals, value)
           } catch (e) {
             throwError(`BUG: evaluating ${ruleDeclarationPlugin.getRuleName()}`, value, $currentEl, e)
           }
@@ -198,6 +270,117 @@ module.exports = class Applier {
       }
     })
 
+  }
+
+  toBrowserSelector(selector) {
+    assert.equal(selector.type, 'Selector')
+    // Stop processing at the first PseudoElement
+    const ret = []
+    let foundPseudoElement = false
+
+    selector.children.toArray().forEach((sel) => {
+      if (this._isPseudoElementSelectorElement(sel)) {
+        foundPseudoElement = true
+      } else if (!foundPseudoElement) {
+        ret.push(this.toBrowserSelector2(sel))
+      }
+    })
+    return ret.join('')
+  }
+
+  toBrowserSelector2(sel) {
+    switch (sel.type) {
+      case 'Universal':
+        return sel.name
+      case 'Type':
+        return sel.name
+      case 'Id':
+        return `#${sel.name}`
+      case 'Class':
+        return `.${sel.name}`
+      case 'Combinator':
+        if (sel.name === ' ') {
+          return ' '
+        } else {
+          return ` ${sel.name} `
+        }
+      case 'Attribute':
+        const name = sel.name
+        const value = sel.value
+        let nam
+        switch (name.type) {
+          case 'Identifier':
+            nam = name.name
+            break
+          default:
+            console.log(sel)
+            throwError(`BUG: Unmatched nameType=${name.type}`, name)
+        }
+        let val
+        if (value) {
+          switch (value.type) {
+            case 'String':
+              val = value.value
+              break
+            default:
+              console.log(sel)
+              throwError(`BUG: Unmatched valueType=${value.type}`, value)
+          }
+          return `[${nam}${sel.operator}${val}]`
+        } else {
+          return `[${nam}]`
+        }
+
+      case 'PseudoClass':
+        // Discard some but not all. For example: keep `:not(...)` but discard `:pass(1)`
+        switch (sel.name) {
+          // discard these
+          case 'pass':
+          case 'deferred':
+          case 'match':
+          case 'first-of-type':
+          case 'target': // this is new
+          // These are hacks because css-tree does not support pseudo-elements with arguments
+          case 'Xafter':
+          case 'Xbefore':
+          case 'Xoutside':
+          case 'Xinside':
+          case 'Xfor-each-descendant':
+            return '';
+          // keep these
+          case 'has':
+          case 'last-child':
+          case 'not':
+            if (sel.children) {
+              const children = sel.children.map((child) => {
+                assert.equal(child.type, 'SelectorList')
+                return child.children.map(this.toBrowserSelector.bind(this)).join(', ')
+              })
+              return `:${sel.name}(${children})`
+            } else {
+              return `:${sel.name}`
+            }
+
+          default:
+            throwError(`UNKNOWN_PSEUDOCLASS: ${sel.name}`, sel)
+        }
+
+      case 'PseudoElement':
+        // Discard some of these because sizzle/browser does no recognize them anyway (:Xoutside or :after(3))
+        switch (sel.name) {
+          // Discard these
+          case 'after':
+          case 'before':
+          case 'outside':
+          case 'deferred':
+            return ''
+          default:
+            throwError(`UNKNOWN_PSEUDOELEMENT:${sel.name}(${sel.type})`, sel)
+        }
+      default:
+        console.log(sel);
+        throwError(`BUG: Unsupported ${sel.name}(${sel.type})`, sel)
+    }
   }
 
   run(fn) {
@@ -220,13 +403,22 @@ module.exports = class Applier {
         // until other evaluations have finished.
         const recursePseudoElements = (depth, rulesWithPseudos, $lookupEl, $contextEls) => {
 
+          // TODO: Fix this annoying off-by-one error
           const rulesAtDepth = rulesWithPseudos.filter((matchedRuleWithPseudo) => {
+            // Check if additional pseudoClasses have caused this to end prematurely.
+            // For example: `::for-each-descendant('section'):has(exercise)::....`
+            // will stop evaluating if the `section` does not contain an `exercise`
+            if (0 === this._filterByPseudoClassName($lookupEl, matchedRuleWithPseudo.getMatchedSelector(), depth-1).length) {
+              return false
+            }
+
             return matchedRuleWithPseudo.hasDepth(depth)
           })
 
           if (rulesAtDepth.length === 0) {
             return
           }
+
 
           this._pseudoElementPlugins.forEach((pseudoElementPlugin) => {
             const pseudoElementName = pseudoElementPlugin.getPseudoElementName()
@@ -242,6 +434,20 @@ module.exports = class Applier {
             assert.equal(reducedRules.length, newElementsAndContexts.length)
             for (let index = 0; index < reducedRules.length; index++) {
               newElementsAndContexts[index].forEach(({$newEl, $newLookupEl}) => {
+
+                // This loop-and-check is here to support ::for-each-descendant(1, 'section'):has('exercise.homework')
+                const rulesAtDepth = reducedRules[index].filter((matchedRuleWithPseudo) => {
+                  // Check if additional pseudoClasses have caused this to end prematurely.
+                  // For example: `::for-each-descendant('section'):has(exercise)::....`
+                  // will stop evaluating if the `section` does not contain an `exercise`
+                  if (0 === this._filterByPseudoClassName($newLookupEl, matchedRuleWithPseudo.getMatchedSelector(), depth).length) {
+                    return false
+                  }
+                  return matchedRuleWithPseudo.hasDepth(depth)
+                })
+                if (rulesAtDepth.length == 0) {
+                  return // skip the evaluation
+                }
 
                 this._evaluateRules(depth, reducedRules[index], $newLookupEl, $newEl)
 
@@ -262,113 +468,4 @@ module.exports = class Applier {
 
     })
   }
-}
-
-
-
-
-
-
-
-
-
-function toBrowserSelector(selector) {
-  assert.equal(selector.type, 'Selector')
-  return selector.children.map(toBrowserSelector2).join('')
-}
-
-function toBrowserSelector2(sel) {
-  switch (sel.type) {
-    case 'Universal':
-      return sel.name
-    case 'Type':
-      return sel.name
-    case 'Id':
-      return `#${sel.name}`
-    case 'Class':
-      return `.${sel.name}`
-    case 'Combinator':
-      if (sel.name === ' ') {
-        return ' '
-      } else {
-        return ` ${sel.name} `
-      }
-    case 'Attribute':
-      const name = sel.name
-      const value = sel.value
-      let nam
-      switch (name.type) {
-        case 'Identifier':
-          nam = name.name
-          break
-        default:
-          console.log(sel)
-          throwError(`BUG: Unmatched nameType=${name.type}`, name)
-      }
-      let val
-      if (value) {
-        switch (value.type) {
-          case 'String':
-            val = value.value
-            break
-          default:
-            console.log(sel)
-            throwError(`BUG: Unmatched valueType=${value.type}`, value)
-        }
-        return `[${nam}${sel.operator}${val}]`
-      } else {
-        return `[${nam}]`
-      }
-
-    case 'PseudoClass':
-      // Discard some but not all. For example: keep `:not(...)` but discard `:pass(1)`
-      switch (sel.name) {
-        // discard these
-        case 'pass':
-        case 'deferred':
-        case 'match':
-        case 'first-of-type':
-        case 'target': // this is new
-        // These are hacks because css-tree does not support pseudo-elements with arguments
-        case 'Xafter':
-        case 'Xbefore':
-        case 'Xoutside':
-        case 'Xinside':
-        case 'Xfor-each-descendant':
-          return '';
-        // keep these
-        case 'has':
-        case 'last-child':
-        case 'not':
-          if (sel.children) {
-            const children = sel.children.map((child) => {
-              assert.equal(child.type, 'SelectorList')
-              return child.children.map(toBrowserSelector).join(', ')
-            })
-            return `:${sel.name}(${children})`
-          } else {
-            return `:${sel.name}`
-          }
-
-        default:
-          throwError(`UNKNOWN_PSEUDOCLASS: ${sel.name}`, sel)
-      }
-
-    case 'PseudoElement':
-      // Discard some of these because sizzle/browser does no recognize them anyway (:Xoutside or :after(3))
-      switch (sel.name) {
-        // Discard these
-        case 'after':
-        case 'before':
-        case 'outside':
-        case 'deferred':
-          return ''
-        default:
-          throwError(`UNKNOWN_PSEUDOELEMENT:${sel.name}(${sel.type})`, sel)
-      }
-    default:
-      console.log(sel);
-      throwError(`BUG: Unsupported ${sel.name}(${sel.type})`, sel)
-  }
-
 }

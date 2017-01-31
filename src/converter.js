@@ -5,7 +5,7 @@ const jsdom = require('jsdom')
 const {argv} = require('yargs')
 const Applier = require('./applier')
 const PseudoElementEvaluator = require('./helper/pseudo-element')
-const {createMessage, throwError} = require('./helper/error')
+const {createMessage, throwError, showWarning, showLog} = require('./helper/error')
 
 const {IS_STRICT_MODE} = process.env
 
@@ -15,7 +15,7 @@ class RuleDeclaration {
     this._fn = fn
   }
   getRuleName() { return this._name }
-  evaluateRule($lookupEl, $els, args) { return this._fn.apply(null, arguments) }
+  evaluateRule($lookupEl, $els, args, rule) { return this._fn.apply(null, arguments) }
 }
 
 class FunctionEvaluator {
@@ -82,7 +82,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
 
     const ret = []
     $newLookupEls.each((index, newLookupEl) => {
-      const $newEl = app._$('<div/>')
+      const $newEl = app._$('<div debug-pseudo="for-each-descendant-element"/>')
       $contextEls.append($newEl)
       ret.push({
         $newEl: $newEl,
@@ -108,6 +108,20 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
   }))
 
 
+
+  app.addRuleDeclaration(new RuleDeclaration('x-log', ($, $lookupEl, $els, vals, rule) => {
+    assert(vals.length >= 1)
+    // Do nothing when set to none;
+    // TODO: verify that it is not the string "none" (also needed for format-number())
+    if (vals[0][0] === 'none') {
+      assert.equal(vals.length, 1)
+      assert.equal(vals[0].length, 1)
+      return
+    }
+
+    const msg = vals.map((val) => val.join('')).join(', ')
+    showLog(msg, rule, $lookupEl)
+  }))
   app.addRuleDeclaration(new RuleDeclaration('content', ($, $lookupEl, $els, vals) => {
     // content: does not allow commas so there should only be 1 arg
     // (which can contain a mix of strings and jQuery elements and numbers)
@@ -232,6 +246,14 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
     }
     return ret
   } ))
+  app.addFunction(new FunctionEvaluator('x-tag-name', ($, {$contextEl}, $currentEl, vals) => {
+    // check that we are only operating on 1 element at a time
+    assert($contextEl.length, 1)
+    if (vals[0].join() === 'current') {
+      return $currentEl[0].tagName.toLowerCase()
+    }
+    return $contextEl[0].tagName.toLowerCase()
+  } ))
   app.addFunction(new FunctionEvaluator('text-contents', ($, {$contextEl}, $currentEl, vals) => {
     // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
     assert($contextEl.length, 1)
@@ -248,7 +270,10 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
   app.addFunction(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, vals) => {
     assert.equal(vals.length, 1)
     const selector = vals[0].join('')
-    const ret = $(selector) // HACK: FIXME: needs to not be global...
+    const ret = $contextEl.find(selector)
+    if (ret.length === 0) {
+      showWarning(`Moving 0 items using selector ${selector}. Maybe add a :has() guard to prevent this warning [TODO: Show the selector that matched]`, null, $contextEl)
+    }
     ret.detach() // detach (instead of remove) because we do not want to destroy the elements
     return ret
   }))

@@ -3,7 +3,7 @@
 body { content: invalid-function(); }
 body:Xafter(non-numeric-arg) { content: "bug"; }
 body { attrs-add: 'data-with-no-value'; }
-/*:Xafter(non-numeric-arg) { content: "bug"; } this should error but does not*/
+/*:Xafter(non-numeric-arg) { content: "bug"; }*/
 body:Xfor-each-descendant(1,) { content: "no 2nd arg specified"; }
 body:Xfor-each-descendant(1,0) { content: "2nd arg must be a string"; }
-/*body { contentssss: "bug"; } This should raise an exception rather than silently fail*/
+body { contentssss: "bug"; }

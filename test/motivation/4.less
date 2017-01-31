@@ -2,19 +2,36 @@
 @import './2.less';
 
 // Generic styling for all end-of-chapter items
-chapter:Xafter(1),
-chapter:Xafter(2) {
+chapter:Xafter(1) {
   &:Xfor-each-descendant(1, '> section') {
-    // TODO: Support something like this in the middle here: &:has('exercise.homework') {}
-    &:Xbefore(1) {
-      class-add: "title";
-      content: descendant-context('> .title', text-contents()); // TODO: denote that this is a copy? Maybe it's clear because it's not move-here() ?
+    &:has(exercise.conceptual) {
+      // TODO: Support something like this in the middle here: &:has('exercise.homework') {}
+      &:Xbefore(1) {
+        class-add: "section-title";
+        // TODO: Implement promises to get this to work
+        x-log: 'This is skipped because the :has() check no longer applies once the exercises are moved';
+        content: descendant-context('> .title', text-contents()); // TODO: denote that this is a copy? Maybe it's clear because it's not move-here() ?
+      }
+      class-add: "eoc-section";
+
+      // Select the proper exercises to move here (all of the ones in the section)
+      content: move-here('exercise.conceptual');
     }
-    class-add: "eoc-section";
   }
 }
 
-// Select the proper exercises to move here
-// use parent-context here so that we find all exercises in the chapter
-chapter:Xafter(1):Xfor-each-descendant(1, '> section') { content: parent-context(move-here('exercise.conceptual')); }
-chapter:Xafter(2):Xfor-each-descendant(1, '> section') { content: parent-context(move-here('exercise.homework')); }
+chapter:Xafter(2) {
+  &:Xfor-each-descendant(1, '> section') {
+    &:has(exercise.homework) {
+      // TODO: Support something like this in the middle here: &:has('exercise.homework') {}
+      &:Xbefore(1) {
+        class-add: "section-title";
+        content: descendant-context('> .title', text-contents()); // TODO: denote that this is a copy? Maybe it's clear because it's not move-here() ?
+      }
+      class-add: "eoc-section";
+
+      // Select the proper exercises to move here (all of the ones in the section)
+      content: move-here('exercise.homework');
+    }
+  }
+}

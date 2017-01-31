@@ -1,0 +1,43 @@
+/* ::for-each is a bit tricky because it:
+
+  - creates several new elements
+  - changes the context to a different place
+  - potentially still needs to run pseudoclass selectors (like :has()) to evaluate properly
+   - This one is particularly sticky because until now the assumption was that we only need
+     to execute these when running the initial DOM traversal
+
+*/
+
+
+/*chapter:Xafter(1):Xbefore { content: "Homework Exercises"; }
+chapter:Xafter(2):Xbefore { content: "Conceptual Questions"; }
+
+chapter:Xafter(1):Xfor-each-descendant(1, 'section'),
+chapter:Xafter(2):Xfor-each-descendant(1, 'section') {
+  class-add: "eoc-section";
+}
+chapter:Xafter(1):Xfor-each-descendant(1, 'section'):has(exercise.homework):Xbefore(1) { class-add: "homeworks"; content: move-here('exercise.homework'); }
+chapter:Xafter(2):Xfor-each-descendant(1, 'section'):has(exercise.conceptual):Xbefore(1) { class-add: "conceptuals"; content: move-here('exercise.conceptual'); }
+
+chapter:Xafter(1):Xfor-each-descendant(1, 'section'):has(exercise.homework):Xbefore(2),
+chapter:Xafter(2):Xfor-each-descendant(1, 'section'):has(exercise.conceptual):Xbefore(2) {
+  class-add: "title";
+  content: descendant-context('> .title', text-contents());
+}*/
+
+body:Xafter(1):Xfor-each-descendant(1, 'section'):has(.fooooobar),
+body:Xafter(2):Xfor-each-descendant(1, 'section'):has(head),
+body:Xafter(3):Xfor-each-descendant(1, 'section'):has(body),
+body:Xafter(4):Xfor-each-descendant(1, 'section'):has(chapter),
+body:Xafter(5):Xfor-each-descendant(1, 'section'):has(section) { content: "BUG" ' [context=' x-tag-name() ' current=' x-tag-name(current) '] '; }
+
+body:Xafter(6):Xfor-each-descendant(1, 'section'):has(exercise) { content: "kittens" ' [context=' x-tag-name() ' current=' x-tag-name(current) '] '; }
+body:Xafter(7):Xfor-each-descendant(1, 'section'):has(exercise.homework)  {
+  content: 'maybe kitens? ' '[context=' x-tag-name() ' current=' x-tag-name(current) '] ';
+}
+body:Xafter(8):Xfor-each-descendant(1, 'section'):has(exercise):Xbefore(1)  {
+  content: 'kittens-inside-before';
+}
+body:Xafter(9):Xfor-each-descendant(1, 'section'):has(exercise.homework):Xbefore(1)  {
+  content: 'kittens-inside-before2';
+}
