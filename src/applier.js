@@ -243,9 +243,9 @@ module.exports = class Applier {
             for (let index = 0; index < reducedRules.length; index++) {
               newElementsAndContexts[index].forEach(({$newEl, $newLookupEl}) => {
 
-                recursePseudoElements(depth + 1, reducedRules[index], $newLookupEl, $newEl)
-
                 this._evaluateRules(depth, reducedRules[index], $newLookupEl, $newEl)
+
+                recursePseudoElements(depth + 1, reducedRules[index], $newLookupEl, $newEl)
 
               })
 

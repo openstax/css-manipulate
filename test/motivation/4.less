@@ -16,5 +16,5 @@ chapter:Xafter(2) {
 
 // Select the proper exercises to move here
 // use parent-context here so that we find all exercises in the chapter
-chapter:Xafter(1):Xfor-each-descendant(1, '> section'):Xafter { content: parent-context(move-here('exercise.conceptual')); }
-chapter:Xafter(2):Xfor-each-descendant(1, '> section'):Xafter { content: parent-context(move-here('exercise.homework')); }
+chapter:Xafter(1):Xfor-each-descendant(1, '> section') { content: parent-context(move-here('exercise.conceptual')); }
+chapter:Xafter(2):Xfor-each-descendant(1, '> section') { content: parent-context(move-here('exercise.homework')); }

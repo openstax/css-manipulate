@@ -17,8 +17,5 @@ exercise.conceptual {
 body:Xafter(1) {
   &:Xbefore(1) { content: "Answer Key"; }
 
-  // TODO: Remove this element-maker once the order-of-evaluation does current node, then :before, then :after
-  &:Xafter(1) {
-    content: move-here('answer');
-  }
+  content: move-here('answer');
 }

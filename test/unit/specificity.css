@@ -38,3 +38,4 @@
 
 .in-pseudo-element:Xbefore(1):Xafter(1) { content: "BUG(this should show up in the after-pseudo but not the before pseudo element)"; }
 .in-pseudo-element:Xbefore(1) { content: "kittens"; }
+.in-pseudo-element:Xbefore(1):Xafter(1) { content: "kittens"; }
