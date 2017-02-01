@@ -1,4 +1,10 @@
-### This goes through several examples and each builds on the previous one to illustrate how to describe tasks used when creating a textbook.
+### Getting Started
+
+This goes through several examples and each builds on the previous one to illustrate how to describe tasks used when creating a textbook.
+
+By the end you will be able to create multiple elements in the DOM, number elements, add links (like footnotes) to elements, all by writing CSS.
+
+Table of Contents:
 
 1. create end-of-chapter elements
 1. Add custom attributes to elements
@@ -12,6 +18,9 @@
 1. Make exercises and answers link to each other
 
 To see the actual LESS files for each step (and output HTML), check out [./test/motivation/](./test/motivation/)
+
+[Click here to try them out yourself](https://jsfiddle.net/philschatz/hjk2z4af/) (**Note:** due to a limitation of [css-tree](https://github.com/csstree/csstree) you have to type `:Xbefore(1)` instead of `::before(1)`)
+
 
 **Note:** I'm using single quotes to represent strings that contain a selector and double-quotes to represent strings
 
@@ -579,9 +588,9 @@ Since these are composable, all of the examples combined together should yield w
 - [ ] Add example showing complex numbering (only counting some exercises)
   - [ ] may need to introduce `:is(${SELECTOR})` to add exceptions
 - [ ] output a sourcemap file (contains all the strings in the resulting HTML file that came from the CSS file)
-- [ ] Create a https://jsfiddle.net/ (source CSS, source HTML, output HTML, warnings/errors)
-  - [ ] build all the JS into 1 file (minus maybe jQuery)
-  - use `css = document.querySelector('head > style').textContent` to get the CSS
+- [x] Create a https://jsfiddle.net/philschatz/hjk2z4af/ (source CSS, source HTML, output HTML, warnings/errors)
+  - [x] build all the JS into 1 file (minus maybe jQuery)
+  - [ ] show console warnings/errors in the output HTML area
 - [ ] Support `::inside(1, ${SELECTORS})`
 - [ ] Support `attrs-remove: *` instead of `attrs-set:` because they are as interchangeable and the order-of-evaluation is easier (only need to know 2: `attr-add:` and `attr-remove:`)
 - [x] `::for-each-descendant(1, ${SELECTOR}):has(${SELECTOR_FOR_MATCHES})` should have an additional selector argument

@@ -1,8 +1,5 @@
-const fs = require('fs')
 const assert = require('assert')
 const csstree = require('css-tree')
-const jsdom = require('jsdom')
-const {argv} = require('yargs')
 const Applier = require('./applier')
 const PseudoElementEvaluator = require('./helper/pseudo-element')
 const {createMessage, throwError, showWarning, showLog} = require('./helper/error')
@@ -61,12 +58,11 @@ function flattenVals(vals) {
 
 
 
-module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
+module.exports = (document, $, cssContents, cssSourcePath) => {
 
-  const app = new Applier()
+  const app = new Applier(document, $)
 
   app.setCSSContents(cssContents, cssSourcePath)
-  app.setHTMLContents(htmlContents, htmlSourcePath)
 
 
   // I promise that I will give you back at least 1 element that has been added to el

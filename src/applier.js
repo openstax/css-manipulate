@@ -1,7 +1,5 @@
 const assert = require('assert')
 const csstree = require('css-tree')
-const jsdom = require('jsdom')
-const jquery = require('jquery')
 const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
 const {throwError, showWarning} = require('./helper/error')
@@ -19,7 +17,7 @@ function walkDOMinOrder(el, fn) {
 
 
 module.exports = class Applier {
-  constructor() {
+  constructor(document, $) {
     this._pseudoElementPlugins = []
     this._ruleDeclarationPlugins = []
     this._functionPlugins = []
@@ -28,6 +26,9 @@ module.exports = class Applier {
     // This is a HACK until we can use real pseudo elements
     this._pseudoElementPluginByName = {}
     this._pseudoClassPluginByName = {}
+
+    this._document = document
+    this._$ = $
   }
 
   // getWindow() { return this._document.defaultView }
@@ -36,11 +37,6 @@ module.exports = class Applier {
   setCSSContents(css, sourcePath) {
     this._cssContents = css
     this._cssSourcePath = sourcePath
-  }
-
-  setHTMLContents(html, sourcePath) {
-    this._htmlContents = html
-    this._htmlSourcePath = sourcePath
   }
 
   addPseudoElement(plugin) {
@@ -76,9 +72,6 @@ module.exports = class Applier {
 
   prepare(fn) {
     const ast = csstree.parse(this._cssContents.toString(), {positions: true, filename: this._cssSourcePath})
-    console.info('Parsing HTML')
-    this._document = jsdom.jsdom(this._htmlContents)
-    this._$ = jquery(this._document.defaultView)
 
     // Convert the internal List structure to arrays:
     // unfortunately that means objects are simple; can no longer do instanceof checks

@@ -1,5 +1,7 @@
 const fs = require('fs')
 const test = require('ava')
+const jsdom = require('jsdom')
+const jquery = require('jquery')
 const diff = require('fast-diff')
 const converter = require('../src/converter')
 const {SPECIFICITY_COMPARATOR} = require('../src/helper/specificity')
@@ -8,7 +10,7 @@ const {WRITE_TEST_RESULTS} = process.env
 
 
 const UNIT_FILES_TO_TEST = [
-  './apphysics',
+  // './apphysics',
   './unit/before-after',
   './unit/simple-selectors',
   './unit/functions',
@@ -42,6 +44,14 @@ const MOTIVATION_FILES_TO_TEST = [
 
 const ERROR_TEST_FILENAME = '_errors'
 
+
+
+function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath) {
+  const document = jsdom.jsdom(htmlContents)
+  const $ = jquery(document.defaultView)
+  return converter(document, $, cssContents, cssPath)
+}
+
 function buildTest(cssFilename, htmlFilename) {
   const cssPath = `test/${cssFilename}`
   const htmlPath = `test/${htmlFilename}`
@@ -50,7 +60,7 @@ function buildTest(cssFilename, htmlFilename) {
     const cssContents = fs.readFileSync(cssPath)
     const htmlContents = fs.readFileSync(htmlPath)
 
-    return converter(cssContents, htmlContents, cssPath, htmlPath).then((actualOutput) => {
+    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath).then((actualOutput) => {
       if (fs.existsSync(htmlOutputPath)) {
         const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
         if (actualOutput.trim() != expectedOutput.trim()) {
@@ -97,7 +107,7 @@ function buildErrorTests() {
     }
     test(`Errors while trying to evaluate ${cssContents}`, (t) => {
       try {
-        converter(cssContents, htmlContents, cssPath, htmlPath)
+        convertNodeJS(cssContents, htmlContents, cssPath, htmlPath)
         .then(() => {
           t.fail('Expected to fail but succeeded')
         })
