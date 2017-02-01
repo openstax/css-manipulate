@@ -66,11 +66,11 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
 
 
   // I promise that I will give you back at least 1 element that has been added to el
-  app.addPseudoElement(new PseudoElementEvaluator('Xafter', ($lookupEl, $contextEls, $newEl, secondArg) => { $contextEls.append($newEl); return [{$newEl: $newEl, $newLookupEl: $lookupEl}] }))
-  app.addPseudoElement(new PseudoElementEvaluator('Xbefore', ($lookupEl, $contextEls, $newEl, secondArg) => { $contextEls.prepend($newEl); return [{$newEl: $newEl, $newLookupEl: $lookupEl}] })) // TODO: These are evaluated in reverse order
-  app.addPseudoElement(new PseudoElementEvaluator('Xoutside', ($lookupEl, $contextEls, $newEl, secondArg) => { return [{$newEl: $contextEls.wrap($newEl).parent(), $newLookupEl: $lookupEl}] }))
-  app.addPseudoElement(new PseudoElementEvaluator('Xinside', ($lookupEl, $contextEls, $newEl, secondArg) =>  { return [{$newEl: $contextEls.wrapInner($newEl).find(':first-child') , $newLookupEl: $lookupEl}] })) // Gotta get the first-child because those are the $newEl
-  app.addPseudoElement(new PseudoElementEvaluator('Xfor-each-descendant', ($lookupEl, $contextEls, $newEl, secondArg) => {
+  app.addPseudoElement(new PseudoElementEvaluator('Xafter',  ($lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.append($newEl); return $newEl }), $newLookupEl: $lookupEl}] }))
+  app.addPseudoElement(new PseudoElementEvaluator('Xbefore', ($lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.prepend($newEl); return $newEl }), $newLookupEl: $lookupEl}] })) // TODO: These are evaluated in reverse order
+  app.addPseudoElement(new PseudoElementEvaluator('Xoutside', ($lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { return $contextEl.wrap($newEl).parent() }), $newLookupEl: $lookupEl}] }))
+  app.addPseudoElement(new PseudoElementEvaluator('Xinside', ($lookupEl, $contextElPromise, $newEl, secondArg) =>  { return [{$newElPromise: $contextElPromise.then(($contextEl) => { return $contextEl.wrapInner($newEl).find(':first-child') }) , $newLookupEl: $lookupEl}] })) // Gotta get the first-child because those are the $newEl
+  app.addPseudoElement(new PseudoElementEvaluator('Xfor-each-descendant', ($lookupEl, $contextElPromise, $newEl, secondArg) => {
     assert(secondArg) // it is required for for-each
     assert.equal(secondArg.type, 'String')
     // Strip off the quotes in secondArg.value
@@ -82,10 +82,13 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
 
     const ret = []
     $newLookupEls.each((index, newLookupEl) => {
-      const $newEl = app._$('<div debug-pseudo="for-each-descendant-element"/>')
-      $contextEls.append($newEl)
+      const $newElPromise = $contextElPromise.then(($contextEl) => {
+        const $newEl = app._$('<div debug-pseudo="for-each-descendant-element"/>')
+        $contextEl.append($newEl)
+        return $newEl
+      })
       ret.push({
-        $newEl: $newEl,
+        $newElPromise: $newElPromise,
         $newLookupEl: app._$(newLookupEl)
       })
     })
@@ -116,54 +119,70 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
     if (vals[0][0] === 'none') {
       assert.equal(vals.length, 1)
       assert.equal(vals[0].length, 1)
-      return
+      return $elPromise
     }
 
     const msg = vals.map((val) => val.join('')).join(', ')
     showLog(msg, rule, $lookupEl)
   }))
-  app.addRuleDeclaration(new RuleDeclaration('content', ($, $lookupEl, $els, vals) => {
+  debugger // so we can set async stack traces
+  app.addRuleDeclaration(new RuleDeclaration('content', ($, $lookupEl, $elPromise, vals) => {
     // content: does not allow commas so there should only be 1 arg
     // (which can contain a mix of strings and jQuery elements and numbers)
     assert.equal(vals.length, 1)
-    $els.contents().remove() // remove so the text nodes are removed as well
-    // Vals could be string, or elements (from `move-here(...)` or `content()`)
 
-    vals[0].forEach((val) => {
-      // if (Array.isArray(val)) {
-      // }
-      assert(!Array.isArray(val))
-      $els.append(val)
+    assert($elPromise instanceof Promise)
+    return $elPromise.then(($el) => {
+      debugger
+      $el.contents().remove() // remove so the text nodes are removed as well
+      // Vals could be string, or elements (from `move-here(...)` or `content()`)
+      vals[0].forEach((val) => {
+        // if (Array.isArray(val)) {
+        // }
+        assert(!Array.isArray(val))
+        $el.append(val)
+      })
+      return $el
     })
   }))
-  app.addRuleDeclaration(new RuleDeclaration('class-add', ($, $lookupEl, $els, vals) => {
+  app.addRuleDeclaration(new RuleDeclaration('class-add', ($, $lookupEl, $elPromise, vals) => {
     assert(vals.length >= 1)
     // Do nothing when set to none;
     // TODO: verify that it is not the string "none" (also needed for format-number())
     if (vals[0][0] === 'none') {
       assert.equal(vals.length, 1)
       assert.equal(vals[0].length, 1)
-      return
+      return $elPromise
     }
-    vals.forEach((val) => {
-      $els.addClass(val.join(' ')) // use space so people can write `class-add: 'foo' 'bar'`
+
+    assert($elPromise instanceof Promise)
+    return $elPromise.then(($el) => {
+      vals.forEach((val) => {
+        $el.addClass(val.join(' ')) // use space so people can write `class-add: 'foo' 'bar'`
+      })
+      return $el
     })
   }))
-  app.addRuleDeclaration(new RuleDeclaration('class-remove', ($, $lookupEl, $els, vals) => {
+  app.addRuleDeclaration(new RuleDeclaration('class-remove', ($, $lookupEl, $elPromise, vals) => {
     // Do nothing when set to none;
     // TODO: verify that it is not the string "none" (also needed for format-number())
     if (vals[0][0] === 'none') {
       assert.equal(vals.length, 1)
       assert.equal(vals[0].length, 1)
-      return
+      return $elPromise
     }
-    vals.forEach((val) => {
-      $els.removeClass(val.join(' '))
+
+    assert($elPromise instanceof Promise)
+    return $elPromise.then(($el) => {
+      vals.forEach((val) => {
+        $el.removeClass(val.join(' '))
+      })
+      return $el
     })
   }))
 // TODO: Support class-add: none; class-remove: none;
 
-  app.addRuleDeclaration(new RuleDeclaration('attrs-add', ($, $lookupEl, $els, vals) => {
+  app.addRuleDeclaration(new RuleDeclaration('attrs-add', ($, $lookupEl, $elPromise, vals) => {
     // attrs-add: attr1Name attr1Value attr1AdditionalValue , attr2Name ...
     assert(vals.length >= 1)
     // Do nothing when set to none;
@@ -171,16 +190,21 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
     if (vals[0][0] === 'none') {
       assert.equal(vals.length, 1)
       assert.equal(vals[0].length, 1)
-      return
+      return $elPromise
     }
-    vals.forEach((val) => {
-      assert(val.length >= 2)
-      const attrName = val[0]
-      const attrValue = val.slice(1).join('')
-      $els.attr(attrName, attrValue)
+
+    assert($elPromise instanceof Promise)
+    return $elPromise.then(($el) => {
+      vals.forEach((val) => {
+        assert(val.length >= 2)
+        const attrName = val[0]
+        const attrValue = val.slice(1).join('')
+        $el.attr(attrName, attrValue)
+      })
+      return $el
     })
   }))
-  app.addRuleDeclaration(new RuleDeclaration('attrs-remove', ($, $lookupEl, $els, vals) => {
+  app.addRuleDeclaration(new RuleDeclaration('attrs-remove', ($, $lookupEl, $elPromise, vals) => {
     // attrs-remove: attr1Name, attr2Name ...
     assert(vals.length >= 1)
     // Do nothing when set to none;
@@ -188,23 +212,26 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
     if (vals[0][0] === 'none') {
       assert.equal(vals.length, 1)
       assert.equal(vals[0].length, 1)
-      return
+      return $elPromise
     }
-    vals.forEach((val) => {
-      assert.equal(val.length, 1)
-      const attrName = val[0]
-      $els.removeAttr(attrName)
+    assert($elPromise instanceof Promise)
+    return $elPromise.then(($el) => {
+      vals.forEach((val) => {
+        assert.equal(val.length, 1)
+        const attrName = val[0]
+        $el.removeAttr(attrName)
+      })
+      return $el
     })
   }))
-  app.addRuleDeclaration(new RuleDeclaration('tag-name-set', ($, $lookupEl, $els, vals) => {
-    assert($els.length === 1) // Just for now, If this gets fired then it might be fixable by looping
+  app.addRuleDeclaration(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise, vals) => {
     assert(vals.length === 1)
     // Do nothing when set to default;
     // TODO: verify that it is not the string "default" (also needed for format-number())
     if (vals[0][0] === 'default') {
       assert.equal(vals.length, 1)
       assert.equal(vals[0].length, 1)
-      return
+      return $elPromise
     }
     assert.equal(vals[0].length, 1)
     const tagName = vals[0][0]
@@ -228,7 +255,12 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
         }
         return $(tags);
     }
-    return replaceTagName.bind($els)(tagName)
+
+    assert($elPromise instanceof Promise)
+    return $elPromise.then(($el) => {
+      // TODO: This needs to somehow percolate to children
+      return replaceTagName.bind($el)(tagName)
+    })
   }))
   // FIXME: tag-name-set MUST be the last rule evaluated becuase it changes the $els set.
   // So until evaluateRule can return a new set of els this needs to be the last rule that is evaluated
@@ -308,7 +340,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
       assert(vals[0][0])
       return vals[0][0]
     },
-    ($, {$contextEl}, $currentEl, evaluator, args) => {
+    ($, {$contextEl}, $currentEl, evaluator, args, mutationPromise) => {
       return {$contextEl: $contextEl.parent()
     }
   }))
@@ -324,9 +356,9 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
       assert(vals[1][0] !== null)
       return vals[1][0]
     },
-    ($, context, $currentEl, evaluator, args) => {
+    ($, context, $currentEl, evaluator, args, mutationPromise) => {
       const {$contextEl} = context
-      const selector = evaluator(context, $currentEl, [args[0]]).join('')
+      const selector = evaluator(context, $currentEl, mutationPromise, [args[0]]).join('')
       assert.equal(typeof selector, 'string')
       // If we are looking up an id then look up against the whole document
       if ('#' === selector[0]) {
@@ -348,9 +380,9 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
       assert(vals[1][0] !== null) // TODO: Move this assertion test to the applier
       return vals[1][0]
     },
-    ($, context, $currentEl, evaluator, args) => {
+    ($, context, $currentEl, evaluator, args, mutationPromise) => {
       const {$contextEl} = context
-      const selector = evaluator(context, $currentEl, [args[0]]).join('')
+      const selector = evaluator(context, $currentEl, mutationPromise, [args[0]]).join('')
 
       const $closestAncestor = $contextEl.closest(selector)
       if ($closestAncestor.length !== 1) {
@@ -371,9 +403,10 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
       assert(vals[1][0] !== null) // TODO: Move this assertion test to the applier
       return vals[1][0]
     },
-    ($, context, $currentEl, evaluator, args) => {
+    ($, context, $currentEl, evaluator, args, mutationPromise) => {
+      assert(mutationPromise instanceof Promise)
       const {$contextEl} = context
-      const selector = evaluator(context, $currentEl, [args[0]]).join('')
+      const selector = evaluator(context, $currentEl, mutationPromise, [args[0]]).join('')
 
       const $firstDescendant = $contextEl.find(selector)
       if ($firstDescendant.length !== 1) {
@@ -387,7 +420,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
 
   app.prepare()
   // console.profile('CPU Profile')
-  app.process()
+  const allElementsDoneProcessingPromise = app.process()
   // console.profileEnd()
 
   // Types of Promises we need:
@@ -396,5 +429,8 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
   // - assign a set of attributes to a DOM node
   // - assign the contents of a DOM node
 
-  return app.getRoot().outerHTML
+  return allElementsDoneProcessingPromise.then(() => {
+    debugger
+    return app.getRoot().outerHTML
+  })
 }

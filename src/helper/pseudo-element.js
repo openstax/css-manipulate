@@ -62,14 +62,15 @@ module.exports = class PseudoElementEvaluator {
     return ret
   }
 
-  nodeCreator($, reducedSelectors, $lookupEl, $contextEls, depth) {
+  nodeCreator($, reducedSelectors, $lookupEl, $contextElPromise, depth) {
+    assert($contextElPromise instanceof Promise)
     return reducedSelectors.map((selectors) => {
       // Some pseudoelement selectors have an additional arg (like ::for-each)
       // HACK: Just use the 2nd arg of the first-found pseudo-selector. Eventually, loop over all selectors, find the unique 2ndargs, and run this._creator on them
       const {secondArg} = selectors[0].getPseudoAt(depth)
       const $newEl = $('<div>')
       $newEl.attr('pseudo', `${this._pseudoName}(${getIndex(selectors[0], depth)})`)
-      const ret = this._creator($lookupEl, $contextEls, $newEl, secondArg)
+      const ret = this._creator($lookupEl, $contextElPromise, $newEl, secondArg)
 
       // validation
       if (!Array.isArray(ret)) {
@@ -77,7 +78,8 @@ module.exports = class PseudoElementEvaluator {
       }
       assert(Array.isArray(ret))
       ret.forEach((item) => {
-        assert(item.$newEl)
+        assert(item.$newElPromise)
+        assert(item.$newElPromise instanceof Promise)
         assert(item.$newLookupEl)
       })
       return ret

@@ -173,7 +173,8 @@ module.exports = class Applier {
             $matchedNodes = $matchedNodes.filter((index, matchedNode) => {
               const $matchedNode = this._$(matchedNode)
               const context = {$contextEl: $matchedNode}
-              const args = this._evaluateVals(context, $matchedNode, pseudoClassElement.children.toArray())
+              const $elPromise = Promise.resolve('IT_IS_A_BUG_IF_YOU_RELY_ON_THIS_PROMISE_BECAUSE_WE_ARE_FILTERING_ON_A_CLASS_NAME')
+              const args = this._evaluateVals(context, $matchedNode, $elPromise, pseudoClassElement.children.toArray())
               return pseudoClassPlugin.matches(this._$, $matchedNode, args)
             })
           }
@@ -184,7 +185,8 @@ module.exports = class Applier {
     return $matchedNodes
   }
 
-  _evaluateVals(context, $currentEl, vals) {
+  _evaluateVals(context, $currentEl, $elPromise, vals) {
+    assert($elPromise instanceof Promise)
     // use comma ('Operator') to denote multiple arguments
     const ret = []
     let index = 0
@@ -209,8 +211,8 @@ module.exports = class Applier {
           if (!theFunction) {
             throwError(`BUG: Unsupported function named ${arg.name}`, arg)
           }
-          const newContext = theFunction.preEvaluateChildren(this._$, context, $currentEl, this._evaluateVals.bind(this), arg.children.toArray())
-          const fnArgs = this._evaluateVals(newContext, $currentEl, arg.children.toArray())
+          const newContext = theFunction.preEvaluateChildren(this._$, context, $currentEl, this._evaluateVals.bind(this), arg.children.toArray(), $elPromise)
+          const fnArgs = this._evaluateVals(newContext, $currentEl, $elPromise, arg.children.toArray())
           const mutationPromise = Promise.resolve('HACK_FOR_NOW')
           const fnReturnVal = theFunction.evaluateFunction(this._$, newContext, $currentEl, fnArgs, mutationPromise)
           if (!(typeof fnReturnVal === 'string' || typeof fnReturnVal === 'number' || (typeof fnReturnVal === 'object' && typeof fnReturnVal.appendTo === 'function'))) {
@@ -226,7 +228,7 @@ module.exports = class Applier {
 
   }
 
-  _evaluateRules(depth, rules, $currentEl, $newEl) {
+  _evaluateRules(depth, rules, $currentEl, $elPromise) {
     // Pull out all the declarations for this rule, and then later sort by specificity.
     // The structure is {'content': [ {specificity: [1,0,1], isImportant: false}, ... ]}
     const declarationsMap = {}
@@ -261,9 +263,9 @@ module.exports = class Applier {
         })
 
         if (value) {
-          const vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, value.children.toArray())
+          const vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, $elPromise, value.children.toArray())
           try {
-            ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $newEl, vals, value)
+            ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $elPromise, vals, value)
           } catch (e) {
             throwError(`BUG: evaluating ${ruleDeclarationPlugin.getRuleName()}`, value, $currentEl, e)
           }
@@ -385,17 +387,23 @@ module.exports = class Applier {
   }
 
   run(fn) {
+    const allPromises = []
     walkDOMinOrder(this._document.documentElement, (el) => {
       const matches = el.MATCHED_RULES || []
       el.MATCHED_RULES = null
       delete el.MATCHED_RULES // Free up some memory
-      fn(this._$(el), matches)
+      const promise = fn(this._$(el), matches)
+      if (promise) {
+        allPromises.push(promise)
+      }
     })
+    assert(allPromises.length > 0)
+    return allPromises
   }
 
   process() {
     const allPseudoElementNames = this._pseudoElementPlugins.map((plugin) => plugin.getPseudoElementName())
-    this.run(($el, rules) => {
+    const allElementPromises = this.run(($el, rules) => {
       if (rules.length > 0) {
 
         const rulesWithPseudos = rules.map((rule) => new RuleWithPseudos(rule, allPseudoElementNames))
@@ -404,7 +412,7 @@ module.exports = class Applier {
         // from left-to-right, creating new nodes along the way.
         // TODO: delay creating the nodes (or at least appending them to the DOM)
         // until other evaluations have finished.
-        const recursePseudoElements = (depth, rulesWithPseudos, $lookupEl, $contextEls) => {
+        const recursePseudoElements = (depth, rulesWithPseudos, $lookupEl, $contextElPromise) => {
 
           // TODO: Fix this annoying off-by-one error
           const rulesAtDepth = rulesWithPseudos.filter((matchedRuleWithPseudo) => {
@@ -430,13 +438,14 @@ module.exports = class Applier {
               return rule.getPseudoAt(depth).name === pseudoElementName
             })
             const reducedRules = pseudoElementPlugin.selectorReducer(matchedRulesAtDepth, depth)
-            const newElementsAndContexts = pseudoElementPlugin.nodeCreator(this._$, reducedRules, $lookupEl, $contextEls, depth)
+            // const $contextElPromise = Promise.resolve($contextEls)
+            const newElementsAndContexts = pseudoElementPlugin.nodeCreator(this._$, reducedRules, $lookupEl, $contextElPromise, depth)
 
 
             // Zip up the reducedRules with the new DOM nodes that were created and recurse
             assert.equal(reducedRules.length, newElementsAndContexts.length)
             for (let index = 0; index < reducedRules.length; index++) {
-              newElementsAndContexts[index].forEach(({$newEl, $newLookupEl}) => {
+              newElementsAndContexts[index].forEach(({$newElPromise, $newLookupEl}) => {
 
                 // This loop-and-check is here to support ::for-each-descendant(1, 'section'):has('exercise.homework')
                 const rulesAtDepth = reducedRules[index].filter((matchedRuleWithPseudo) => {
@@ -452,9 +461,9 @@ module.exports = class Applier {
                   return // skip the evaluation
                 }
 
-                this._evaluateRules(depth, reducedRules[index], $newLookupEl, $newEl)
+                this._evaluateRules(depth, reducedRules[index], $newLookupEl, $newElPromise)
 
-                recursePseudoElements(depth + 1, reducedRules[index], $newLookupEl, $newEl)
+                recursePseudoElements(depth + 1, reducedRules[index], $newLookupEl, $newElPromise)
 
               })
 
@@ -464,11 +473,14 @@ module.exports = class Applier {
 
         }
         // Start the evaluation
-        recursePseudoElements(0, rulesWithPseudos, $el, $el)
+        const $elPromise = Promise.resolve($el)
+        recursePseudoElements(0, rulesWithPseudos, $el, $elPromise)
 
-        this._evaluateRules(-1 /*depth*/, rulesWithPseudos, $el, $el)
+        this._evaluateRules(-1 /*depth*/, rulesWithPseudos, $el, $elPromise)
+        return $elPromise
       }
 
     })
+    return Promise.all(allElementPromises)
   }
 }
