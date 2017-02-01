@@ -12,6 +12,7 @@
     "snazzy": "nyc --reporter html --reporter text --reporter json ava ./test/index.js 2>&1 | snazzy"
   },
   "dependencies": {
+    "archy": "^1.0.0",
     "css-tree": "^1.0.0-alpha13",
     "fast-diff": "^1.1.1",
     "jquery": "^3.1.1",

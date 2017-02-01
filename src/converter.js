@@ -15,7 +15,7 @@ class RuleDeclaration {
     this._fn = fn
   }
   getRuleName() { return this._name }
-  evaluateRule($lookupEl, $els, args, rule) { return this._fn.apply(null, arguments) }
+  evaluateRule($lookupEl, $elPromise, args, rule) { return this._fn.apply(null, arguments) }
 }
 
 class FunctionEvaluator {
@@ -28,7 +28,7 @@ class FunctionEvaluator {
   }
   getFunctionName() { return this._name }
   preEvaluateChildren() { return this._preFn.apply(null, arguments) }
-  evaluateFunction($, context, $currentEl, args) { return this._fn.apply(null, arguments) }
+  evaluateFunction($, context, $currentEl, args, mutationPromise) { return this._fn.apply(null, arguments) }
 }
 
 class PseudoClassFilter {
@@ -109,7 +109,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
 
 
 
-  app.addRuleDeclaration(new RuleDeclaration('x-log', ($, $lookupEl, $els, vals, rule) => {
+  app.addRuleDeclaration(new RuleDeclaration('x-log', ($, $lookupEl, $elPromise, vals, rule) => {
     assert(vals.length >= 1)
     // Do nothing when set to none;
     // TODO: verify that it is not the string "none" (also needed for format-number())
@@ -233,7 +233,8 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
   // FIXME: tag-name-set MUST be the last rule evaluated becuase it changes the $els set.
   // So until evaluateRule can return a new set of els this needs to be the last rule that is evaluated
 
-  app.addFunction(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, vals) => {
+
+  app.addFunction(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
     // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
     assert($contextEl.length, 1)
     const ret = $contextEl.attr(vals.join(''))
@@ -246,7 +247,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
     }
     return ret
   } ))
-  app.addFunction(new FunctionEvaluator('x-tag-name', ($, {$contextEl}, $currentEl, vals) => {
+  app.addFunction(new FunctionEvaluator('x-tag-name', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
     // check that we are only operating on 1 element at a time
     assert($contextEl.length, 1)
     if (vals[0].join() === 'current') {
@@ -254,7 +255,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
     }
     return $contextEl[0].tagName.toLowerCase()
   } ))
-  app.addFunction(new FunctionEvaluator('text-contents', ($, {$contextEl}, $currentEl, vals) => {
+  app.addFunction(new FunctionEvaluator('text-contents', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
     // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
     assert($contextEl.length, 1)
     const ret = $contextEl[0].textContent // HACK! $contextEl.contents() (need to clone these if this is the case; and remove id's)
@@ -267,17 +268,18 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
     }
     return ret
   } ))
-  app.addFunction(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, vals) => {
+  app.addFunction(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
     assert.equal(vals.length, 1)
     const selector = vals[0].join('')
     const ret = $contextEl.find(selector)
     if (ret.length === 0) {
       showWarning(`Moving 0 items using selector ${selector}. Maybe add a :has() guard to prevent this warning [TODO: Show the selector that matched]`, null, $contextEl)
     }
-    ret.detach() // detach (instead of remove) because we do not want to destroy the elements
+    // detach (instead of remove) because we do not want to destroy the elements
+    mutationPromise.then(() => ret.detach())
     return ret
   }))
-  app.addFunction(new FunctionEvaluator('count-of-type', ($, {$contextEl}, $currentEl, vals) => {
+  app.addFunction(new FunctionEvaluator('count-of-type', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
     assert.equal(vals.length, 1)
     assert(Array.isArray(vals[0]))
     const selector = vals[0].join(' ')  // vals[0] = ['li'] (notice vals is a 2-Dimensional array. If each FunctionEvaluator had a .join() method then this function could be simpler and more intuitive to add more features)
@@ -298,7 +300,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
     return count
   }))
   app.addFunction(new FunctionEvaluator('parent-context',
-    ($, context, $currentEl, vals) => {
+    ($, context, $currentEl, vals, mutationPromise) => {
       assert.equal(vals.length, 1)
       // The argument to this `-context` function needs to be fully-evaluated, hence this
       // assertion below: (TODO: Change this in the future to not require full-evaluation)
@@ -311,7 +313,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
     }
   }))
   app.addFunction(new FunctionEvaluator('target-context',
-    ($, context, $currentEl, vals) => {
+    ($, context, $currentEl, vals, mutationPromise) => {
       assert.equal(vals.length, 2) // TODO: This should be validated before the function is applied so a better error message can be made
       // skip the 1st arg which is the selector
       // and return the 2nd arg
@@ -335,7 +337,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
       }
   }))
   app.addFunction(new FunctionEvaluator('ancestor-context',
-    ($, context, $currentEl, vals) => {
+    ($, context, $currentEl, vals, mutationPromise) => {
       assert.equal(vals.length, 2) // TODO: This should be validated before the function is applied so a better error message can be made
       // skip the 1st arg which is the selector
       // and return the 2nd arg
@@ -358,7 +360,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
       return {$contextEl: $closestAncestor }
   }))
   app.addFunction(new FunctionEvaluator('descendant-context',
-    ($, context, $currentEl, vals) => {
+    ($, context, $currentEl, vals, mutationPromise) => {
       assert.equal(vals.length, 2) // TODO: This should be validated before the function is applied so a better error message can be made
       // skip the 1st arg which is the selector
       // and return the 2nd arg

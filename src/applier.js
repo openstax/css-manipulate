@@ -211,7 +211,8 @@ module.exports = class Applier {
           }
           const newContext = theFunction.preEvaluateChildren(this._$, context, $currentEl, this._evaluateVals.bind(this), arg.children.toArray())
           const fnArgs = this._evaluateVals(newContext, $currentEl, arg.children.toArray())
-          const fnReturnVal = theFunction.evaluateFunction(this._$, newContext, $currentEl, fnArgs)
+          const mutationPromise = Promise.resolve('HACK_FOR_NOW')
+          const fnReturnVal = theFunction.evaluateFunction(this._$, newContext, $currentEl, fnArgs, mutationPromise)
           if (!(typeof fnReturnVal === 'string' || typeof fnReturnVal === 'number' || (typeof fnReturnVal === 'object' && typeof fnReturnVal.appendTo === 'function'))) {
             throwError(`BUG: CSS function should return a string or number. Found ${typeof fnReturnVal} while evaluating ${theFunction.getFunctionName()}.`, arg, $currentEl)
           }
