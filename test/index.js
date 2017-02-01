@@ -8,7 +8,7 @@ const {WRITE_TEST_RESULTS} = process.env
 
 
 const UNIT_FILES_TO_TEST = [
-  // './apphysics',
+  './apphysics',
   './unit/before-after',
   './unit/simple-selectors',
   './unit/functions',
@@ -36,7 +36,7 @@ const MOTIVATION_FILES_TO_TEST = [
   './motivation/6',
   './motivation/7',
   './motivation/8',
-  // './motivation/9',
+  './motivation/9',
   './motivation/10',
 ]
 
@@ -50,34 +50,36 @@ function buildTest(cssFilename, htmlFilename) {
     const cssContents = fs.readFileSync(cssPath)
     const htmlContents = fs.readFileSync(htmlPath)
 
-    const actualOutput = converter(cssContents, htmlContents, cssPath, htmlPath)
-
-    if (fs.existsSync(htmlOutputPath)) {
-      const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
-      if (actualOutput.trim() != expectedOutput.trim()) {
-        if (WRITE_TEST_RESULTS === 'true') {
-          fs.writeFileSync(htmlOutputPath, actualOutput)
-        } else {
-          console.log(diff(expectedOutput.trim(), actualOutput.trim()))
-          t.fail('Mismatched output')
+    return converter(cssContents, htmlContents, cssPath, htmlPath).then((actualOutput) => {
+      if (fs.existsSync(htmlOutputPath)) {
+        const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
+        if (actualOutput.trim() != expectedOutput.trim()) {
+          if (WRITE_TEST_RESULTS === 'true') {
+            fs.writeFileSync(htmlOutputPath, actualOutput)
+          } else {
+            console.log(diff(expectedOutput.trim(), actualOutput.trim()))
+            t.fail('Mismatched output')
+          }
         }
+      } else {
+        // If the file does not exist yet then write it out to disk
+        // if (WRITE_TEST_RESULTS === 'true') {
+        fs.writeFileSync(htmlOutputPath, actualOutput)
+        // }
       }
-    } else {
-      // If the file does not exist yet then write it out to disk
-      // if (WRITE_TEST_RESULTS === 'true') {
-      fs.writeFileSync(htmlOutputPath, actualOutput)
-      // }
-    }
 
-    // Use this for profiling so the inspector does not close immediately
-    if (process.env['NODE_ENV'] === 'profile') {
-      return new Promise(function(resolve) {
-        setTimeout(function() {
-          debugger
-          resolve('yay')
-        }, 20 * 60 * 1000) // Wait 20 minutes
-      })
-    }
+    })
+
+
+    // // Use this for profiling so the inspector does not close immediately
+    // if (process.env['NODE_ENV'] === 'profile') {
+    //   return new Promise(function(resolve) {
+    //     setTimeout(function() {
+    //       debugger
+    //       resolve('yay')
+    //     }, 20 * 60 * 1000) // Wait 20 minutes
+    //   })
+    // }
 
   })
 }
@@ -96,8 +98,17 @@ function buildErrorTests() {
     test(`Errors while trying to evaluate ${cssContents}`, (t) => {
       try {
         converter(cssContents, htmlContents, cssPath, htmlPath)
-        t.fail('Expected to fail but succeeded')
+        .then(() => {
+          t.fail('Expected to fail but succeeded')
+        })
+        .catch((e) => {
+          // TODO: Test if the Error is useful for the end user or if it is just an assertion error
+          // If the error occurred while manipulating the DOM it will show up here (in a Promise rejection)
+          t.pass(e)
+        })
       } catch (e) {
+        // If the error was spotted before manipulating the DOM then it will show up here
+        t.pass(e)
       }
     })
 

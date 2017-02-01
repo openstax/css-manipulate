@@ -575,12 +575,17 @@ Since these are composable, all of the examples combined together should yield w
 - [x] Support `!important`
 - [x] Add `::for-each-descendant(1, ${SELECTOR})`
 - [x] Add `:target(${ATTRIBUTE_NAME}, ${MATCH_SELECTORS...})`
-- [ ] Use Promises to defer DOM Manipulation to all be after selector/rule/attribute evaluation is done
+- [x] Use Promises to defer DOM Manipulation to all be after selector/rule/attribute evaluation is done
+- [ ] Add example showing complex numbering (only counting some exercises)
+  - [ ] may need to introduce `:is(${SELECTOR})` to add exceptions
 - [ ] output a sourcemap file (contains all the strings in the resulting HTML file that came from the CSS file)
+- [ ] Create a https://jsfiddle.net/ (source CSS, source HTML, output HTML, warnings/errors)
+  - [ ] build all the JS into 1 file (minus maybe jQuery)
+  - use `css = document.querySelector('head > style').textContent` to get the CSS
 - [ ] Support `::inside(1, ${SELECTORS})`
 - [ ] Support `attrs-remove: *` instead of `attrs-set:` because they are as interchangeable and the order-of-evaluation is easier (only need to know 2: `attr-add:` and `attr-remove:`)
 - [x] `::for-each-descendant(1, ${SELECTOR}):has(${SELECTOR_FOR_MATCHES})` should have an additional selector argument
-  - [ ] so it only creates the element if there is something matching the selector
+  - [x] so it only creates the element if there is something matching the selector
   - This way a "Homework" section will not be created if there are no Homework problems to show
 - [x] Show colorful error messages
 - [ ] Show colorful warnings

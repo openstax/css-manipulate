@@ -251,7 +251,7 @@ module.exports = class Applier {
 
     // now that all the declarations are sorted by selectivity (and filtered so they only occur once)
     // apply the declarations
-    this._ruleDeclarationPlugins.forEach((ruleDeclarationPlugin) => {
+    const promises = this._ruleDeclarationPlugins.map((ruleDeclarationPlugin) => {
       let declarations = declarationsMap[ruleDeclarationPlugin.getRuleName()]
       if (declarations) {
         declarations = declarations.sort(SPECIFICITY_COMPARATOR)
@@ -265,14 +265,19 @@ module.exports = class Applier {
         if (value) {
           const vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, $elPromise, value.children.toArray())
           try {
-            ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $elPromise, vals, value)
+            return ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $elPromise, vals, value)
           } catch (e) {
             throwError(`BUG: evaluating ${ruleDeclarationPlugin.getRuleName()}`, value, $currentEl, e)
           }
+        } else {
+          return Promise.resolve('NO_RULES_TO_EVALUATE')
         }
+      } else {
+        return Promise.resolve('NO_DECLARATIONS_TO_EVALUATE')
       }
     })
 
+    return Promise.all(promises)
   }
 
   toBrowserSelector(selector) {
@@ -431,7 +436,7 @@ module.exports = class Applier {
           }
 
 
-          this._pseudoElementPlugins.forEach((pseudoElementPlugin) => {
+          return Promise.all(this._pseudoElementPlugins.map((pseudoElementPlugin) => {
             const pseudoElementName = pseudoElementPlugin.getPseudoElementName()
 
             const matchedRulesAtDepth = rulesAtDepth.filter((rule) => {
@@ -444,8 +449,9 @@ module.exports = class Applier {
 
             // Zip up the reducedRules with the new DOM nodes that were created and recurse
             assert.equal(reducedRules.length, newElementsAndContexts.length)
+            const allPromises = []
             for (let index = 0; index < reducedRules.length; index++) {
-              newElementsAndContexts[index].forEach(({$newElPromise, $newLookupEl}) => {
+              const promises = newElementsAndContexts[index].map(({$newElPromise, $newLookupEl}) => {
 
                 // This loop-and-check is here to support ::for-each-descendant(1, 'section'):has('exercise.homework')
                 const rulesAtDepth = reducedRules[index].filter((matchedRuleWithPseudo) => {
@@ -458,26 +464,29 @@ module.exports = class Applier {
                   return matchedRuleWithPseudo.hasDepth(depth)
                 })
                 if (rulesAtDepth.length == 0) {
-                  return // skip the evaluation
+                  return Promise.all([]) // skip the evaluation
                 }
 
-                this._evaluateRules(depth, reducedRules[index], $newLookupEl, $newElPromise)
-
-                recursePseudoElements(depth + 1, reducedRules[index], $newLookupEl, $newElPromise)
+                return Promise.all([
+                  this._evaluateRules(depth, reducedRules[index], $newLookupEl, $newElPromise),
+                  recursePseudoElements(depth + 1, reducedRules[index], $newLookupEl, $newElPromise)
+                ])
 
               })
+              allPromises.push(Promise.all(promises))
 
             }
+            return Promise.all(allPromises)
 
-          })
+          }) ) // Promise.all
 
         }
         // Start the evaluation
         const $elPromise = Promise.resolve($el)
-        recursePseudoElements(0, rulesWithPseudos, $el, $elPromise)
-
-        this._evaluateRules(-1 /*depth*/, rulesWithPseudos, $el, $elPromise)
-        return $elPromise
+        return Promise.all([
+          recursePseudoElements(0, rulesWithPseudos, $el, $elPromise),
+          this._evaluateRules(-1 /*depth*/, rulesWithPseudos, $el, $elPromise)
+        ])
       }
 
     })

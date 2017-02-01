@@ -15,7 +15,11 @@ class RuleDeclaration {
     this._fn = fn
   }
   getRuleName() { return this._name }
-  evaluateRule($lookupEl, $elPromise, args, rule) { return this._fn.apply(null, arguments) }
+  evaluateRule($lookupEl, $elPromise, args, rule) {
+    const ret = this._fn.apply(null, arguments)
+    assert(ret instanceof Promise)
+    return ret
+  }
 }
 
 class FunctionEvaluator {
@@ -124,8 +128,8 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
 
     const msg = vals.map((val) => val.join('')).join(', ')
     showLog(msg, rule, $lookupEl)
+    return $elPromise
   }))
-  debugger // so we can set async stack traces
   app.addRuleDeclaration(new RuleDeclaration('content', ($, $lookupEl, $elPromise, vals) => {
     // content: does not allow commas so there should only be 1 arg
     // (which can contain a mix of strings and jQuery elements and numbers)
@@ -133,7 +137,6 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
 
     assert($elPromise instanceof Promise)
     return $elPromise.then(($el) => {
-      debugger
       $el.contents().remove() // remove so the text nodes are removed as well
       // Vals could be string, or elements (from `move-here(...)` or `content()`)
       vals[0].forEach((val) => {
@@ -430,7 +433,6 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
   // - assign the contents of a DOM node
 
   return allElementsDoneProcessingPromise.then(() => {
-    debugger
     return app.getRoot().outerHTML
   })
 }
