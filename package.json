@@ -6,7 +6,9 @@
     "rebuild-tests": "WRITE_TEST_RESULTS=true ava ./test/index.js",
     "start": "ava --watch --source '**/*.{js}' --source 'test/*.{css,in.html}' ./test/index.js",
     "test": "nyc --reporter html --reporter text --reporter json ava ./test/index.js",
+    "test:only": "ava ./test/index.js",
     "lint": "eslint src/**/*.js",
+    "debugger": "NODE_ENV=profile inspect node_modules/ava/profile.js test/index.js",
     "snazzy": "nyc --reporter html --reporter text --reporter json ava ./test/index.js 2>&1 | snazzy"
   },
   "dependencies": {
@@ -23,6 +25,7 @@
   "devDependencies": {
     "ava": "^0.17.0",
     "eslint": "^3.14.1",
+    "inspect-process": "^0.4.1",
     "nyc": "^10.1.2"
   }
 }

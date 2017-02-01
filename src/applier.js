@@ -386,6 +386,8 @@ module.exports = class Applier {
   run(fn) {
     walkDOMinOrder(this._document.documentElement, (el) => {
       const matches = el.MATCHED_RULES || []
+      el.MATCHED_RULES = null
+      delete el.MATCHED_RULES // Free up some memory
       fn(this._$(el), matches)
     })
   }

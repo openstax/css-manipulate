@@ -384,7 +384,9 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
 
 
   app.prepare()
+  // console.profile('CPU Profile')
   app.process()
+  // console.profileEnd()
 
   // Types of Promises we need:
   // - create a DOM node (for pseudo-elements)

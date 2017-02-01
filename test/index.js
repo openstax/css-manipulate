@@ -8,6 +8,7 @@ const {WRITE_TEST_RESULTS} = process.env
 
 
 const UNIT_FILES_TO_TEST = [
+  // './apphysics',
   './unit/before-after',
   './unit/simple-selectors',
   './unit/functions',
@@ -22,7 +23,6 @@ const UNIT_FILES_TO_TEST = [
   './unit/for-each-advanced',
   './unit/target',
 
-  // 'apphysics',
   // 'outside',
 ]
 
@@ -67,6 +67,16 @@ function buildTest(cssFilename, htmlFilename) {
       // if (WRITE_TEST_RESULTS === 'true') {
       fs.writeFileSync(htmlOutputPath, actualOutput)
       // }
+    }
+
+    // Use this for profiling so the inspector does not close immediately
+    if (process.env['NODE_ENV'] === 'profile') {
+      return new Promise(function(resolve) {
+        setTimeout(function() {
+          debugger
+          resolve('yay')
+        }, 20 * 60 * 1000) // Wait 20 minutes
+      })
     }
 
   })
