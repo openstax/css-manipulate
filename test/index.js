@@ -49,7 +49,18 @@ const ERROR_TEST_FILENAME = '_errors'
 function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath) {
   const document = jsdom.jsdom(htmlContents)
   const $ = jquery(document.defaultView)
-  return converter(document, $, cssContents, cssPath)
+  function htmlSourceLookup($el) {
+    // https://github.com/tmpvar/jsdom/issues/1194
+    // jsdom.nodeLocation(el) =
+    // { start: 20,
+    //   end: 44,
+    //   startTag: { start: 20, end: 36 },
+    //   endTag: { start: 38, end: 44 }
+    // }
+    const htmlOffset = jsdom.nodeLocation($el[0]).start
+    return `HTMLchar=${htmlOffset}`
+  }
+  return converter(document, $, cssContents, cssPath, console, htmlSourceLookup)
 }
 
 function buildTest(cssFilename, htmlFilename) {

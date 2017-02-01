@@ -2,7 +2,7 @@ const assert = require('assert')
 const csstree = require('css-tree')
 const Applier = require('./applier')
 const PseudoElementEvaluator = require('./helper/pseudo-element')
-const {createMessage, throwError, showWarning, showLog} = require('./helper/error')
+const {init: errorInit, createMessage, throwError, showWarning, showLog} = require('./helper/error')
 
 const {IS_STRICT_MODE} = process.env
 
@@ -58,7 +58,9 @@ function flattenVals(vals) {
 
 
 
-module.exports = (document, $, cssContents, cssSourcePath) => {
+module.exports = (document, $, cssContents, cssSourcePath, consol, htmlSourceLookup) => {
+
+  errorInit(consol, htmlSourceLookup)
 
   const app = new Applier(document, $)
 
