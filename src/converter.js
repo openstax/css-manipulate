@@ -257,7 +257,7 @@ module.exports = (cssContents, htmlContents, cssSourcePath, htmlSourcePath) => {
   app.addFunction(new FunctionEvaluator('text-contents', ($, {$contextEl}, $currentEl, vals) => {
     // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
     assert($contextEl.length, 1)
-    const ret = x=$contextEl[0].textContent // HACK! $contextEl.contents() (need to clone these if this is the case; and remove id's)
+    const ret = $contextEl[0].textContent // HACK! $contextEl.contents() (need to clone these if this is the case; and remove id's)
     if (ret == null) {
       if (IS_STRICT_MODE) {
         throwError(`ERROR: function resulted in null. This is disallowed in IS_STRICT_MODE`, vals[0]) // TODO: FOr better messages FunctionEvaluator should know the source line for the function, not just the array of vals
