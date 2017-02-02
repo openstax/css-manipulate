@@ -1,0 +1,23 @@
+@collated-exercise-classes: .homework, .conceptual;
+@collated-exercise-sel: exercise.homework, exercise.conceptual;
+
+// Number collated exercises on their own
+exercise {
+  // Number exercises by how they occur in the chapter
+  &:Xbefore(1) {
+    tag-name-set: 'strong';
+    content: ancestor-context('chapter', count-of-type('exercise:not(@{collated-exercise-classes})')) '. ';
+  }
+
+  &@{collated-exercise-classes} {
+    &:Xbefore(1) {
+      tag-name-set: 'strong';
+      content: ancestor-context('chapter', count-of-type('@{collated-exercise-sel}')) '. ';
+    }
+  }
+}
+
+chapter:Xafter(1) {
+  &:Xbefore(1) { content: 'End-of-Chapter exercises'; }
+  content: ancestor-context('chapter', move-here('@{collated-exercise-sel}'));
+}

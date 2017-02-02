@@ -83,7 +83,6 @@ module.exports = class Applier {
     // So, annotate the DOM first with all the matches and then walk the DOM
 
     // This code is not css-ish because it does not walk the DOM
-    console.info('Annotating DOM')
     ast.children.each((rule) => {
       // if not a rule then return
       if (rule.type === 'Atrule') {

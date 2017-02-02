@@ -3,6 +3,7 @@ set -e
 
 for filename in $(ls ./test/*/*.less)
 do
+  echo "compiling ${filename}"
   filename="${filename%.*}" # strip off the extension
   $(npm bin)/lessc --source-map "${filename}.less" "${filename}.css"
 done

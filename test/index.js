@@ -26,6 +26,8 @@ const UNIT_FILES_TO_TEST = [
   './unit/target',
 
   // 'outside',
+
+  './example/exercise-numbering'
 ]
 
 const MOTIVATION_INPUT_HTML_PATH = `./motivation/_input.html`

@@ -11,3 +11,6 @@
 
 /test/motivation/*.css
 /test/motivation/*.css.map
+
+/test/example/*.css
+/test/example/*.css.map

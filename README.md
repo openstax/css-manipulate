@@ -585,14 +585,22 @@ Since these are composable, all of the examples combined together should yield w
 - [x] Add `::for-each-descendant(1, ${SELECTOR})`
 - [x] Add `:target(${ATTRIBUTE_NAME}, ${MATCH_SELECTORS...})`
 - [x] Use Promises to defer DOM Manipulation to all be after selector/rule/attribute evaluation is done
-- [ ] Add example showing complex numbering (only counting some exercises)
-  - [ ] may need to introduce `:is(${SELECTOR})` to add exceptions
+- [ ] Add Examples
+  - [x] Add example showing [complex numbering](./test/example/) (only counting some exercises)
+    - [ ] may need to introduce `:is(${SELECTOR})` to add exceptions
+  - [ ] Add example showing how to only transform certain chapters (or any selector)
+    - May require adding support for multiple CSS files and an `env(NAME, DEFAULT)` function
+  - [ ] Add example showing how to build a glossary
+    - [ ] add `sort($NODES, ${SELECTOR})` for sorting a glossary
+    - [ ] add `copy-to(${SELECTOR})` which does a deep clone
+- [ ] add `build-index(${TERM_SELECTOR})` for building an index
+- [ ] Convert the "motivation" examples to 1 big SASS file
 - [ ] output a sourcemap file (contains all the strings in the resulting HTML file that came from the CSS file)
+- [ ] support `--dry-run` which outputs an evaluation tree (for debugging)
 - [x] Create a https://jsfiddle.net/philschatz/hjk2z4af/ (source CSS, source HTML, output HTML, warnings/errors)
   - [x] build all the JS into 1 file (minus maybe jQuery)
   - [ ] show console warnings/errors in the output HTML area
-- [ ] Support `::inside(1, ${SELECTORS})`
-- [ ] Support `attrs-remove: *` instead of `attrs-set:` because they are as interchangeable and the order-of-evaluation is easier (only need to know 2: `attr-add:` and `attr-remove:`)
+- [ ] Support `attrs-remove: *` instead of `attrs-set:` because they are as interchangeable and the order-of-evaluation is easier (only need to know 2: `attrs-add:` and `attrs-remove:`)
 - [x] `::for-each-descendant(1, ${SELECTOR}):has(${SELECTOR_FOR_MATCHES})` should have an additional selector argument
   - [x] so it only creates the element if there is something matching the selector
   - This way a "Homework" section will not be created if there are no Homework problems to show
