@@ -59,9 +59,9 @@ function flattenVals(vals) {
 
 
 
-module.exports = (document, $, cssContents, cssSourcePath, consol, htmlSourceLookup) => {
+module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, consol, htmlSourceLookup) => {
 
-  errorInit(consol, htmlSourceLookup)
+  errorInit(consol, htmlSourceLookup, htmlSourcePath)
 
   const app = new Applier(document, $)
 
@@ -432,6 +432,6 @@ module.exports = (document, $, cssContents, cssSourcePath, consol, htmlSourceLoo
   // - assign the contents of a DOM node
 
   return allElementsDoneProcessingPromise.then(() => {
-    return {html: serializer(app.getRoot(), htmlSourceLookup)}
+    return serializer(app.getRoot(), htmlSourceLookup, htmlSourcePath)
   })
 }

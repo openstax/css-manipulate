@@ -2,10 +2,12 @@
 
 let _console = console
 let _htmlSourceLookup
+let _htmlSourcePath
 
-function init(consol, htmlSourceLookup) {
+function init(consol, htmlSourceLookup, htmlSourcePath) {
   _console = consol
   _htmlSourceLookup = htmlSourceLookup
+  _htmlSourcePath = htmlSourcePath
 }
 
 // Generate pretty messages with source lines for debugging
@@ -22,7 +24,7 @@ function createMessage(message, cssSnippet, $el) {
     const locationInfo = _htmlSourceLookup($el[0])
     function getLocationString() {
       if (locationInfo.line !== null) {
-        return `${htmlPath}:${locationInfo.line}:${locationInfo.col}`
+        return `${_htmlSourcePath}:${locationInfo.line}:${locationInfo.col}`
       } else {
         if (!hasBeenWarned) {
           console.warn('See the installation instructions about getting the correct version of jsdom')

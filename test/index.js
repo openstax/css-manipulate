@@ -66,7 +66,7 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath) {
     const locationInfo = jsdom.nodeLocation(node)
     return locationInfo
   }
-  return converter(document, $, cssContents, cssPath, console, htmlSourceLookup)
+  return converter(document, $, cssContents, cssPath, htmlPath, console, htmlSourceLookup)
 }
 
 function buildTest(cssFilename, htmlFilename) {
