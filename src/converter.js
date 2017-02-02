@@ -431,6 +431,6 @@ module.exports = (document, $, cssContents, cssSourcePath, consol, htmlSourceLoo
   // - assign the contents of a DOM node
 
   return allElementsDoneProcessingPromise.then(() => {
-    return app.getRoot().outerHTML
+    return {html: app.getRoot().outerHTML, sourceMap: app.getSourceMap()}
   })
 }

@@ -47,11 +47,14 @@ const MOTIVATION_FILES_TO_TEST = [
 const ERROR_TEST_FILENAME = '_errors'
 
 
-
+let hasBeenWarned = false
 function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath) {
   const document = jsdom.jsdom(htmlContents)
   const $ = jquery(document.defaultView)
   function htmlSourceLookup($el) {
+    // See https://github.com/tmpvar/jsdom/pull/1316 to get the line/column info
+    // Install Instructions are in the css-plus README.md
+    //
     // https://github.com/tmpvar/jsdom/issues/1194
     // jsdom.nodeLocation(el) =
     // { start: 20,
@@ -59,8 +62,17 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath) {
     //   startTag: { start: 20, end: 36 },
     //   endTag: { start: 38, end: 44 }
     // }
-    const htmlOffset = jsdom.nodeLocation($el[0]).start
-    return `HTMLchar=${htmlOffset}`
+    const locationInfo = jsdom.nodeLocation($el[0])
+    if (locationInfo.line !== null) {
+      return `${htmlPath}:${locationInfo.line}:${locationInfo.col}`
+    } else {
+      if (!hasBeenWarned) {
+        console.warn('See the installation instructions about getting the correct version of jsdom')
+        hasBeenWarned = true
+      }
+      const htmlOffset = locationInfo.start
+      return `HTMLchar=${htmlOffset}`
+    }
   }
   return converter(document, $, cssContents, cssPath, console, htmlSourceLookup)
 }
@@ -73,7 +85,7 @@ function buildTest(cssFilename, htmlFilename) {
     const cssContents = fs.readFileSync(cssPath)
     const htmlContents = fs.readFileSync(htmlPath)
 
-    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath).then((actualOutput) => {
+    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath).then(({html: actualOutput}) => {
       if (fs.existsSync(htmlOutputPath)) {
         const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
         if (actualOutput.trim() != expectedOutput.trim()) {

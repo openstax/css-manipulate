@@ -576,6 +576,24 @@ exercise.conceptual {
 Since these are composable, all of the examples combined together should yield what each one does independently :smile:
 
 
+# Install Notes
+
+To get source maps working you need to install https://github.com/tmpvar/jsdom/pull/1316 :
+
+```sh
+git clone https://github.com/tmpvar/jsdom
+git checkout feature/new-parse5
+npm install
+
+# Then, move it into this node_modules directory
+rm -rf node_modules/jsdom
+mv ../PATH_TO_CHECKED_OUT_jsdom ./node_modules
+```
+
+To get browserify/webpack to work (util https://github.com/csstree/csstree/pull/32 is merged):
+
+- remove the `"browser":` segment in `./node_modules/css-tree/package.json`
+
 
 # TODO:
 
