@@ -34,8 +34,13 @@ function createMessage(message, cssSnippet, $el) {
         return `HTMLchar=${htmlOffset}`
       }
     }
-    const htmlDetails = getLocationString()
-    return `${cssInfo} ${message} (${htmlDetails})`
+    if (locationInfo) {
+      // ELements like <body> do not have location information
+      const htmlDetails = getLocationString()
+      return `${cssInfo} ${message} (${htmlDetails})`
+    } else {
+      return `${cssInfo} ${message} (${$el[0].tagName.toLowerCase()})`
+    }
   } else {
     return `${cssInfo} ${message}`
   }

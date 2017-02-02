@@ -69,6 +69,9 @@ module.exports = class PseudoElementEvaluator {
       // HACK: Just use the 2nd arg of the first-found pseudo-selector. Eventually, loop over all selectors, find the unique 2ndargs, and run this._creator on them
       const {secondArg} = selectors[0].getPseudoAt(depth)
       const $newEl = $('<div>')
+      // Attach the CSS location info for serializing later
+      $newEl[0].__cssLocation = selectors[0].getPseudoAt(depth).astNode.loc
+
       $newEl.attr('pseudo', `${this._pseudoName}(${getIndex(selectors[0], depth)})`)
       const ret = this._creator($lookupEl, $contextElPromise, $newEl, secondArg)
 

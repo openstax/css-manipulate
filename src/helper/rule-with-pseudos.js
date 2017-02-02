@@ -22,6 +22,7 @@ module.exports = class RuleWithPseudos {
         throwError(`BUG: Only 2 arguments are supported for now`, args[3])
       }
       return {
+        astNode: pseudoElement,
         name: pseudoElement.name,
         firstArg: args[0],
         secondArg: args[2] // Some pseudoelement selectors have an additional arg (like `::for-each`)

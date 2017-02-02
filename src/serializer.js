@@ -28,10 +28,20 @@ module.exports = (documentElement, htmlSourceLookup, htmlSourcePath, htmlSourceF
 
   function pushAndMap(node, str, isEndTag) {
     const locationInfo = htmlSourceLookup(node)
-    // Some nodes like <head> do not have location info?
-    if (locationInfo && locationInfo.line !== null) {
-      let originalLine
-      let originalColumn
+
+    let sourceFilePath
+    let originalLine
+    let originalColumn
+
+    // Look up to see if there is a CSS location information
+    if (node.__cssLocation) {
+      const {source: source, start: {line: startLine, column: startColumn}, end: {line: endLine, column: endColumn}} = node.__cssLocation
+      sourceFilePath = source
+      originalLine = startLine
+      originalColumn = startColumn
+
+    } else if (locationInfo && locationInfo.line !== null) { // Some nodes like <head> do not have location info?
+      sourceFilePath = htmlSourceFilename
       if (isEndTag && locationInfo.endTag) { // self-closing tags do not have an endTag
         originalLine = locationInfo.endTag.line
         originalColumn = locationInfo.endTag.col
@@ -41,6 +51,9 @@ module.exports = (documentElement, htmlSourceLookup, htmlSourcePath, htmlSourceF
         originalLine = locationInfo.line
         originalColumn = locationInfo.col
       }
+    }
+
+    if (originalLine >= 0 && originalColumn >= 0) {
 
       // TODO: Split the string on newlines to make an array
       // TODO: Is this loop necessary?
@@ -54,12 +67,10 @@ module.exports = (documentElement, htmlSourceLookup, htmlSourcePath, htmlSourceF
       //   currentColumn += 1
       // }
       map.addMapping({
-        source: htmlSourceFilename,
-        // original: { line: originalLine, column: originalColumn },
-        // generated: { line: currentLine, column: currentColumn },
+        source: sourceFilePath,
         // for https://github.com/aki77/atom-source-preview these are flipped (probably because the left panel is not the source)
-        generated: { line: originalLine, column: originalColumn },
-        original: { line: currentLine, column: currentColumn },
+        original: { line: originalLine, column: originalColumn },
+        generated: { line: currentLine, column: currentColumn },
       })
       const lines = str.split('\n')
       for (let index = 0; index < lines.length; index++) {

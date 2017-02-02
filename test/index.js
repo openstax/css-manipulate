@@ -67,7 +67,9 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlSourceF
     const locationInfo = jsdom.nodeLocation(node)
     return locationInfo
   }
-  return converter(document, $, cssContents, cssPath, htmlPath, console, htmlSourceLookup, htmlSourceFilename, sourceMapPath)
+  // use cssFilename because that is what is used for the sourceMap doc
+  const cssFilename = path.basename(cssPath)
+  return converter(document, $, cssContents, cssFilename /*cssPath*/, htmlPath, console, htmlSourceLookup, htmlSourceFilename, sourceMapPath)
 }
 
 function buildTest(cssFilename, htmlFilename) {
