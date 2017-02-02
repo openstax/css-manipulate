@@ -18,7 +18,7 @@ const SELF_CLOSING_ELEMENTS = {
 }
 
 // We use a custom serializer so sourcemaps can be generated (we know the output line and columns for things)
-module.exports = (documentElement, htmlSourceLookup, htmlSourcePath) => {
+module.exports = (documentElement, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, htmlSourceMapPath) => {
 
   const htmlSnippets = []
   const map = new SourceMapGenerator()
@@ -26,12 +26,22 @@ module.exports = (documentElement, htmlSourceLookup, htmlSourcePath) => {
   let currentLine = 1
   let currentColumn = 0
 
-
-  function pushAndMap(node, str) {
+  function pushAndMap(node, str, isEndTag) {
     const locationInfo = htmlSourceLookup(node)
     // Some nodes like <head> do not have location info?
     if (locationInfo && locationInfo.line !== null) {
-      let {line: originalLine, col: originalColumn} = locationInfo
+      let originalLine
+      let originalColumn
+      if (isEndTag && locationInfo.endTag) { // self-closing tags do not have an endTag
+        originalLine = locationInfo.endTag.line
+        originalColumn = locationInfo.endTag.col
+        // let {endTag: {line: originalLine, col: originalColumn}} = locationInfo
+      } else {
+        // let {line: originalLine, col: originalColumn} = locationInfo
+        originalLine = locationInfo.line
+        originalColumn = locationInfo.col
+      }
+
       // TODO: Split the string on newlines to make an array
       // TODO: Is this loop necessary?
       // for (let charIndex = 0; charIndex < str.length; charIndex++) {
@@ -44,11 +54,14 @@ module.exports = (documentElement, htmlSourceLookup, htmlSourcePath) => {
       //   currentColumn += 1
       // }
       map.addMapping({
-        source: htmlSourcePath,
-        original: { line: originalLine, column: originalColumn },
-        generated: { line: currentLine, column: currentColumn },
+        source: htmlSourceFilename,
+        // original: { line: originalLine, column: originalColumn },
+        // generated: { line: currentLine, column: currentColumn },
+        // for https://github.com/aki77/atom-source-preview these are flipped (probably because the left panel is not the source)
+        generated: { line: originalLine, column: originalColumn },
+        original: { line: currentLine, column: currentColumn },
       })
-      const lines = str.split('')
+      const lines = str.split('\n')
       for (let index = 0; index < lines.length; index++) {
         if (index === lines.length - 1) {
           currentColumn = lines[index].length
@@ -87,7 +100,6 @@ module.exports = (documentElement, htmlSourceLookup, htmlSourcePath) => {
         pushAndMap(node, `<!--${escapeHtml(node.data)}-->`)
         break
       default:
-        debugger
         throwError(`Serializing BUG: Unknown nodeType=${node.nodeType}`, null, [node] /* wrapped in array because throwError assumes it is a jQuery*/)
     }
   }, (node) => {
@@ -95,12 +107,16 @@ module.exports = (documentElement, htmlSourceLookup, htmlSourcePath) => {
     switch (node.nodeType) {
       case node.ELEMENT_NODE:
         const tagName = node.tagName.toLowerCase()
+        // Output the sourceMapPath (if provided) just before the close </html>
+        if ('html' === tagName && htmlSourceMapPath) {
+          pushAndMap(node, `<!-- //# sourceMappingURL=${htmlSourceMapPath} -->`, true /*isEndTag*/)
+        }
         if (!SELF_CLOSING_ELEMENTS[tagName]) {
-          pushAndMap(node, `</${node.tagName.toLowerCase()}>`)
+          pushAndMap(node, `</${node.tagName.toLowerCase()}>`, true /*isEndTag*/)
         }
         break
       default:
     }
   })
-  return {html: htmlSnippets.join(''), sourceMap: map}
+  return {html: htmlSnippets.join(''), sourceMap: map.toString()}
 }

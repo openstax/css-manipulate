@@ -9,7 +9,7 @@
     "posttest:only": "npm run-script build",
     "test:only": "ava ./test/index.js",
     "lint": "eslint src/**/*.js",
-    "debugger": "NODE_ENV=profile inspect node_modules/ava/profile.js test/index.js",
+    "debugger": "NODE_ENV=debugger inspect node_modules/ava/profile.js test/index.js",
     "build": "webpack --entry ./src/converter.js  --output-library 'CssPlus' dist/browser.js",
     "snazzy": "nyc --reporter html --reporter text --reporter json ava ./test/index.js 2>&1 | snazzy"
   },

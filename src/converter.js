@@ -59,7 +59,11 @@ function flattenVals(vals) {
 
 
 
-module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, consol, htmlSourceLookup) => {
+module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, consol, htmlSourceLookup, htmlSourceFilename, sourceMapPath) => {
+
+  if (process.env['NODE_ENV'] === 'debugger') {
+    debugger
+  }
 
   errorInit(consol, htmlSourceLookup, htmlSourcePath)
 
@@ -432,6 +436,6 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
   // - assign the contents of a DOM node
 
   return allElementsDoneProcessingPromise.then(() => {
-    return serializer(app.getRoot(), htmlSourceLookup, htmlSourcePath)
+    return serializer(app.getRoot(), htmlSourceLookup, htmlSourcePath, htmlSourceFilename, sourceMapPath)
   })
 }

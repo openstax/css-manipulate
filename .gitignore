@@ -14,3 +14,5 @@
 
 /test/example/*.css
 /test/example/*.css.map
+
+/test/*/*.out.html.map

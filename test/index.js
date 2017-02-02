@@ -1,4 +1,5 @@
 const fs = require('fs')
+const path = require('path')
 const test = require('ava')
 const jsdom = require('jsdom')
 const jquery = require('jquery')
@@ -49,7 +50,7 @@ const ERROR_TEST_FILENAME = '_errors'
 
 
 let hasBeenWarned = false
-function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath) {
+function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlSourceFilename, sourceMapPath) {
   const document = jsdom.jsdom(htmlContents)
   const $ = jquery(document.defaultView)
   function htmlSourceLookup(node) {
@@ -66,7 +67,7 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath) {
     const locationInfo = jsdom.nodeLocation(node)
     return locationInfo
   }
-  return converter(document, $, cssContents, cssPath, htmlPath, console, htmlSourceLookup)
+  return converter(document, $, cssContents, cssPath, htmlPath, console, htmlSourceLookup, htmlSourceFilename, sourceMapPath)
 }
 
 function buildTest(cssFilename, htmlFilename) {
@@ -74,12 +75,17 @@ function buildTest(cssFilename, htmlFilename) {
   const htmlPath = `test/${htmlFilename}`
   test(`Generates ${cssPath}`, (t) => {
     const htmlOutputPath = cssPath.replace('.css', '.out.html')
+    const htmlOutputSourceMapPath = `${htmlOutputPath}.map`
+    const htmlSourceFilename = path.basename(htmlFilename)
+    const htmlOutputSourceMapFilename = path.basename(htmlOutputSourceMapPath)
     const cssContents = fs.readFileSync(cssPath)
     const htmlContents = fs.readFileSync(htmlPath)
 
-    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath).then(({html: actualOutput}) => {
+    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlSourceFilename, htmlOutputSourceMapFilename).then(({html: actualOutput, sourceMap}) => {
       if (fs.existsSync(htmlOutputPath)) {
         const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
+
+        fs.writeFileSync(htmlOutputSourceMapPath, sourceMap)
         if (actualOutput.trim() != expectedOutput.trim()) {
           if (WRITE_TEST_RESULTS === 'true') {
             fs.writeFileSync(htmlOutputPath, actualOutput)
