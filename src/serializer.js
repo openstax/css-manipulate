@@ -1,6 +1,8 @@
 const escapeHtml = require('escape-html')
 const {SourceMapGenerator} = require('source-map')
 
+const DEBUGGING_NEWLINE = '' // Add newlines whene serializing to more-clearly see what is being mapped
+
 function walkDOMNodesInOrder(el, startFn, endFn) {
   startFn(el)
   let cur = el.firstChild
@@ -24,10 +26,19 @@ module.exports = (documentElement, htmlSourceLookup, htmlSourcePath, htmlSourceF
   const map = new SourceMapGenerator()
 
   let currentLine = 1
-  let currentColumn = 0
+  let currentColumn = 1
 
   function pushAndMap(node, str, isEndTag) {
-    const locationInfo = htmlSourceLookup(node)
+    let locationInfo
+
+    if (node.ownerElement) { // It is an attribute. Look it up on the element
+      locationInfo = htmlSourceLookup(node.ownerElement)
+      if (locationInfo && locationInfo.attrs && locationInfo.attrs[node.name]) {
+        locationInfo = locationInfo.attrs[node.name]
+      }
+    } else {
+      locationInfo = htmlSourceLookup(node)
+    }
 
     let sourceFilePath
     let originalLine
@@ -72,16 +83,21 @@ module.exports = (documentElement, htmlSourceLookup, htmlSourcePath, htmlSourceF
         original: { line: originalLine, column: originalColumn },
         generated: { line: currentLine, column: currentColumn },
       })
-      const lines = str.split('\n')
-      for (let index = 0; index < lines.length; index++) {
-        if (index === lines.length - 1) {
-          currentColumn = lines[index].length
-        } else {
-          currentColumn = 0
-          currentLine += 1
-        }
+    } else {
+      // Skipping this node for some reason
+      if (node.tagName !== 'HEAD') {
+        debugger
       }
+    }
 
+    const lines = str.split('\n')
+    for (let index = 0; index < lines.length; index++) {
+      if (index === lines.length - 1) {
+        currentColumn += lines[index].length
+      } else {
+        currentColumn = 1
+        currentLine += 1
+      }
     }
     htmlSnippets.push(str)
   }
@@ -96,12 +112,12 @@ module.exports = (documentElement, htmlSourceLookup, htmlSourcePath, htmlSourceF
         let attributes = []
         for (let index = 0; index < node.attributes.length; index++) {
           const attribute = node.attributes[index]
-          pushAndMap(attribute, ` ${attribute.name}="${escapeHtml(attribute.value)}"`)
+          pushAndMap(attribute, ` ${attribute.name}="${escapeHtml(attribute.value)}"` + DEBUGGING_NEWLINE)
         }
         if (SELF_CLOSING_ELEMENTS[tagName]) {
-          pushAndMap(node, `/>`)
+          pushAndMap(node, `/>` + DEBUGGING_NEWLINE)
         } else {
-          pushAndMap(node, `>`)
+          pushAndMap(node, `>` + DEBUGGING_NEWLINE)
         }
         break
       case node.TEXT_NODE:
@@ -120,10 +136,10 @@ module.exports = (documentElement, htmlSourceLookup, htmlSourcePath, htmlSourceF
         const tagName = node.tagName.toLowerCase()
         // Output the sourceMapPath (if provided) just before the close </html>
         if ('html' === tagName && htmlSourceMapPath) {
-          pushAndMap(node, `<!-- //# sourceMappingURL=${htmlSourceMapPath} -->`, true /*isEndTag*/)
+          pushAndMap(node, `\n<!-- //# sourceMappingURL=${htmlSourceMapPath} -->`, true /*isEndTag*/)
         }
         if (!SELF_CLOSING_ELEMENTS[tagName]) {
-          pushAndMap(node, `</${node.tagName.toLowerCase()}>`, true /*isEndTag*/)
+          pushAndMap(node, `</${node.tagName.toLowerCase()}>` + DEBUGGING_NEWLINE, true /*isEndTag*/)
         }
         break
       default:

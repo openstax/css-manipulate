@@ -26,6 +26,17 @@ function getIndex(ruleWithPseudo, depth) {
   return index
 }
 
+// This is copy/pasta'd into converter
+function attachToAttribute($els, attrName, locationInfo) {
+  $els.each((i, node) => {
+    for(let index = 0; index < node.attributes.length; index++) {
+      if (node.attributes[index].name === attrName) {
+        node.attributes[index].__cssLocation = locationInfo
+      }
+    }
+  })
+}
+
 
 module.exports = class PseudoElementEvaluator {
   constructor(pseudoName, creator) {
@@ -72,7 +83,8 @@ module.exports = class PseudoElementEvaluator {
       // Attach the CSS location info for serializing later
       $newEl[0].__cssLocation = selectors[0].getPseudoAt(depth).astNode.loc
 
-      $newEl.attr('pseudo', `${this._pseudoName}(${getIndex(selectors[0], depth)})`)
+      $newEl.attr('data-pseudo', `${this._pseudoName}(${getIndex(selectors[0], depth)})`)
+      attachToAttribute($newEl, 'data-pseudo', $newEl[0].__cssLocation)
       const ret = this._creator($lookupEl, $contextElPromise, $newEl, secondArg)
 
       // validation

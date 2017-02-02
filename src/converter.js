@@ -54,8 +54,24 @@ function flattenVals(vals) {
   })
 }
 
+// This is copy/pasta'd into pseudo-element
+function attachToAttribute($els, attrName, locationInfo) {
+  assert(locationInfo)
+  $els.each((i, node) => {
+    for(let index = 0; index < node.attributes.length; index++) {
+      if (node.attributes[index].name === attrName) {
+        node.attributes[index].__cssLocation = locationInfo
+      }
+    }
+  })
+}
 
-
+function attachToEls($els, locationInfo) {
+  assert(locationInfo)
+  $els.each((i, node) => {
+    node.__cssLocation = locationInfo
+  })
+}
 
 
 
@@ -75,9 +91,11 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
   // I promise that I will give you back at least 1 element that has been added to el
   app.addPseudoElement(new PseudoElementEvaluator('Xafter',  ($lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.append($newEl); return $newEl }), $newLookupEl: $lookupEl}] }))
   app.addPseudoElement(new PseudoElementEvaluator('Xbefore', ($lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.prepend($newEl); return $newEl }), $newLookupEl: $lookupEl}] })) // TODO: These are evaluated in reverse order
-  app.addPseudoElement(new PseudoElementEvaluator('Xoutside', ($lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { return $contextEl.wrap($newEl).parent() }), $newLookupEl: $lookupEl}] }))
-  app.addPseudoElement(new PseudoElementEvaluator('Xinside', ($lookupEl, $contextElPromise, $newEl, secondArg) =>  { return [{$newElPromise: $contextElPromise.then(($contextEl) => { return $contextEl.wrapInner($newEl).find(':first-child') }) , $newLookupEl: $lookupEl}] })) // Gotta get the first-child because those are the $newEl
+  app.addPseudoElement(new PseudoElementEvaluator('Xoutside', ($lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { /*HACK*/ const $temp = $contextEl.wrap($newEl).parent();                  attachToEls($temp, $newEl[0].__cssLocation); return $temp }), $newLookupEl: $lookupEl}] }))
+  app.addPseudoElement(new PseudoElementEvaluator('Xinside', ($lookupEl, $contextElPromise, $newEl, secondArg) =>  { return [{$newElPromise: $contextElPromise.then(($contextEl) => { /*HACK*/ const $temp = $contextEl.wrapInner($newEl).find(':first-child'); attachToEls($temp, $newEl[0].__cssLocation); return $temp }) , $newLookupEl: $lookupEl}] })) // Gotta get the first-child because those are the $newEl
   app.addPseudoElement(new PseudoElementEvaluator('Xfor-each-descendant', ($lookupEl, $contextElPromise, $newEl, secondArg) => {
+    const locationInfo = $newEl[0].__cssLocation // HACK . Should get the ast node directly
+
     assert(secondArg) // it is required for for-each
     assert.equal(secondArg.type, 'String')
     // Strip off the quotes in secondArg.value
@@ -91,6 +109,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
     $newLookupEls.each((index, newLookupEl) => {
       const $newElPromise = $contextElPromise.then(($contextEl) => {
         const $newEl = app._$('<div debug-pseudo="for-each-descendant-element"/>')
+        $newEl[0].__cssLocation = locationInfo
         $contextEl.append($newEl)
         return $newEl
       })
@@ -133,7 +152,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
     showLog(msg, rule, $lookupEl)
     return $elPromise
   }))
-  app.addRuleDeclaration(new RuleDeclaration('content', ($, $lookupEl, $elPromise, vals) => {
+  app.addRuleDeclaration(new RuleDeclaration('content', ($, $lookupEl, $elPromise, vals, astRule) => {
     // content: does not allow commas so there should only be 1 arg
     // (which can contain a mix of strings and jQuery elements and numbers)
     assert.equal(vals.length, 1)
@@ -146,12 +165,20 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
         // if (Array.isArray(val)) {
         // }
         assert(!Array.isArray(val))
-        $el.append(val)
+        // HACK ish way to add sourcemap
+        if (typeof val === 'string') {
+          const textNode = $el[0].ownerDocument.createTextNode(val)
+          textNode.__cssLocation = astRule.loc
+          $el.append(textNode)
+        } else {
+          // we are likely moving nodes around so just keep them.
+          $el.append(val)
+        }
       })
       return $el
     })
   }))
-  app.addRuleDeclaration(new RuleDeclaration('class-add', ($, $lookupEl, $elPromise, vals) => {
+  app.addRuleDeclaration(new RuleDeclaration('class-add', ($, $lookupEl, $elPromise, vals, astRule) => {
     assert(vals.length >= 1)
     // Do nothing when set to none;
     // TODO: verify that it is not the string "none" (also needed for format-number())
@@ -164,7 +191,10 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
     assert($elPromise instanceof Promise)
     return $elPromise.then(($el) => {
       vals.forEach((val) => {
-        $el.addClass(val.join(' ')) // use space so people can write `class-add: 'foo' 'bar'`
+        assert($el.length >= 1)
+        const classNames = val.join(' ')
+        $el.addClass(classNames) // use space so people can write `class-add: 'foo' 'bar'`
+        attachToAttribute($el, 'class', astRule.loc)
       })
       return $el
     })
@@ -188,7 +218,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
   }))
 // TODO: Support class-add: none; class-remove: none;
 
-  app.addRuleDeclaration(new RuleDeclaration('attrs-add', ($, $lookupEl, $elPromise, vals) => {
+  app.addRuleDeclaration(new RuleDeclaration('attrs-add', ($, $lookupEl, $elPromise, vals, astRule) => {
     // attrs-add: attr1Name attr1Value attr1AdditionalValue , attr2Name ...
     assert(vals.length >= 1)
     // Do nothing when set to none;
@@ -206,6 +236,8 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
         const attrName = val[0]
         const attrValue = val.slice(1).join('')
         $el.attr(attrName, attrValue)
+        attachToAttribute($el, attrName, astRule.loc)
+
       })
       return $el
     })
@@ -230,7 +262,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
       return $el
     })
   }))
-  app.addRuleDeclaration(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise, vals) => {
+  app.addRuleDeclaration(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise, vals, astRule) => {
     assert(vals.length === 1)
     // Do nothing when set to default;
     // TODO: verify that it is not the string "default" (also needed for format-number())
@@ -258,6 +290,8 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
             newElement.innerHTML = thisi.innerHTML;
             $(thisi).after(newElement).remove();
             tags[i] = newElement;
+            // Add sourcemap
+            newElement.__cssLocation = astRule.loc
         }
         return $(tags);
     }
