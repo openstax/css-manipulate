@@ -1,6 +1,7 @@
 const assert = require('assert')
 const csstree = require('css-tree')
 const Applier = require('./applier')
+const serializer = require('./serializer')
 const PseudoElementEvaluator = require('./helper/pseudo-element')
 const {init: errorInit, createMessage, throwError, showWarning, showLog} = require('./helper/error')
 
@@ -431,6 +432,6 @@ module.exports = (document, $, cssContents, cssSourcePath, consol, htmlSourceLoo
   // - assign the contents of a DOM node
 
   return allElementsDoneProcessingPromise.then(() => {
-    return {html: app.getRoot().outerHTML, sourceMap: app.getSourceMap()}
+    return {html: serializer(app.getRoot(), htmlSourceLookup)}
   })
 }

@@ -5,15 +5,16 @@ const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
 const {throwError, showWarning} = require('./helper/error')
 
 
-function walkDOMinOrder(el, fn) {
+function walkDOMElementsInOrder(el, fn) {
   fn(el)
   if (el.firstElementChild) {
-    walkDOMinOrder(el.firstElementChild, fn)
+    walkDOMElementsInOrder(el.firstElementChild, fn)
   }
   if (el.nextElementSibling) {
-    walkDOMinOrder(el.nextElementSibling, fn)
+    walkDOMElementsInOrder(el.nextElementSibling, fn)
   }
 }
+
 
 
 module.exports = class Applier {
@@ -385,7 +386,7 @@ module.exports = class Applier {
 
   run(fn) {
     const allPromises = []
-    walkDOMinOrder(this._document.documentElement, (el) => {
+    walkDOMElementsInOrder(this._document.documentElement, (el) => {
       const matches = el.MATCHED_RULES || []
       el.MATCHED_RULES = null
       delete el.MATCHED_RULES // Free up some memory
@@ -483,12 +484,5 @@ module.exports = class Applier {
 
     })
     return Promise.all(allElementPromises)
-  }
-
-  getSourceMap() {
-
-    // this.run(($el) => {
-    //
-    // })
   }
 }

@@ -19,7 +19,20 @@ function createMessage(message, cssSnippet, $el) {
     cssInfo = `  unknown:0:0: [BUG: Invalid cssSnippet] ${JSON.stringify(cssSnippet)}`
   }
   if (_htmlSourceLookup && $el) {
-    const htmlDetails = _htmlSourceLookup($el)
+    const locationInfo = _htmlSourceLookup($el[0])
+    function getLocationString() {
+      if (locationInfo.line !== null) {
+        return `${htmlPath}:${locationInfo.line}:${locationInfo.col}`
+      } else {
+        if (!hasBeenWarned) {
+          console.warn('See the installation instructions about getting the correct version of jsdom')
+          hasBeenWarned = true
+        }
+        const htmlOffset = locationInfo.start
+        return `HTMLchar=${htmlOffset}`
+      }
+    }
+    const htmlDetails = getLocationString()
     return `${cssInfo} ${message} (${htmlDetails})`
   } else {
     return `${cssInfo} ${message}`

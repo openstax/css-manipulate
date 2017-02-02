@@ -24,6 +24,7 @@ const UNIT_FILES_TO_TEST = [
   './unit/for-each',
   './unit/for-each-advanced',
   './unit/target',
+  './unit/html-serialization',
 
   // 'outside',
 
@@ -51,7 +52,7 @@ let hasBeenWarned = false
 function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath) {
   const document = jsdom.jsdom(htmlContents)
   const $ = jquery(document.defaultView)
-  function htmlSourceLookup($el) {
+  function htmlSourceLookup(node) {
     // See https://github.com/tmpvar/jsdom/pull/1316 to get the line/column info
     // Install Instructions are in the css-plus README.md
     //
@@ -62,17 +63,8 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath) {
     //   startTag: { start: 20, end: 36 },
     //   endTag: { start: 38, end: 44 }
     // }
-    const locationInfo = jsdom.nodeLocation($el[0])
-    if (locationInfo.line !== null) {
-      return `${htmlPath}:${locationInfo.line}:${locationInfo.col}`
-    } else {
-      if (!hasBeenWarned) {
-        console.warn('See the installation instructions about getting the correct version of jsdom')
-        hasBeenWarned = true
-      }
-      const htmlOffset = locationInfo.start
-      return `HTMLchar=${htmlOffset}`
-    }
+    const locationInfo = jsdom.nodeLocation(node)
+    return locationInfo
   }
   return converter(document, $, cssContents, cssPath, console, htmlSourceLookup)
 }
