@@ -172,6 +172,30 @@ FUNCTIONS.push(new FunctionEvaluator('descendant-context',
     // If we are looking up an id then look up against the whole document
     return {$contextEl: $firstDescendant }
 }))
+FUNCTIONS.push(new FunctionEvaluator('next-sibling-context',
+  ($, context, $currentEl, vals, mutationPromise) => {
+    assert.equal(vals.length, 2) // TODO: This should be validated before the function is enginelied so a better error message can be made
+    // skip the 1st arg which is the selector
+    // and return the 2nd arg
+
+    // The argument to this `-context` function needs to be fully-evaluated, hence this
+    // assertion below: (TODO: Change this in the future to not require full-evaluation)
+    assert.equal(vals[1].length, 1)
+    assert(vals[1][0] !== null) // TODO: Move this assertion test to the enginelier
+    return vals[1][0]
+  },
+  ($, context, $currentEl, evaluator, args, mutationPromise) => {
+    assert(mutationPromise instanceof Promise)
+    const {$contextEl} = context
+    const selector = evaluator(context, $currentEl, mutationPromise, [args[0]]).join('')
+
+    const $firstDescendant = $contextEl.next(selector)
+    if ($firstDescendant.length !== 1) {
+      throwError(`ERROR: Could not find unique next-sibling-context. Found ${$firstDescendant.length}. Consider using ":first" in the argument`, args[0], $currentEl)
+    }
+    // If we are looking up an id then look up against the whole document
+    return {$contextEl: $firstDescendant }
+}))
 
 
 module.exports = FUNCTIONS

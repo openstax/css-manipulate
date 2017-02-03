@@ -4,7 +4,7 @@ const test = require('ava')
 const jsdom = require('jsdom')
 const jquery = require('jquery')
 const diff = require('fast-diff')
-const converter = require('../src/converter')
+const {convertNodeJS} = require('../src/helper/node')
 const {SPECIFICITY_COMPARATOR} = require('../src/helper/specificity')
 
 const {WRITE_TEST_RESULTS} = process.env
@@ -30,7 +30,7 @@ const UNIT_FILES_TO_TEST = [
 
   // 'outside',
 
-  './example/exercise-numbering'
+  './example/exercise-numbering',
 ]
 
 const MOTIVATION_INPUT_HTML_PATH = `./motivation/_input.html`
@@ -50,28 +50,6 @@ const MOTIVATION_FILES_TO_TEST = [
 const ERROR_TEST_FILENAME = '_errors'
 
 
-let hasBeenWarned = false
-function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlSourceFilename, sourceMapPath) {
-  const document = jsdom.jsdom(htmlContents)
-  const $ = jquery(document.defaultView)
-  function htmlSourceLookup(node) {
-    // See https://github.com/tmpvar/jsdom/pull/1316 to get the line/column info
-    // Install Instructions are in the css-plus README.md
-    //
-    // https://github.com/tmpvar/jsdom/issues/1194
-    // jsdom.nodeLocation(el) =
-    // { start: 20,
-    //   end: 44,
-    //   startTag: { start: 20, end: 36 },
-    //   endTag: { start: 38, end: 44 }
-    // }
-    const locationInfo = jsdom.nodeLocation(node)
-    return locationInfo
-  }
-  // use cssFilename because that is what is used for the sourceMap doc
-  const cssFilename = path.basename(cssPath)
-  return converter(document, $, cssContents, cssFilename /*cssPath*/, htmlPath, console, htmlSourceLookup, htmlSourceFilename, sourceMapPath)
-}
 
 function buildTest(cssFilename, htmlFilename) {
   const cssPath = `test/${cssFilename}`
@@ -79,12 +57,11 @@ function buildTest(cssFilename, htmlFilename) {
   test(`Generates ${cssPath}`, (t) => {
     const htmlOutputPath = cssPath.replace('.css', '.out.html')
     const htmlOutputSourceMapPath = `${htmlOutputPath}.map`
-    const htmlSourceFilename = path.basename(htmlFilename)
     const htmlOutputSourceMapFilename = path.basename(htmlOutputSourceMapPath)
     const cssContents = fs.readFileSync(cssPath)
     const htmlContents = fs.readFileSync(htmlPath)
 
-    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlSourceFilename, htmlOutputSourceMapFilename).then(({html: actualOutput, sourceMap}) => {
+    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath).then(({html: actualOutput, sourceMap}) => {
       if (fs.existsSync(htmlOutputPath)) {
         const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
 

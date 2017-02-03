@@ -3,6 +3,7 @@
 let _console = console
 let _htmlSourceLookup
 let _htmlSourcePath
+let _hasBeenWarned = false
 
 function init(consol, htmlSourceLookup, htmlSourcePath) {
   _console = consol
@@ -26,9 +27,9 @@ function createMessage(message, cssSnippet, $el) {
       if (locationInfo.line !== null) {
         return `${_htmlSourcePath}:${locationInfo.line}:${locationInfo.col}`
       } else {
-        if (!hasBeenWarned) {
+        if (!_hasBeenWarned) {
           console.warn('See the installation instructions about getting the correct version of jsdom')
-          hasBeenWarned = true
+          _hasBeenWarned = true
         }
         const htmlOffset = locationInfo.start
         return `HTMLchar=${htmlOffset}`
