@@ -29,18 +29,34 @@
 }
 
 
-.generate-numbered-exercises(@n, @i: 1) when (@i =< @n) {
-  @exerciseSel: e(extract(@NUMBERED_EXERCISES, @i));
+.generate-numbered-exercises(@list, @i: 1) when (@i =< length(@list)) {
+  @exerciseSel: e(extract(@list, @i));
   @{exerciseSel} {
     &::before {
       class-add: "number";
       content: ancestor-context('chapter', count-of-type(@NUMBERED_EXERCISES_SEL_STR));
     }
   }
-  .generate-numbered-exercises(@n, (@i + 1));
+  .generate-numbered-exercises(@list, (@i + 1));
 }
-.generate-numbered-exercises(length(@NUMBERED_EXERCISES));
 
+
+
+// Generate the CSS!
+
+@hack1: e(%("(href, '%s')", @NUMBERED_EXERCISES_SEL_STR));
+a:target@{hack1} {
+  content:
+    "See Exercise "
+    // Chapter number
+    target-context(attr(href), ancestor-context('body', count-of-type('chapter')))
+    "."
+    // Exercise number
+    target-context(attr(href), ancestor-context('chapter', count-of-type(@NUMBERED_EXERCISES_SEL_STR)));
+}
+
+
+.generate-numbered-exercises(@NUMBERED_EXERCISES);
 
 
 chapter {
