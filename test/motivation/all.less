@@ -36,6 +36,18 @@
       class-add: "number";
       content: ancestor-context('chapter', count-of-type(@NUMBERED_EXERCISES_SEL_STR));
     }
+
+    // Number exercise answers (STEP 9)
+    > answer::before {
+      content:
+        // Chapter number
+        ancestor-context('body', count-of-type('chapter'))
+        "."
+        // Exercise number
+        // TODO: This is not currently being evaluated before stuff is moved which causes this test to fail
+        ancestor-context('chapter', count-of-type(@NUMBERED_EXERCISES_SEL_STR));
+    }
+
   }
   .generate-numbered-exercises(@list, (@i + 1));
 }
@@ -67,7 +79,7 @@ a:target@{hack1} {
 .generate-numbered-exercises(@NUMBERED_EXERCISES);
 
 
-/* Wrap Lists with labels */
+/* Wrap Lists with labels (STEP 7) */
 ol[data-label]::outside(1) {
   &::before(1) {
     class-add: "list-label";
@@ -76,7 +88,7 @@ ol[data-label]::outside(1) {
   class-add: "list-wrapper";
 }
 
-/* Wrap the inside of notes with an element */
+/* Wrap the inside of notes with an element (STEP 8) */
 note::inside(1) {
   class-add: "note-body";
 }
