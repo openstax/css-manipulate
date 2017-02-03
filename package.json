@@ -6,11 +6,11 @@
     "rebuild-tests": "WRITE_TEST_RESULTS=true ava ./test/index.js",
     "start": "ava --watch --source '**/*.{js}' --source 'test/*.{css,in.html}' ./test/index.js",
     "ci": "nyc --reporter html --reporter text --reporter json ava ./test/index.js",
-    "postci": "npm run-script build",
+    "postci": "npm run-script dist",
     "test": "ava ./test/index.js",
     "lint": "eslint src/**/*.js",
     "debugger": "NODE_ENV=debugger inspect node_modules/ava/profile.js test/index.js",
-    "build": "webpack --entry ./src/converter.js  --output-library 'CssPlus' dist/browser.js",
+    "dist": "webpack --entry ./src/converter.js  --output-library 'CssPlus' dist/browser.js",
     "snazzy": "nyc --reporter html --reporter text --reporter json ava ./test/index.js 2>&1 | snazzy"
   },
   "dependencies": {

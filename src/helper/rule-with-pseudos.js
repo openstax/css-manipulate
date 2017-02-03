@@ -27,12 +27,12 @@ module.exports = class RuleWithPseudos {
       let secondArg
       if (args.length >= 1) { // sometimes it is just `::before` (no args)
         if (args[0].type === 'Raw') {
-          const rawArgs = args[0].value.split(', ')
+          const rawArgs = args[0].value.split(',')
           // just verify that more than 2 args are not supported yet
           assert(rawArgs.length <= 2)
-          firstArg = {type: 'HackRaw', value: rawArgs[0], loc: args[0].loc}
+          firstArg = {type: 'HackRaw', value: rawArgs[0].trim(), loc: args[0].loc}
           if (rawArgs[1]) {
-            secondArg = {type: 'HackRaw', value: rawArgs[1], loc: args[0].loc}
+            secondArg = {type: 'HackRaw', value: rawArgs[1].trim(), loc: args[0].loc}
           }
         } else {
           firstArg = args[0]
