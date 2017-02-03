@@ -5,6 +5,7 @@
     "pretest": "./script/compile-css",
     "rebuild-tests": "WRITE_TEST_RESULTS=true ava ./test/index.js",
     "start": "ava --watch --source '**/*.{js}' --source 'test/*.{css,in.html}' ./test/index.js",
+    "preci": "./script/compile-css",
     "ci": "nyc --reporter html --reporter text --reporter json ava ./test/index.js",
     "postci": "npm run-script dist",
     "test": "ava ./test/index.js",
