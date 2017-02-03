@@ -1,6 +1,6 @@
 const assert = require('assert')
 const csstree = require('css-tree')
-const Applier = require('./applier')
+const Engine = require('./engine')
 const serializer = require('./serializer')
 const PseudoElementEvaluator = require('./helper/pseudo-element')
 const {init: errorInit, createMessage, throwError, showWarning, showLog} = require('./helper/error')
@@ -73,17 +73,17 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
 
   errorInit(consol, htmlSourceLookup, htmlSourcePath)
 
-  const app = new Applier(document, $)
+  const engine = new Engine(document, $)
 
-  app.setCSSContents(cssContents, cssSourcePath)
+  engine.setCSSContents(cssContents, cssSourcePath)
 
 
   // I promise that I will give you back at least 1 element that has been added to el
-  app.addPseudoElement(new PseudoElementEvaluator('Xafter',  ($lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.append($newEl); return $newEl }), $newLookupEl: $lookupEl}] }))
-  app.addPseudoElement(new PseudoElementEvaluator('Xbefore', ($lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.prepend($newEl); return $newEl }), $newLookupEl: $lookupEl}] })) // TODO: These are evaluated in reverse order
-  app.addPseudoElement(new PseudoElementEvaluator('Xoutside', ($lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { /*HACK*/ const $temp = $contextEl.wrap($newEl).parent();                  attachToEls($temp, $newEl[0].__cssLocation); return $temp }), $newLookupEl: $lookupEl}] }))
-  app.addPseudoElement(new PseudoElementEvaluator('Xinside', ($lookupEl, $contextElPromise, $newEl, secondArg) =>  { return [{$newElPromise: $contextElPromise.then(($contextEl) => { /*HACK*/ const $temp = $contextEl.wrapInner($newEl).find(':first-child'); attachToEls($temp, $newEl[0].__cssLocation); return $temp }) , $newLookupEl: $lookupEl}] })) // Gotta get the first-child because those are the $newEl
-  app.addPseudoElement(new PseudoElementEvaluator('Xfor-each-descendant', ($lookupEl, $contextElPromise, $newEl, secondArg) => {
+  engine.addPseudoElement(new PseudoElementEvaluator('Xafter',  ($, $lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.append($newEl); return $newEl }), $newLookupEl: $lookupEl}] }))
+  engine.addPseudoElement(new PseudoElementEvaluator('Xbefore', ($, $lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.prepend($newEl); return $newEl }), $newLookupEl: $lookupEl}] })) // TODO: These are evaluated in reverse order
+  engine.addPseudoElement(new PseudoElementEvaluator('Xoutside', ($, $lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { /*HACK*/ const $temp = $contextEl.wrap($newEl).parent();                  attachToEls($temp, $newEl[0].__cssLocation); return $temp }), $newLookupEl: $lookupEl}] }))
+  engine.addPseudoElement(new PseudoElementEvaluator('Xinside', ($, $lookupEl, $contextElPromise, $newEl, secondArg) =>  { return [{$newElPromise: $contextElPromise.then(($contextEl) => { /*HACK*/ const $temp = $contextEl.wrapInner($newEl).find(':first-child'); attachToEls($temp, $newEl[0].__cssLocation); return $temp }) , $newLookupEl: $lookupEl}] })) // Gotta get the first-child because those are the $newEl
+  engine.addPseudoElement(new PseudoElementEvaluator('Xfor-each-descendant', ($, $lookupEl, $contextElPromise, $newEl, secondArg) => {
     const locationInfo = $newEl[0].__cssLocation // HACK . Should get the ast node directly
 
     assert(secondArg) // it is required for for-each
@@ -98,21 +98,21 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
     const ret = []
     $newLookupEls.each((index, newLookupEl) => {
       const $newElPromise = $contextElPromise.then(($contextEl) => {
-        const $newEl = app._$('<div debug-pseudo="for-each-descendant-element"/>')
+        const $newEl = $('<div debug-pseudo="for-each-descendant-element"/>')
         $newEl[0].__cssLocation = locationInfo
         $contextEl.append($newEl)
         return $newEl
       })
       ret.push({
         $newElPromise: $newElPromise,
-        $newLookupEl: app._$(newLookupEl)
+        $newLookupEl: $(newLookupEl)
       })
     })
     return ret
   }))
 
 
-  app.addPseudoClass(new PseudoClassFilter('target', ($, $el, args) => {
+  engine.addPseudoClass(new PseudoClassFilter('target', ($, $el, args) => {
     const attributeName = args[0]
     const matchSelector = args[1]
 
@@ -128,7 +128,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
 
 
 
-  app.addRuleDeclaration(new RuleDeclaration('x-log', ($, $lookupEl, $elPromise, vals, rule) => {
+  engine.addRuleDeclaration(new RuleDeclaration('x-log', ($, $lookupEl, $elPromise, vals, rule) => {
     assert(vals.length >= 1)
     // Do nothing when set to none;
     // TODO: verify that it is not the string "none" (also needed for format-number())
@@ -142,7 +142,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
     showLog(msg, rule, $lookupEl)
     return $elPromise
   }))
-  app.addRuleDeclaration(new RuleDeclaration('x-throw', ($, $lookupEl, $elPromise, vals, rule) => {
+  engine.addRuleDeclaration(new RuleDeclaration('x-throw', ($, $lookupEl, $elPromise, vals, rule) => {
     assert(vals.length <= 1)
     // Do nothing when set to none;
     // TODO: verify that it is not the string "none" (also needed for format-number())
@@ -159,7 +159,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
       throw new Error('Declaration "x-throw:" is being thrown during evaluation')
     }
   }))
-  app.addRuleDeclaration(new RuleDeclaration('content', ($, $lookupEl, $elPromise, vals, astRule) => {
+  engine.addRuleDeclaration(new RuleDeclaration('content', ($, $lookupEl, $elPromise, vals, astRule) => {
     // content: does not allow commas so there should only be 1 arg
     // (which can contain a mix of strings and jQuery elements and numbers)
     assert.equal(vals.length, 1)
@@ -185,7 +185,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
       return $el
     })
   }))
-  app.addRuleDeclaration(new RuleDeclaration('class-add', ($, $lookupEl, $elPromise, vals, astRule) => {
+  engine.addRuleDeclaration(new RuleDeclaration('class-add', ($, $lookupEl, $elPromise, vals, astRule) => {
     assert(vals.length >= 1)
     // Do nothing when set to none;
     // TODO: verify that it is not the string "none" (also needed for format-number())
@@ -206,7 +206,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
       return $el
     })
   }))
-  app.addRuleDeclaration(new RuleDeclaration('class-remove', ($, $lookupEl, $elPromise, vals) => {
+  engine.addRuleDeclaration(new RuleDeclaration('class-remove', ($, $lookupEl, $elPromise, vals) => {
     // Do nothing when set to none;
     // TODO: verify that it is not the string "none" (also needed for format-number())
     if (vals[0][0] === 'none') {
@@ -225,7 +225,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
   }))
 // TODO: Support class-add: none; class-remove: none;
 
-  app.addRuleDeclaration(new RuleDeclaration('attrs-add', ($, $lookupEl, $elPromise, vals, astRule) => {
+  engine.addRuleDeclaration(new RuleDeclaration('attrs-add', ($, $lookupEl, $elPromise, vals, astRule) => {
     // attrs-add: attr1Name attr1Value attr1AdditionalValue , attr2Name ...
     assert(vals.length >= 1)
     // Do nothing when set to none;
@@ -249,7 +249,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
       return $el
     })
   }))
-  app.addRuleDeclaration(new RuleDeclaration('attrs-remove', ($, $lookupEl, $elPromise, vals) => {
+  engine.addRuleDeclaration(new RuleDeclaration('attrs-remove', ($, $lookupEl, $elPromise, vals) => {
     // attrs-remove: attr1Name, attr2Name ...
     assert(vals.length >= 1)
     // Do nothing when set to none;
@@ -269,7 +269,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
       return $el
     })
   }))
-  app.addRuleDeclaration(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise, vals, astRule) => {
+  engine.addRuleDeclaration(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise, vals, astRule) => {
     assert(vals.length === 1)
     // Do nothing when set to default;
     // TODO: verify that it is not the string "none" (also needed for format-number())
@@ -313,10 +313,10 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
   // So until evaluateRule can return a new set of els this needs to be the last rule that is evaluated
 
 
-  app.addFunction(new FunctionEvaluator('x-throw', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
+  engine.addFunction(new FunctionEvaluator('x-throw', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
     throwError(`ERROR: "x-throw()" was called.`, vals[0])
   } ))
-  app.addFunction(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
+  engine.addFunction(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
     // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
     assert($contextEl.length, 1)
     const ret = $contextEl.attr(vals.join(''))
@@ -329,7 +329,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
     }
     return ret
   } ))
-  app.addFunction(new FunctionEvaluator('x-tag-name', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
+  engine.addFunction(new FunctionEvaluator('x-tag-name', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
     // check that we are only operating on 1 element at a time
     assert($contextEl.length, 1)
     if (vals[0].join() === 'current') {
@@ -337,7 +337,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
     }
     return $contextEl[0].tagName.toLowerCase()
   } ))
-  app.addFunction(new FunctionEvaluator('text-contents', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
+  engine.addFunction(new FunctionEvaluator('text-contents', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
     // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
     assert($contextEl.length, 1)
     const ret = $contextEl[0].textContent // HACK! $contextEl.contents() (need to clone these if this is the case; and remove id's)
@@ -350,7 +350,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
     }
     return ret
   } ))
-  app.addFunction(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
+  engine.addFunction(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
     assert.equal(vals.length, 1)
     const selector = vals[0].join('')
     const ret = $contextEl.find(selector)
@@ -361,7 +361,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
     mutationPromise.then(() => ret.detach())
     return ret
   }))
-  app.addFunction(new FunctionEvaluator('count-of-type', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
+  engine.addFunction(new FunctionEvaluator('count-of-type', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
     assert.equal(vals.length, 1)
     assert(Array.isArray(vals[0]))
     const selector = vals[0].join(' ')  // vals[0] = ['li'] (notice vals is a 2-Dimensional array. If each FunctionEvaluator had a .join() method then this function could be simpler and more intuitive to add more features)
@@ -381,7 +381,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
     })
     return count
   }))
-  app.addFunction(new FunctionEvaluator('parent-context',
+  engine.addFunction(new FunctionEvaluator('parent-context',
     ($, context, $currentEl, vals, mutationPromise) => {
       assert.equal(vals.length, 1)
       // The argument to this `-context` function needs to be fully-evaluated, hence this
@@ -394,9 +394,9 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
       return {$contextEl: $contextEl.parent()
     }
   }))
-  app.addFunction(new FunctionEvaluator('target-context',
+  engine.addFunction(new FunctionEvaluator('target-context',
     ($, context, $currentEl, vals, mutationPromise) => {
-      assert.equal(vals.length, 2) // TODO: This should be validated before the function is applied so a better error message can be made
+      assert.equal(vals.length, 2) // TODO: This should be validated before the function is enginelied so a better error message can be made
       // skip the 1st arg which is the selector
       // and return the 2nd arg
 
@@ -418,16 +418,16 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
         // return {$contextEl: $contextEl.find(selector) }
       }
   }))
-  app.addFunction(new FunctionEvaluator('ancestor-context',
+  engine.addFunction(new FunctionEvaluator('ancestor-context',
     ($, context, $currentEl, vals, mutationPromise) => {
-      assert.equal(vals.length, 2) // TODO: This should be validated before the function is applied so a better error message can be made
+      assert.equal(vals.length, 2) // TODO: This should be validated before the function is enginelied so a better error message can be made
       // skip the 1st arg which is the selector
       // and return the 2nd arg
 
       // The argument to this `-context` function needs to be fully-evaluated, hence this
       // assertion below: (TODO: Change this in the future to not require full-evaluation)
       assert.equal(vals[1].length, 1)
-      assert(vals[1][0] !== null) // TODO: Move this assertion test to the applier
+      assert(vals[1][0] !== null) // TODO: Move this assertion test to the enginelier
       return vals[1][0]
     },
     ($, context, $currentEl, evaluator, args, mutationPromise) => {
@@ -441,16 +441,16 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
       // If we are looking up an id then look up against the whole document
       return {$contextEl: $closestAncestor }
   }))
-  app.addFunction(new FunctionEvaluator('descendant-context',
+  engine.addFunction(new FunctionEvaluator('descendant-context',
     ($, context, $currentEl, vals, mutationPromise) => {
-      assert.equal(vals.length, 2) // TODO: This should be validated before the function is applied so a better error message can be made
+      assert.equal(vals.length, 2) // TODO: This should be validated before the function is enginelied so a better error message can be made
       // skip the 1st arg which is the selector
       // and return the 2nd arg
 
       // The argument to this `-context` function needs to be fully-evaluated, hence this
       // assertion below: (TODO: Change this in the future to not require full-evaluation)
       assert.equal(vals[1].length, 1)
-      assert(vals[1][0] !== null) // TODO: Move this assertion test to the applier
+      assert(vals[1][0] !== null) // TODO: Move this assertion test to the enginelier
       return vals[1][0]
     },
     ($, context, $currentEl, evaluator, args, mutationPromise) => {
@@ -468,9 +468,9 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
 
 
 
-  app.prepare()
+  engine.prepare()
   // console.profile('CPU Profile')
-  const allElementsDoneProcessingPromise = app.process()
+  const allElementsDoneProcessingPromise = engine.process()
   // console.profileEnd()
 
   // Types of Promises we need:
@@ -480,6 +480,6 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
   // - assign the contents of a DOM node
 
   return allElementsDoneProcessingPromise.then(() => {
-    return serializer(app.getRoot(), htmlSourceLookup, htmlSourcePath, htmlSourceFilename, sourceMapPath)
+    return serializer(engine.getRoot(), htmlSourceLookup, htmlSourcePath, htmlSourceFilename, sourceMapPath)
   })
 }

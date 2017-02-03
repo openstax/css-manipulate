@@ -85,7 +85,7 @@ module.exports = class PseudoElementEvaluator {
 
       $newEl.attr('data-pseudo', `${this._pseudoName}(${getIndex(selectors[0], depth)})`)
       attachToAttribute($newEl, 'data-pseudo', $newEl[0].__cssLocation)
-      const ret = this._creator($lookupEl, $contextElPromise, $newEl, secondArg)
+      const ret = this._creator($, $lookupEl, $contextElPromise, $newEl, secondArg)
 
       // validation
       if (!Array.isArray(ret)) {
