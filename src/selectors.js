@@ -34,7 +34,7 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('Xfor-each-descendant', ($, $loo
   const locationInfo = $newEl[0].__cssLocation // HACK . Should get the ast node directly
 
   assert(secondArg) // it is required for for-each
-  assert.equal(secondArg.type, 'String')
+  assert.equal(secondArg.type, 'HackRaw')
   // Strip off the quotes in secondArg.value
   const selector = secondArg.value.substring(1, secondArg.value.length - 1)
   const $newLookupEls = $lookupEl.find(selector)
@@ -65,17 +65,16 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('Xfor-each-descendant', ($, $loo
 
 
 PSEUDO_CLASSES.push(new PseudoClassFilter('target', ($, $el, args) => {
-  const attributeName = args[0]
-  const matchSelector = args[1]
+  const firstComma = args[0].indexOf(',')
+  const attributeName = args[0].substring(0, firstComma)
+  const matchSelector = args[0].substring(firstComma + 1).trim()
 
   assert($el.length === 1) // for now, assume only 1 element
-  assert.equal(attributeName.length, 1)
-  assert.equal(matchSelector.length, 1)
-  assert.equal(typeof attributeName[0], 'string')
-  assert.equal(typeof matchSelector[0], 'string')
+  assert.equal(matchSelector[0], "'")
+  assert.equal(matchSelector[matchSelector.length - 1], "'")
   // TODO: Check that _all_ els match, not just one
-  const attrValue = $el.attr(attributeName[0])
-  return $(attrValue).is(matchSelector[0])
+  const attrValue = $el.attr(attributeName)
+  return $(attrValue).is(matchSelector.substring(1, matchSelector.length - 1)) // Remove the wrapping quotes)
 }))
 
 module.exports = {PSEUDO_ELEMENTS, PSEUDO_CLASSES}

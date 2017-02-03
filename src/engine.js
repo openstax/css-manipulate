@@ -199,6 +199,25 @@ module.exports = class Applier {
           index += 1
           ret[index] = []
           break
+        case 'Raw': // The value of this is something like `href, '.foo'`
+          debugger
+          // // Make it Look like multitple args
+          // const rawArgs = arg.value.split(', ')
+          // // I'm not really sure about this if test
+          // if (rawArgs.length > 1) {
+          //   rawArgs.forEach((rawArg) => {
+          //     ret[index].push(rawArg)
+          //     index += 1
+          //     ret[index] = [] // FIXME: This leaves a trailing empty Array.
+          //   })
+          // } else {
+          //   ret[index].push(rawArg)
+          // }
+
+          // Too complex to parse because commas can occur inside selector strings so punt
+          ret[index] = arg.value
+
+          break
         case 'Function':
           const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0]
           if (!theFunction) {

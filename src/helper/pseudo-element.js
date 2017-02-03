@@ -18,7 +18,7 @@ function getIndex(ruleWithPseudo, depth) {
   const {firstArg: arg} = ruleWithPseudo.getPseudoAt(depth)
   let index
   if (arg) {
-    assert.equal(arg.type, 'Number')
+    assert.equal(arg.type, 'HackRaw')
     index = Number.parseInt(arg.value) // arg.value is a String
   } else {
     index = 1

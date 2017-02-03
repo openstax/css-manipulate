@@ -1,5 +1,7 @@
 language: node_js
 
+script:
+  npm run ci
 after_script:
   # Report coverage to codecov
   - bash <(curl -s https://codecov.io/bash)
