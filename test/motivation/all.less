@@ -44,6 +44,14 @@
 
 // Generate the CSS!
 
+
+/* End-of-chapter collation */
+chapter {
+  .end-of-chapter(1, "Conceptual Questions", 'exercise.conceptual');
+  .end-of-chapter(2, "Homework Problems", 'exercise.homework');
+}
+
+// Link target text
 @hack1: e(%("(href, '%s')", @NUMBERED_EXERCISES_SEL_STR));
 a:target@{hack1} {
   content:
@@ -55,11 +63,15 @@ a:target@{hack1} {
     target-context(attr(href), ancestor-context('chapter', count-of-type(@NUMBERED_EXERCISES_SEL_STR)));
 }
 
-
+/* Exercise numbering */
 .generate-numbered-exercises(@NUMBERED_EXERCISES);
 
 
-chapter {
-  .end-of-chapter(1, "Conceptual Questions", 'exercise.conceptual');
-  .end-of-chapter(2, "Homework Problems", 'exercise.homework');
+/* Wrap Lists with labels */
+ol[data-label]::outside(1) {
+  &::before(1) {
+    class-add: "list-label";
+    content: attr(data-label);
+  }
+  class-add: "list-wrapper";
 }
