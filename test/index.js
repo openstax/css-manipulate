@@ -26,6 +26,7 @@ const UNIT_FILES_TO_TEST = [
   './unit/for-each-advanced',
   './unit/target',
   './unit/html-serialization',
+  './unit/x-log',
 
   // 'outside',
 

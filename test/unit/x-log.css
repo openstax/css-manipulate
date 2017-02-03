@@ -1,0 +1,3 @@
+body { x-log: "EXPLODE"; }
+body { x-log: none; }
+.log-me { x-log: "encountered a .log-me"; }

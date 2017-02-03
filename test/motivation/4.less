@@ -7,8 +7,7 @@ chapter:Xafter(1) {
     &:has(exercise.conceptual) {
       &:Xbefore(1) {
         class-add: "section-title";
-        x-log: 'This is skipped because the :has() check no longer applies once the exercises are moved';
-        content: descendant-context('> .title', text-contents()); // TODO: denote that this is a copy? Maybe it's clear because it's not move-here() ?
+        content: descendant-context('> .title', text-contents());
       }
       class-add: "eoc-section";
 
@@ -23,7 +22,7 @@ chapter:Xafter(2) {
     &:has(exercise.homework) {
       &:Xbefore(1) {
         class-add: "section-title";
-        content: descendant-context('> .title', text-contents()); // TODO: denote that this is a copy? Maybe it's clear because it's not move-here() ?
+        content: descendant-context('> .title', text-contents());
       }
       class-add: "eoc-section";
 

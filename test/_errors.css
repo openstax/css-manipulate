@@ -1,3 +1,4 @@
+/* TODO: Log each error message text for diffing later */
 ::explode { content: "invalid pseudo-element"; }
 :expode { content: "invalid pseudo-class"; }
 body { content: invalid-function(); }
@@ -6,9 +7,13 @@ body { attrs-add: 'data-with-no-value'; }
 /*:Xafter(non-numeric-arg) { content: "bug"; }*/
 body:Xfor-each-descendant(1,) { content: "no 2nd arg specified"; }
 body:Xfor-each-descendant(1,0) { content: "2nd arg must be a string"; }
+body:Xfor-each-descendant(1, '.no-matches') { content: "no elements were matched (may become a warning)"; }
 body { contentssss: "bug"; }
 body { x-throw: now; }
 /*body { x-throw: later; }*/
 body { x-throw: attr(href); }
 body { content: x-throw(); }
-/* TODO: Log the message text for diffing later */
+body { content: attr(non-existent-attribute); }
+body { content: descendant-context('.nothing-matches', attr(href)); }
+body { content: ancestor-context('.nothing-matches', attr(href)); }
+body { content: target-context('.not-an-href', attr(href)); }

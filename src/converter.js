@@ -44,16 +44,6 @@ class PseudoClassFilter {
   }
 }
 
-function flattenVals(vals) {
-  return vals.map((val) => {
-    if (Array.isArray(val)) {
-      return val.join('')
-    } else {
-      return val
-    }
-  })
-}
-
 // This is copy/pasta'd into pseudo-element
 function attachToAttribute($els, attrName, locationInfo) {
   assert(locationInfo)
@@ -282,8 +272,8 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
   app.addRuleDeclaration(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise, vals, astRule) => {
     assert(vals.length === 1)
     // Do nothing when set to default;
-    // TODO: verify that it is not the string "default" (also needed for format-number())
-    if (vals[0][0] === 'default') {
+    // TODO: verify that it is not the string "none" (also needed for format-number())
+    if (vals[0][0] === 'none') {
       assert.equal(vals.length, 1)
       assert.equal(vals[0].length, 1)
       return $elPromise
