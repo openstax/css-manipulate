@@ -2,9 +2,6 @@
 chapter {
   // Move Conceptual Questions and Homework.
   // the context for move-here is the current chapter.
-  // HACK: use a 2nd-level pseudoselector because the order-of-evaluation is wrong
-  // &::after(1) { content: move-here('exercise.conceptual'); }
-  // &::after(2) { content: move-here('exercise.homework'); }
-  &::after(1)::after(1) { content: move-here('exercise.conceptual'); }
-  &::after(2)::after(1) { content: move-here('exercise.homework'); }
+  &::after(1) { content: move-here('exercise.conceptual'); }
+  &::after(2) { content: move-here('exercise.homework'); }
 }

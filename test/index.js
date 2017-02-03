@@ -47,6 +47,7 @@ const MOTIVATION_FILES_TO_TEST = [
   './motivation/8',
   './motivation/9',
   './motivation/10',
+  './motivation/all',
 ]
 
 const ERROR_TEST_FILENAME = '_errors'

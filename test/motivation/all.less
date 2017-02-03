@@ -1,0 +1,18 @@
+
+.end-of-chapter(@which, @title, @exerciseSel) {
+  &::after(@{which}) {
+    &::before {
+      class-add: "title";
+      content: @title;
+    }
+    attrs-add: "data-type" "eoc-item";
+
+    // the context for move-here is the current chapter.
+    content: move-here(@exerciseSel);
+  }
+}
+
+chapter {
+  .end-of-chapter(1, "Conceptual Questions", 'exercise.conceptual');
+  .end-of-chapter(2, "Homework Problems", 'exercise.homework');
+}
