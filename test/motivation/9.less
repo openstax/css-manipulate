@@ -2,7 +2,7 @@
 
 exercise.homework,
 exercise.conceptual {
-  > answer:Xbefore(1) {
+  > answer::before(1) {
     content:
       // Chapter number
       ancestor-context('body', count-of-type('chapter'))
@@ -14,8 +14,8 @@ exercise.conceptual {
 }
 
 // answer key
-body:Xafter(1) {
-  &:Xbefore(1) { content: "Answer Key"; }
+body::after(1) {
+  &::before(1) { content: "Answer Key"; }
 
   content: move-here('answer');
 }

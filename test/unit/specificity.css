@@ -33,9 +33,9 @@
 .using-important-even-with-more-specific-selector { content: "kittens" !important; }
 .using-important-even-with-more-specific-selector.more-specific { content: "BUG2"; }
 
-.in-pseudo-element:Xbefore(1) { content: "BUG"; }
-.in-pseudo-element:Xbefore(1) { content: "kittens"; }
+.in-pseudo-element::before(1) { content: "BUG"; }
+.in-pseudo-element::before(1) { content: "kittens"; }
 
-.in-pseudo-element:Xbefore(1):Xafter(1) { content: "BUG(this should show up in the after-pseudo but not the before pseudo element)"; }
-.in-pseudo-element:Xbefore(1) { content: "kittens"; }
-.in-pseudo-element:Xbefore(1):Xafter(1) { content: "kittens"; }
+.in-pseudo-element::before(1)::after(1) { content: "BUG(this should show up in the after-pseudo but not the before pseudo element)"; }
+.in-pseudo-element::before(1) { content: "kittens"; }
+.in-pseudo-element::before(1)::after(1) { content: "kittens"; }

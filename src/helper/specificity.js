@@ -17,6 +17,7 @@ module.exports = {
         case 'Id':
           idCount += 1
           break
+        case 'PseudoElement':
         case 'Type': // element
           elementNamesAndPseudoElementsCount += 1
           break

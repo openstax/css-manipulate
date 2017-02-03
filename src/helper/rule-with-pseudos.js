@@ -6,7 +6,7 @@ module.exports = class RuleWithPseudos {
   constructor(rule, allPseudoElementNames) {
     assert(allPseudoElementNames)
     this._rule = rule
-    const pseudoElements = rule.selector.children.toArray().filter((selector) => 'PseudoClass' === selector.type && allPseudoElementNames.indexOf(selector.name) >= 0)
+    const pseudoElements = rule.selector.children.toArray().filter((selector) => 'PseudoElement' === selector.type)
     // [ {name: 'after', firstArg: {value: '1'}} ]
     this._pseudos = pseudoElements.map((pseudoElement) => {
       const args = pseudoElement.children ? pseudoElement.children.toArray() : [] // handle no-arg case

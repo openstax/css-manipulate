@@ -2,10 +2,10 @@
 @import './2.less';
 
 // Generic styling for all end-of-chapter items
-chapter:Xafter(1) {
-  &:Xfor-each-descendant(1, '> section') {
+chapter::after(1) {
+  &::for-each-descendant(1, '> section') {
     &:has(exercise.conceptual) {
-      &:Xbefore(1) {
+      &::before(1) {
         class-add: "section-title";
         content: descendant-context('> .title', text-contents());
       }
@@ -17,10 +17,10 @@ chapter:Xafter(1) {
   }
 }
 
-chapter:Xafter(2) {
-  &:Xfor-each-descendant(1, '> section') {
+chapter::after(2) {
+  &::for-each-descendant(1, '> section') {
     &:has(exercise.homework) {
-      &:Xbefore(1) {
+      &::before(1) {
         class-add: "section-title";
         content: descendant-context('> .title', text-contents());
       }

@@ -167,7 +167,8 @@ FUNCTIONS.push(new FunctionEvaluator('descendant-context',
 
     const $firstDescendant = $contextEl.find(selector)
     if ($firstDescendant.length !== 1) {
-      throwError(`ERROR: Could not find unique descendant-context. Found ${$firstDescendant.length}`, args[0], $currentEl)
+      debugger
+      throwError(`ERROR: Could not find unique descendant-context when evaluating "${selector}". Found ${$firstDescendant.length}`, args[0], $currentEl)
     }
     // If we are looking up an id then look up against the whole document
     return {$contextEl: $firstDescendant }

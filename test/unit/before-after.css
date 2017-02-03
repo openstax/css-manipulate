@@ -1,14 +1,14 @@
-chapter:Xafter(1):Xbefore(1) { content: "DONOTSHOWME(1)"; }
-chapter:Xafter(2):Xbefore(1) { content: "after2-before1 content"; }
-chapter:Xafter(2):Xbefore(2) { content: "DONOTSHOWME(2)"; }
-chapter:Xafter(2):Xbefore(2) { content: "after2-before2 content"; }
-chapter:Xafter:Xbefore { content: "after1-before1 content"; }
-chapter:Xafter(3) {
+chapter::after(1)::before(1) { content: "DONOTSHOWME(1)"; }
+chapter::after(2)::before(1) { content: "after2-before1 content"; }
+chapter::after(2)::before(2) { content: "DONOTSHOWME(2)"; }
+chapter::after(2)::before(2) { content: "after2-before2 content"; }
+chapter::after::before { content: "after1-before1 content"; }
+chapter::after(3) {
   content: "DONOTSHOWME(3)";
   content: "after3 content";
 }
 /* Verify that ::before is evaluated after content: */
-chapter:Xafter(3):Xbefore(3) { content: "kittens(4)"; }
+chapter::after(3)::before(3) { content: "kittens(4)"; }
 
 /*assert.equal(app._$('[pseudo="Xafter"]').length, 3)
 assert.equal(app._$('[pseudo="Xbefore"]').length, 3)
@@ -16,5 +16,5 @@ assert.equal(app._$('[pseudo="Xafter"] > [pseudo="Xbefore"]').length, 3)*/
 
 
 /* TODO: if there are no rules (and no nested pseudoelements that would require this on to be generated) then the pseudoelement should not be rendered
-chapter:XOutside(100) { }
+chapter::Outside(100) { }
 */

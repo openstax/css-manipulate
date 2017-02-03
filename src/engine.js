@@ -106,7 +106,7 @@ module.exports = class Applier {
   }
 
   _isPseudoElementSelectorElement(selectorElement) {
-    if(selectorElement.type !== 'PseudoClass') {
+    if(selectorElement.type !== 'PseudoElement') {
       return false
     }
     return !! this._pseudoElementPluginByName[selectorElement.name]
@@ -128,20 +128,17 @@ module.exports = class Applier {
     const browserSelectorElements = []
     const pseudoClassElements = []
     selector.children.toArray().forEach((selectorElement) => {
-      if (selectorElement.type === 'PseudoClass') {
-        if (this._isPseudoElementSelectorElement(selectorElement)) {
-          depth += 1
-        } else {
-          // it's a real PseudoClass
-          if (startDepth === depth) {
-            if (this._isPseudoClassSelectorElement(selectorElement)) {
-              pseudoClassElements.push(selectorElement)
-            } else {
-              browserSelectorElements.push(selectorElement)
-            }
-          } else if (depth <= -1 && -1 === startDepth) {
+      if (selectorElement.type === 'PseudoElement') {
+        depth += 1
+      } else if (selectorElement.type === 'PseudoClass') {
+        if (startDepth === depth) {
+          if (this._isPseudoClassSelectorElement(selectorElement)) {
+            pseudoClassElements.push(selectorElement)
+          } else {
             browserSelectorElements.push(selectorElement)
           }
+        } else if (depth <= -1 && -1 === startDepth) {
+          browserSelectorElements.push(selectorElement)
         }
       } else if (depth <= -1 && -1 === startDepth) {
         // include all of the "vanilla" selectors like #id123 or .class-name or [href]
@@ -360,13 +357,7 @@ module.exports = class Applier {
           case 'match':
           case 'first-of-type':
           case 'target': // this is new
-          // These are hacks because css-tree does not support pseudo-elements with arguments
-          case 'Xafter':
-          case 'Xbefore':
-          case 'Xoutside':
-          case 'Xinside':
-          case 'Xfor-each-descendant':
-            return '';
+            return ''
           // keep these
           case 'has':
           case 'last-child':
@@ -386,13 +377,15 @@ module.exports = class Applier {
         }
 
       case 'PseudoElement':
-        // Discard some of these because sizzle/browser does no recognize them anyway (:Xoutside or :after(3))
+        // Discard some of these because sizzle/browser does no recognize them anyway (::outside or :after(3))
         switch (sel.name) {
           // Discard these
           case 'after':
           case 'before':
           case 'outside':
-          case 'deferred':
+          case 'inside':
+          case 'for-each-descendant':
+          case 'deferred': // Hack for parsing the book.css file // FIXME by removing
             return ''
           default:
             throwError(`UNKNOWN_PSEUDOELEMENT:${sel.name}(${sel.type})`, sel)

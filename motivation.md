@@ -4,7 +4,7 @@ This goes through several examples and each builds on the previous one to illust
 
 By the end you will be able to create multiple elements in the DOM, number elements, add links (like footnotes) to elements, all by writing CSS.
 
-[Click here to try them out yourself](https://jsfiddle.net/philschatz/hjk2z4af/) (**Note:** due to a limitation of [css-tree](https://github.com/csstree/csstree) you have to type `:Xbefore(1)` instead of `::before(1)`)
+[Click here to try them out yourself](https://jsfiddle.net/philschatz/hjk2z4af/)
 
 
 Table of Contents:

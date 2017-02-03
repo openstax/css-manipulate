@@ -1,4 +1,4 @@
-.match1:Xinside { class-add: "Level1"; content: "Hello"}
-.match2:Xinside(1) { class-add: "level1"; content: "WRONG"; }
-.match2:Xinside(2) { class-add: "level2"; content: "World"; }
-.match2:Xinside { content: "Howdy"; }
+.match1::inside { class-add: "Level1"; content: "Hello"}
+.match2::inside(1) { class-add: "level1"; content: "WRONG"; }
+.match2::inside(2) { class-add: "level2"; content: "World"; }
+.match2::inside { content: "Howdy"; }

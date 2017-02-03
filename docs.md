@@ -16,13 +16,11 @@ These all test if something is true about the current node.
 
 These all add a node(s) in the vicinity of this node.
 
-For now the `::` is replaced with `:X` due to a limitation in `css-tree` (see [css-tree#33](https://github.com/csstree/csstree/issues/33)).
-
-- `:Xafter` or `:Xafter(1)` : adds a new child element after the existing content
-- `:Xbefore` or `:Xbefore(1)` : adds a new child element before the existing content
-- `:Xinside` or `:Xinside(1)` : wraps all children of this element into this new element
-- `:Xoutside` or `:Xoutside(1)` : wraps the current element with this new element
-- `:Xfor-each-descendant(1, '> .selector .of.descendants > .to-match')` : creates a new child element in the current element for each element that is matched by the selector and changes the context to be the matched element
+- `::after` or `::after(1)` : adds a new child element after the existing content
+- `::before` or `::before(1)` : adds a new child element before the existing content
+- `::inside` or `::inside(1)` : wraps all children of this element into this new element
+- `::outside` or `::outside(1)` : wraps the current element with this new element
+- `::for-each-descendant(1, '> .selector .of.descendants > .to-match')` : creates a new child element in the current element for each element that is matched by the selector and changes the context to be the matched element
   - any sub pseudo-class selectors are used to filter the selector that was matched
   - any sub pseudo-element selectors are used to continue constructing elements
 

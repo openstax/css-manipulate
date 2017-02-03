@@ -1,9 +1,9 @@
-/* TODO: remove the :Xafter for extra-hard testing */
-/*.chapter:Xafter {
+/* TODO: remove the ::after for extra-hard testing */
+/*.chapter::after {
   content: 'Expected: 4 2 . Actual: ', count-of-type('li'), ' ', target-context('.scope-to-me', count-of-type('li'));
 }*/
 
-li:Xbefore {
+li::before {
   /*content: target-context('ol,ul', count-of-type('li'));*/
   content: parent-context(count-of-type('li'));
 }

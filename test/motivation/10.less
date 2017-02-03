@@ -2,7 +2,7 @@
 
 exercise.homework,
 exercise.conceptual {
-  > answer:Xbefore(1) {
+  > answer::before(1) {
     // see previous for how the numbers are added here
 
     // Make this thing a link to the exercise
@@ -10,7 +10,7 @@ exercise.conceptual {
     attrs-add: "href" "#" parent-context(attr(id));
   }
 
-  &:has(> answer):Xbefore(1) {
+  &:has(> answer)::before(1) {
     tag-name-set: "a";
     // TODO: implement attr-ensure()
     // attrs-add: "href" "#" descendant-context('> answer', attr-ensure(id));

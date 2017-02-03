@@ -1,7 +1,7 @@
 @import './6.less';
 
-ol[data-label]:Xoutside(1) {
-  &:Xbefore(1) {
+ol[data-label]::outside(1) {
+  &::before(1) {
     class-add: "list-label";
     content: attr(data-label);
   }

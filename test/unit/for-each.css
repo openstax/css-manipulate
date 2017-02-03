@@ -1,21 +1,21 @@
 /* TODO: Verify that '> section' works */
-/*chapter:Xafter(1):Xfor-each-descendant(1, '> section'),
-chapter:Xafter(2):Xfor-each-descendant(1, '> section') {
+/*chapter::after(1)::for-each-descendant(1, '> section'),
+chapter::after(2)::for-each-descendant(1, '> section') {
   class-add: "eoc-section";
 }*/
 
-chapter:Xafter(1):Xbefore { content: "Homework Exercises"; }
-chapter:Xafter(2):Xbefore { content: "Conceptual Questions"; }
+chapter::after(1)::before { content: "Homework Exercises"; }
+chapter::after(2)::before { content: "Conceptual Questions"; }
 
-chapter:Xafter(1):Xfor-each-descendant(1, 'section'),
-chapter:Xafter(2):Xfor-each-descendant(1, 'section') {
+chapter::after(1)::for-each-descendant(1, 'section'),
+chapter::after(2)::for-each-descendant(1, 'section') {
   class-add: "eoc-section";
 }
-chapter:Xafter(1):Xfor-each-descendant(1, 'section'):Xbefore(2) { class-add: "homeworks"; content: move-here('exercise.homework'); }
-chapter:Xafter(2):Xfor-each-descendant(1, 'section'):Xbefore(2) { class-add: "conceptuals"; content: move-here('exercise.conceptual'); }
+chapter::after(1)::for-each-descendant(1, 'section')::before(2) { class-add: "homeworks"; content: move-here('exercise.homework'); }
+chapter::after(2)::for-each-descendant(1, 'section')::before(2) { class-add: "conceptuals"; content: move-here('exercise.conceptual'); }
 
-chapter:Xafter(1):Xfor-each-descendant(1, 'section'):Xbefore(1),
-chapter:Xafter(2):Xfor-each-descendant(1, 'section'):Xbefore(1) {
+chapter::after(1)::for-each-descendant(1, 'section')::before(1),
+chapter::after(2)::for-each-descendant(1, 'section')::before(1) {
   class-add: "title";
   content: descendant-context('> .title', text-contents());
 }

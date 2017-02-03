@@ -2,21 +2,21 @@ chapter {
   // tag-name-set: "ul";
   // x-log: 'dt descendents of ' x-tag-name() ' ' count-of-type('dt');
 
-  &:Xfor-each-descendant(1, 'dt'):not(:has(.sdkjhfdf)) {
+  &::for-each-descendant(1, 'dt'):not(:has(.sdkjhfdf)) {
     tag-name-set: "li";
 
     // Add the term
-    &:Xafter(1) {
+    &::after(1) {
       tag-name-set: "span";
       class-add: "term";
       content: text-contents();
     }
-    &:Xafter(2) {
+    &::after(2) {
       tag-name-set: "span";
       class-add: "separator";
       content: ": ";
     }
-    &:Xafter(3) {
+    &::after(3) {
       tag-name-set: "span";
       class-add: "definition";
       content: next-sibling-context('dd:first', text-contents());

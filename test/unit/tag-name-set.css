@@ -1,2 +1,2 @@
-chapter:Xfor-each-descendant(1, 'dt') { tag-name-set: "li"; }
-chapter:Xfor-each-descendant(1, 'dt'):Xafter(1) { class-add: "term"; }
+chapter::for-each-descendant(1, 'dt') { tag-name-set: "li"; }
+chapter::for-each-descendant(1, 'dt')::after(1) { class-add: "term"; }

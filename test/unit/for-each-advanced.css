@@ -9,35 +9,35 @@
 */
 
 
-/*chapter:Xafter(1):Xbefore { content: "Homework Exercises"; }
-chapter:Xafter(2):Xbefore { content: "Conceptual Questions"; }
+/*chapter::after(1)::before { content: "Homework Exercises"; }
+chapter::after(2)::before { content: "Conceptual Questions"; }
 
-chapter:Xafter(1):Xfor-each-descendant(1, 'section'),
-chapter:Xafter(2):Xfor-each-descendant(1, 'section') {
+chapter::after(1)::for-each-descendant(1, 'section'),
+chapter::after(2)::for-each-descendant(1, 'section') {
   class-add: "eoc-section";
 }
-chapter:Xafter(1):Xfor-each-descendant(1, 'section'):has(exercise.homework):Xbefore(1) { class-add: "homeworks"; content: move-here('exercise.homework'); }
-chapter:Xafter(2):Xfor-each-descendant(1, 'section'):has(exercise.conceptual):Xbefore(1) { class-add: "conceptuals"; content: move-here('exercise.conceptual'); }
+chapter::after(1)::for-each-descendant(1, 'section'):has(exercise.homework)::before(1) { class-add: "homeworks"; content: move-here('exercise.homework'); }
+chapter::after(2)::for-each-descendant(1, 'section'):has(exercise.conceptual)::before(1) { class-add: "conceptuals"; content: move-here('exercise.conceptual'); }
 
-chapter:Xafter(1):Xfor-each-descendant(1, 'section'):has(exercise.homework):Xbefore(2),
-chapter:Xafter(2):Xfor-each-descendant(1, 'section'):has(exercise.conceptual):Xbefore(2) {
+chapter::after(1)::for-each-descendant(1, 'section'):has(exercise.homework)::before(2),
+chapter::after(2)::for-each-descendant(1, 'section'):has(exercise.conceptual)::before(2) {
   class-add: "title";
   content: descendant-context('> .title', text-contents());
 }*/
 
-body:Xafter(1):Xfor-each-descendant(1, 'section'):has(.fooooobar),
-body:Xafter(2):Xfor-each-descendant(1, 'section'):has(head),
-body:Xafter(3):Xfor-each-descendant(1, 'section'):has(body),
-body:Xafter(4):Xfor-each-descendant(1, 'section'):has(chapter),
-body:Xafter(5):Xfor-each-descendant(1, 'section'):has(section) { content: "BUG" ' [context=' x-tag-name() ' current=' x-tag-name(current) '] '; }
+body::after(1)::for-each-descendant(1, 'section'):has(.fooooobar),
+body::after(2)::for-each-descendant(1, 'section'):has(head),
+body::after(3)::for-each-descendant(1, 'section'):has(body),
+body::after(4)::for-each-descendant(1, 'section'):has(chapter),
+body::after(5)::for-each-descendant(1, 'section'):has(section) { content: "BUG" ' [context=' x-tag-name() ' current=' x-tag-name(current) '] '; }
 
-body:Xafter(6):Xfor-each-descendant(1, 'section'):has(exercise) { content: "kittens" ' [context=' x-tag-name() ' current=' x-tag-name(current) '] '; }
-body:Xafter(7):Xfor-each-descendant(1, 'section'):has(exercise.homework)  {
+body::after(6)::for-each-descendant(1, 'section'):has(exercise) { content: "kittens" ' [context=' x-tag-name() ' current=' x-tag-name(current) '] '; }
+body::after(7)::for-each-descendant(1, 'section'):has(exercise.homework)  {
   content: 'maybe kitens? ' '[context=' x-tag-name() ' current=' x-tag-name(current) '] ';
 }
-body:Xafter(8):Xfor-each-descendant(1, 'section'):has(exercise):Xbefore(1)  {
+body::after(8)::for-each-descendant(1, 'section'):has(exercise)::before(1)  {
   content: 'kittens-inside-before';
 }
-body:Xafter(9):Xfor-each-descendant(1, 'section'):has(exercise.homework):Xbefore(1)  {
+body::after(9)::for-each-descendant(1, 'section'):has(exercise.homework)::before(1)  {
   content: 'kittens-inside-before2';
 }
