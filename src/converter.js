@@ -152,6 +152,23 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
     showLog(msg, rule, $lookupEl)
     return $elPromise
   }))
+  app.addRuleDeclaration(new RuleDeclaration('x-throw', ($, $lookupEl, $elPromise, vals, rule) => {
+    assert(vals.length <= 1)
+    // Do nothing when set to none;
+    // TODO: verify that it is not the string "none" (also needed for format-number())
+    if (vals[0][0] === 'none') {
+      assert.equal(vals.length, 1)
+      assert.equal(vals[0].length, 1)
+      return $elPromise
+    } else if (vals[0][0] === 'later') {
+      $elPromise.then((val) => {
+        console.log('Declaration "x-throw:" will be thrown in a promise. Here is the value', val)
+        throw new Error('Declaration "x-throw: later;" is being thrown during node mutation')
+      })
+    } else {
+      throw new Error('Declaration "x-throw:" is being thrown during evaluation')
+    }
+  }))
   app.addRuleDeclaration(new RuleDeclaration('content', ($, $lookupEl, $elPromise, vals, astRule) => {
     // content: does not allow commas so there should only be 1 arg
     // (which can contain a mix of strings and jQuery elements and numbers)
@@ -306,6 +323,9 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
   // So until evaluateRule can return a new set of els this needs to be the last rule that is evaluated
 
 
+  app.addFunction(new FunctionEvaluator('x-throw', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
+    throwError(`ERROR: "x-throw()" was called.`, vals[0])
+  } ))
   app.addFunction(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, vals, mutationPromise) => {
     // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
     assert($contextEl.length, 1)

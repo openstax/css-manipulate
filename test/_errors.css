@@ -7,3 +7,8 @@ body { attrs-add: 'data-with-no-value'; }
 body:Xfor-each-descendant(1,) { content: "no 2nd arg specified"; }
 body:Xfor-each-descendant(1,0) { content: "2nd arg must be a string"; }
 body { contentssss: "bug"; }
+body { x-throw: now; }
+/*body { x-throw: later; }*/
+body { x-throw: attr(href); }
+body { content: x-throw(); }
+/* TODO: Log the message text for diffing later */

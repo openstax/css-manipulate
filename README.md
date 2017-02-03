@@ -1,10 +1,27 @@
 # Motivation/Examples
 
-Check out [./motivation.md](./motivation.md) for a step-by-step introduction to the CSS features or just play around with the **[JSFiddle of all the steps combined](https://jsfiddle.net/philschatz/hjk2z4af/)**
+The [Motivation Page](./motivation.md) has a step-by-step introduction to the CSS features or just play around with the **[JSFiddle of all the steps combined](https://jsfiddle.net/philschatz/hjk2z4af/)**
+
+The [Language Reference Page](./docs.md) contains a list of all selectors, rules, functions that are understood.
+
+
+# Table of Contents
+
+- [Features](#features)
+  - [Precise Error Messages](#precise-error-messages)
+  - [HTML SourceMaps](#html-sourcemaps)
+  - [Exactly 1 Pass](#exactly-1-pass)
+- [Install Notes](#install-notes)
+- [Debugging](#debugging)
+- [TODO](#todo)
+
 
 # Features
 
+This library aims to address several stories that could be helpful.
+
 **Note:** ap-physics takes a couple minutes to load and then save
+
 
 ## Precise Error Messages
 
@@ -32,6 +49,7 @@ These are formatted in a way that can be parsed by a linter and therefore can sh
 
 When coupled with source maps (see below), this vastly reduces debugging time because you know exactly where in the CSS file to look and which HTML element was being processed at the time.
 
+
 ### Future Work
 
 - [ ] add more errors and warnings
@@ -48,6 +66,7 @@ This addresses a few use-cases:
 1. As a Content Editor I want to review the baked HTML file but when I find a content problem I want to find the source so I can edit it
 1. As a GUI Developer I want people to see what the book looks like (collated & numbered) but when I click to edit I want to edit the original content
 1. As a CSS Developer I want to see what all is being affected by a CSS selector/rule so I know if it is affecting the right elements
+
 
 ### Animation
 
@@ -78,6 +97,7 @@ This model is inspired by both CSS and virtualdom libraries like React: you desc
 
 No more writing the intermediate steps needed to get to the desired result (ie setting temporary attributes, multiple passes to move things around).
 
+
 ### How It Works
 
 There are 3 phases (annotate, build a work tree, manipulate):
@@ -91,6 +111,7 @@ There are 3 phases (annotate, build a work tree, manipulate):
 ### Future Work
 
 - [ ] mark the elements that will be moved
+- [ ] ensure empty elements are not created (no children or attributes have been added)
 - [ ] support a `--dry-run` which renders the work tree
   - optionally specify a selector to only show elements you are interested in
 
@@ -111,13 +132,12 @@ rm -rf node_modules/jsdom
 mv ../PATH_TO_CHECKED_OUT_jsdom ./node_modules
 ```
 
-
 # Debugging
 
 run `npm run debugger` to start up a debugger and run the tests.
 
 
-# TODO:
+# TODO
 
 - [x] Support `tag-name-set:`
 - [x] Support selector specificity
