@@ -25,12 +25,14 @@ const UNIT_FILES_TO_TEST = [
   './unit/for-each',
   './unit/for-each-advanced',
   './unit/target',
+  './unit/tag-name-set',
   './unit/html-serialization',
   './unit/x-log',
 
   // 'outside',
 
   './example/exercise-numbering',
+  './example/glossary',
 ]
 
 const MOTIVATION_INPUT_HTML_PATH = `./motivation/_input.html`

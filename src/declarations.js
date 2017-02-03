@@ -206,8 +206,13 @@ DECLARATIONS.push(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise,
 
   assert($elPromise instanceof Promise)
   return $elPromise.then(($el) => {
+    assert.equal($el.length, 1) // Just check for now, could be lifted later
     // TODO: This needs to somehow percolate to children
-    return replaceTagName.bind($el)(tagName)
+    const $newTagNames = replaceTagName.bind($el)(tagName)
+    // It's very important to edit the existing $el
+    // since elements further down the promise chain need to be sure to keep mutating those new elements
+    $el[0] = $newTagNames[0]
+    return $el
   })
 }))
 // FIXME: tag-name-set MUST be the last rule evaluated becuase it changes the $els set.

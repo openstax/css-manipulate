@@ -45,7 +45,12 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('Xfor-each-descendant', ($, $loo
   const ret = []
   $newLookupEls.each((index, newLookupEl) => {
     const $newElPromise = $contextElPromise.then(($contextEl) => {
-      const $newEl = $('<div debug-pseudo="for-each-descendant-element"/>')
+      if(!$contextEl.parents(':last').is('html')) {
+        debugger
+        throwError(`BUG: provided element is not attached to the DOM`, null, $contextEl)
+      }
+
+      const $newEl = $('<div data-pseudo="for-each-descendant-element"/>')
       $newEl[0].__cssLocation = locationInfo
       $contextEl.append($newEl)
       return $newEl
