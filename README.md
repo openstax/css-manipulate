@@ -1,584 +1,105 @@
-### Getting Started
+# Motivation/Examples
 
-This goes through several examples and each builds on the previous one to illustrate how to describe tasks used when creating a textbook.
+Check out [./motivation.md](./motivation.md) for a step-by-step introduction to the CSS features or just play around with the **[JSFiddle of all the steps combined](https://jsfiddle.net/philschatz/hjk2z4af/)**
 
-By the end you will be able to create multiple elements in the DOM, number elements, add links (like footnotes) to elements, all by writing CSS.
+# Features
 
-Table of Contents:
+**Note:** ap-physics takes a couple minutes to load and then save
 
-1. create end-of-chapter elements
-1. Add custom attributes to elements
-1. move exercises to end-of-chapter
-1. add a section separator to exercises
-1. number eoc exercises
-1. create "See Exercise 4.3" links (optionally have the title in the link)
-1. wrap a list and add label element
-1. wrap the inside of a note
-1. collate answer to end of book
-1. Make exercises and answers link to each other
+## Precise Error Messages
 
-To see the actual LESS files for each step (and output HTML), check out [./test/motivation/](./test/motivation/)
+This addresses a few use-cases:
 
-[Click here to try them out yourself](https://jsfiddle.net/philschatz/hjk2z4af/) (**Note:** due to a limitation of [css-tree](https://github.com/csstree/csstree) you have to type `:Xbefore(1)` instead of `::before(1)`)
+1. As a CSS Developer I want to know if I mis-typed a rule/function/selector
+1. As a CSS Developer I want to know which CSS and HTML combination caused a crash to occur
+1. As a CSS Developer I want to know when something is unexpectedly empty so I do not have to look for the absence in the baked HTML file
+
+Here are some example error messages from various tests. All but one are already implemented:
+
+```js
+test/_errors.css:1:20: WARNING: Skipping unrecognized rule 'contentssss:', maybe a typo? (test/_errors.in.html:8:1)
+test/specificity.css:30:28: WARNING: Skipping this rule because it was overridden by test/specificity.css:42:13 (test/specificity.in.html:8:1)
+test/move.css:14:5: WARNING: Moving 0 items using selector '.exercise'. You can add a :has() guard to prevent this warning (test/move.in.html:10:1)
+test/move.css:14:5: ERROR: Tried to move an HTML element that was already marked for moving. The first move rule was matched by test/move.css:6:3. (test/move.in.html:13:6)
+(stack trace here)
 
 
-**Note:** I'm using single quotes to represent strings that contain a selector and double-quotes to represent strings
-
-Let's start with the following HTML:
-
-```html
-<chapter>
-  <section>
-    <div class="title">Kinematics in 1 Dimension</div>
-    <exercise id="ex123" class="conceptual">
-      <answer>42</answer>
-    </exercise>
-  </section>
-  <section>
-    <div class="title">Kinematics in 2 Dimensions</div>
-    <exercise id="ex234" class="homework">
-      <answer>84</answer>
-    </exercise>
-    <!-- assorted content -->
-    <a href="#ex234">[link]</a>
-    <note>
-      <div class="title">Note1</title>
-      <p>Howdy</p>
-    </note>
-    <ol data-label="Temperatures">
-      <li>Item1</li>
-    </ol>
-  </section>
-</chapter>
+test/move.css:7:2: ERROR: Exception occurred while manipulating the DOM (test/move.in.html:13:6)
+(stack trace here)
 ```
 
+These are formatted in a way that can be parsed by a linter and therefore can show up in your text editor :smile: and they include both the CSS **and** HTML source location information.
 
-# create end-of-chapter elements
+When coupled with source maps (see below), this vastly reduces debugging time because you know exactly where in the CSS file to look and which HTML element was being processed at the time.
 
-Let's add some new element into the DOM.
+### Future Work
 
-Desired HTML:
+- [ ] add more errors and warnings
+- [ ] add "Strict" mode that fails on any warnings
+- [ ] create a linter plugin that parses the output text
+- [ ] create an atom plugin that allows you to run from the commandline but report the errors to the atom linter
 
-```html
-<chapter>
-  ...
-  <div>
-    <div>Conceptual Questions</div>
-  </div>
-  <div>
-    <div>Homework Problems</div>
-  </div>
-</chapter>
-```
 
-This introduces `::after(1)` and `::before(1)` which generate new elements.
+## HTML SourceMaps
 
-**Note:** What if `::after(*)` (or `::after()`) applies to _all_ the after elements?
+This addresses a few use-cases:
 
-CSS:
+1. As a CSS Developer I want to see why a specific element, class, or piece of generated text is showing up
+1. As a Content Editor I want to review the baked HTML file but when I find a content problem I want to find the source so I can edit it
+1. As a GUI Developer I want people to see what the book looks like (collated & numbered) but when I click to edit I want to edit the original content
+1. As a CSS Developer I want to see what all is being affected by a CSS selector/rule so I know if it is affecting the right elements
 
-```less
-chapter::after(1) {
-  &::before(1) { content: "Conceptual Questions"; }
-}
+### Animation
 
-chapter::after(2) {
-  &::before(1) { content: "Homework Problems"; }
-}
-```
+In this animation the left pane contains the baked HTML and the right pane contains the source that generated the code (either HTML content or CSS selectors/rules).
 
+As you click in the left pane, the right pane updates.
 
-# Add custom attributes to elements
+![html-sourcemaps-wtf](https://cloud.githubusercontent.com/assets/253202/22572879/4745fa28-e974-11e6-936c-d56d2791cf47.gif)
 
-Now that we have these extra HTML elements we need to add/change attributes.
+_(there is no trickery here, this is real working code using a slightly modified [atom-source-preview](https://github.com/aki77/atom-source-preview))_
 
-Desired HTML:
 
-```html
-<chapter>
-  ...
-  <div data-type="eoc-item">
-    <div class="title">Conceptual Questions</div>
-  </div>
-  <div data-type="eoc-item">
-    <div class="title">Homework Problems</div>
-  </div>
-</chapter>
-```
+### Future Work
 
-This introduces the following declarations:
+- [ ] The right pane could show the original SCSS instead of the CSS file so you can edit and save directly
+- [ ] In the left pane the HTML could be rendered instead of looking at the HTML Source. Then, when you click around, the right pane would still do the same thing it does now.
+- [ ] This sourcemap information could be loaded into a WYSIWYG editor so an author can view the baked book but edit the source Page/Module (this animation only showed 1 source HTML file and 1 source CSS file)
+- [ ] Sourcemaps could be used to provide more precise validation errors (ie broken links, unused class names)
 
-- `class-add:    "name-1", "name-2", "name" "-3";`
-- `class-remove: "name-1", "name-2", "name" "-3";`
-- `attrs-add: "data-type" "collated-page", "name" "val" "ue";`
-- `attrs-set: "data-type" "collated-page", "name" "val" "ue";`
-- `attrs-remove: "name1", "name2";`
 
-The evaluation order is: `*-add`, `*-remove`, `*-set` (I just picked, could reorder)
+## Exactly 1 Pass
 
-CSS:
+This addresses a few use-cases:
 
-```less
-chapter::after(1),
-chapter::after(2) {
-  &::before(1) { class-add: "title"; }
-  attrs-add: "data-type" "eoc-item";
-}
-```
+- As a CSS Developer I want to not have to reason about intermediate state of the DOM
 
+This model is inspired by both CSS and virtualdom libraries like React: you describe what you want the result to look like rather than the "how".
 
-# move exercises to end-of-chapter
+No more writing the intermediate steps needed to get to the desired result (ie setting temporary attributes, multiple passes to move things around).
 
-Now that we have the end-of-chapter elements ready, we need to move the exercises
-into those new elements.
+### How It Works
 
-Desired HTML:
+There are 3 phases (annotate, build a work tree, manipulate):
 
-```html
-<chapter>
-  ...
-  <div data-type="eoc-item">
-    <div class="title">Conceptual Questions</div>
-    <exercise id="ex123" class="conceptual">
-      ...
-    </exercise>
-  </div>
-  <div data-type="eoc-item">
-    <div class="title">Homework Problems</div>
-    <exercise id="ex234" class="homework">
-      ...
-    </exercise>
-  </div>
-</chapter>
-```
+1. The entire HTML DOM is annotated with rulesets that match each element
+1. The DOM is traversed in-order. Selectors/declarations that require looking at DOM nodes are evaluated at this point and any manipulations that need to happen are added to a work-tree (as Closures/Promises)
+  - [ ] elements that will move are marked to see if 2 rules are moving the same element (aka Mark-Sweep in Garbage-Collection terms)
+1. The DOM is manipulated by evaluating the closures in the work-tree
 
-This introduces `move-here(${SELECTOR}, ${CONTEXT_SELECTOR})` which moves all
-the items within `${CONTEXT_SELECTOR}` that match `${SELECTOR}`.
-`${CONTEXT_SELECTOR}` can be one of the following:
 
-- `none` : search from the root of the doc
-- `default` : the current selector context (in this case `chapter`)
-- `'chapter > section'` : some selector based on the root
-- `1` : The number of contexts to "pop" up (`0` is the same as `default`)
-  - This probably also needs a corresponding way to "pop" up in the DOM tree (ie `parent-context(1)`)
-  - (musing) maybe this should be `-1`?
+### Future Work
 
-CSS:
-
-```less
-// Move Conceptual Questions and Homework.
-// the context for move-here is the current chapter.
-chapter::after(1) { content: move-here('exercise.conceptual'); }
-chapter::after(2) { content: move-here('exercise.homework'); }
-```
-
-
-# add a section separator to exercises
-
-Sometimes we want to list which section these exercises relate to.
-To do that, we need to group the exercises under a section header.
-
-Desired HTML:
-
-```html
-<chapter>
-  ...
-  <div data-type="eoc-item">
-    <div class="title">Conceptual Questions</div>
-    <div class="eoc-section">
-      <div class="title">Kinematics in 1 Dimension</div>
-
-      <exercise id="ex123" class="conceptual">
-        ...
-      </exercise>
-    </div>
-  </div>
-  <div data-type="eoc-item">
-    <div class="title">Homework Problems</div>
-    <div class="eoc-section">
-      <div class="title">Kinematics in 2 Dimensions</div>
-
-      <exercise id="ex234" class="homework">
-        ...
-      </exercise>
-    </div>
-  </div>
-</chapter>
-```
-
-Similar to previous item but with added section separators...
-
-This introduces a `::for-each-descendant(${SELECTOR})` which changes the context
-of declarations inside to be what is matched by `${SELECTOR}`.
-
-This also introduces `target-context(${SELECTOR}, ${EXPRESSIONS})` which evaluates
-`${EXPRESSIONS}` with the target of `${SELECTOR}` (and error if more than one item is found).
-
-CSS:
-
-```less
-// Generic styling for all end-of-chapter items
-chapter::after(1),
-chapter::after(2) {
-  &::for-each-descendant(1, '> section') {
-    &::before(1) {
-      class-add: "title";
-      content: descendant-context('> .title', text-contents());
-    }
-    class-add: "eoc-section";
-
-    // Select the proper exercises to move here
-    // use parent-context here so that we find all exercises in the chapter
-    content: parent-context(move-here('exercise.conceptual'));
-  }
-}
-```
-
-
-# number eoc exercises
-
-Now that we have exercises listed at the end of a chapter with section headers
-we need to number them.
-
-Desired HTML:
-
-```html
-<chapter>
-  ...
-  <div data-type="eoc-item">
-    <div class="title">Conceptual Questions</div>
-    <div class="eoc-section">
-      <div class="title">Kinematics in 1 Dimension</div>
-
-      <exercise id="ex123" class="conceptual">
-        <div class="number">1</div>
-        <answer>42</answer>
-      </exercise>
-    </div>
-  </div>
-  <div data-type="eoc-item">
-    <div class="title">Homework Problems</div>
-    <div class="eoc-section">
-      <div class="title">Kinematics in 2 Dimensions</div>
-
-      <exercise id="ex234" class="homework">
-        <div class="number">2</div>
-        <answer>84</answer>
-      </exercise>
-    </div>
-  </div>
-</chapter>
-```
-
-
-**Note:** this does not actually seem to depend on moving happening 1st
-
-This introduces `count-of-type(${SELECTOR}, ${CONTEXT_SELECTOR})`
-which works as a replacement of `counter-increment:` and `counter(counterName)`.
-It counts the number of items matching `${SELECTOR}` (up to the current element)
-inside `${CONTEXT_SELECTOR}`.
-
-Valid values for `${CONTEXT_SELECTOR}` are described in the `move-here(...)` function.
-
-This also introduces `number-format(${NUMBER}, ${FORMAT})` which converts the number
-into `decimal`, `latin`, `roman`, `latin-upper`, etc.
-
-CSS:
-
-```less
-exercise.homework,
-exercise.conceptual {
-  &::before(1) {
-    class-add: "number";
-    content: ancestor-context('chapter', count-of-type('exercise.homework, exercise.conceptual'));
-  }
-}
-```
-
-
-# create "See Exercise 4.3" links (optionally have the title in the link)
-
-When someone links to an exercise we need the text of the link to show the
-exercise number. Let's do that now.
-
-Desired HTML:
-
-```html
-<chapter>
-  <section>
-    <a href="#ex234">See Exercise 1.2</a>
-    ...
-  </section>
-  ...
-</chapter>
-```
-
-This introduces the `:target(${ATTRIBUTE_NAME}, ${MATCH_SELECTORS...})` pseudo-class
-which checks to see if the target matches one of the `${MATCH_SELECTORS}`.
-
-This also introduces `target-context(${ID_SELECTOR}, ${EXPRESSIONS})` which evaluates `${EXPRESSIONS}`
-in the context of the element identified by `${ID_SELECTOR}`
-
-CSS:
-
-```less
-a:target('href', 'exercise.homework, exercise.conceptual') {
-  content:
-    "See Exercise "
-    // Chapter number
-    target-context(attr(href), ancestor-context('body', count-of-type('chapter')))
-    "."
-    // Exercise number
-    target-context(attr(href), ancestor-context('chapter', count-of-type('exercise.homework, exercise.conceptual')));
-}
-```
-
-
-# wrap a list and add label element
-
-Sometimes we need to wrap an element with a new element, like adding a label to a list.
-
-Desired HTML:
-
-```html
-<chapter>
-  <section>
-    ...
-    <div class="list-wrapper">
-      <div class="list-label">Temperatures</div>
-      <ol>
-        <li>...</li>
-        ...
-      </ol>
-    </div>
-    ...
-  </section>
-</chapter>
-```
-
-This introduces the `::outside(1)` pseudo-element which wraps the selected element with this element.
-
-CSS:
-
-```less
-ol[data-label]::outside(1) {
-  &::before(1) {
-    class-add: "list-label";
-    content: attr(data-label);
-  }
-  class-add: "list-wrapper";
-}
-```
-
-
-# wrap the inside of a note
-
-Sometimes we need to wrap the inside of an element (like adding a `.note-body` to a note for styling).
-
-Desired HTML:
-
-```html
-<chapter>
-  <section>
-    ...
-    <note>
-      <div class="note-body">
-        <div class="title">Note1</title>
-        <p>Howdy</p>
-        ...
-      </div>
-    </note>
-  </section>
-  ...
-</chapter>
-```
-
-This introduces the `::inside(1, ${SELECTORS})` pseudo-element which wraps the contents of an element with this element.
-
-It takes an optional argument (a selector) which describes the items to be wrapped.
-
-```less
-note::inside(1) {
-  class-add: "note-body";
-}
-```
-
----
-
-But we do not want the title to be included in `.note-body`, so let's exclude it from the wrap.
-
-Desired HTML:
-
-```html
-<chapter>
-  <section>
-    ...
-    <note>
-      <div class="title">Note1</title>
-      <div class="note-body">
-        <p>Howdy</p>
-        ...
-      </div>
-    </note>
-  </section>
-  ...
-</chapter>
-```
-
-CSS:
-
-```less
-note::inside(1, ':not(.title)') {
-  class-add: "note-body";
-}
-```
-
-
-
-# collate answer to end of book
-
-Things like the answers need to be moved to the back of the book.
-
-Desired HTML:
-
-```html
-<chapter>
-  ...
-  <div>
-    <exercise id="ex234" class="homework"/>
-    ...
-  </div>
-</chapter>
-...
-
-<!-- after all the chapters, add the Answer Key -->
-<div>
-  <div>Answer Key</div>
-
-  <answer>
-    <div>1.1</div>
-    42
-  </answer>
-  <answer>
-    <div>1.2</div>
-    84
-  </answer>
-</div>
-```
-
-CSS:
-
-```less
-exercise.homework,
-exercise.conceptual {
-  > answer::before(1) {
-    content:
-      // Chapter number
-      ancestor-context('body', count-of-type('chapter'))
-      "."
-      // Exercise number
-      ancestor-context('chapter', count-of-type('exercise.homework, exercise.conceptual'));
-  }
-}
-
-// answer key
-body::after(1) {
-  &::before(1) { content: "Answer Key"; }
-
-  content: move-here('answer');
-}
-```
-
-
-# Make exercises and answers link to each other
-
-It would be nice to have exercises link to the answer and answers to link back to the exercise.
-
-Desired HTML:
-
-```html
-<chapter>
-  ...
-  <div data-type="eoc-item">
-    <div class="title">Conceptual Questions</div>
-    <div class="eoc-section">
-      <div class="title">Kinematics in 1 Dimension</div>
-
-      <exercise id="ex123" class="conceptual">
-        <a href="#uuid1" class="number">1</a>
-        <answer>42</answer>
-      </exercise>
-    </div>
-  </div>
-  <div data-type="eoc-item">
-    <div class="title">Homework Problems</div>
-    <div class="eoc-section">
-      <div class="title">Kinematics in 2 Dimensions</div>
-
-      <exercise id="ex234" class="homework">
-        <a href="#uuid2" class="number">2</a>
-        <answer>84</answer>
-      </exercise>
-    </div>
-  </div>
-</chapter>
-
-<div>
-  <div>Answer Key</div>
-
-  <answer id="uuid1">
-    <a href="#ex123">1.1</a>
-    42
-  </answer>
-  <answer id="uuid2">
-    <a href="#ex234">1.2</a>
-    84
-  </answer>
-
-</div>
-```
-
-
-This introduces `attrs-add: ${NAME1} ${VALUES...} , ${NAME2} ${VALUES...};`
-which ensures that the following attributes are added to the element.
-
-It also introduces `parent-context(${EXPR})` which evaluates `${EXPR}` in the contexts'
-parent element (in this case it looks up the exercise's id).
-
-It also introduces `attr-ensure(${NAME})` which works like `attr(${NAME})`
-except that is generates a unique identifier if one does not already exist.
-
-It also introduces `:has(${SELECTOR})` which checks if this node contains certain descendants.
-
-CSS:
-
-```less
-exercise.homework,
-exercise.conceptual {
-  > answer::before {
-    // see previous for how the numbers are added here
-
-    // Make this thing a link to the exercise
-    tag-name-set: "a";
-    attrs-add: "href" "#" parent-context(attr(id));
-  }
-
-  &:has('> answer')::before {
-    tag-name-set: "a";
-    attrs-add: "href" "#" descendant-context('> answer', attr-ensure(id));
-  }
-}
-```
-
-
-# All things combined
-
-Since these are composable, all of the examples combined together should yield what each one does independently :smile:
+- [ ] mark the elements that will be moved
+- [ ] support a `--dry-run` which renders the work tree
+  - optionally specify a selector to only show elements you are interested in
 
 
 # Install Notes
 
-To get source maps working you need to install https://github.com/tmpvar/jsdom/pull/1316 :
+To just get it running (without HTML source line information) run `npm install && npm test`.
+
+To get HTML source maps working you need to install https://github.com/tmpvar/jsdom/pull/1316 :
 
 ```sh
 git clone https://github.com/tmpvar/jsdom
@@ -590,9 +111,10 @@ rm -rf node_modules/jsdom
 mv ../PATH_TO_CHECKED_OUT_jsdom ./node_modules
 ```
 
-To get browserify/webpack to work (util https://github.com/csstree/csstree/pull/32 is merged):
 
-- remove the `"browser":` segment in `./node_modules/css-tree/package.json`
+# Debugging
+
+run `npm run debugger` to start up a debugger and run the tests.
 
 
 # TODO:
@@ -603,6 +125,7 @@ To get browserify/webpack to work (util https://github.com/csstree/csstree/pull/
 - [x] Add `::for-each-descendant(1, ${SELECTOR})`
 - [x] Add `:target(${ATTRIBUTE_NAME}, ${MATCH_SELECTORS...})`
 - [x] Use Promises to defer DOM Manipulation to all be after selector/rule/attribute evaluation is done
+- [ ] Add a command-line script to run the conversion
 - [ ] Add Examples
   - [x] Add example showing [complex numbering](./test/example/) (only counting some exercises)
     - [ ] may need to introduce `:is(${SELECTOR})` to add exceptions
@@ -613,7 +136,7 @@ To get browserify/webpack to work (util https://github.com/csstree/csstree/pull/
     - [ ] add `copy-to(${SELECTOR})` which does a deep clone
 - [ ] add `build-index(${TERM_SELECTOR})` for building an index
 - [ ] Convert the "motivation" examples to 1 big SASS file
-- [ ] output a sourcemap file (contains all the strings in the resulting HTML file that came from the CSS file)
+- [x] output a sourcemap file (contains all the strings in the resulting HTML file that came from the CSS file)
 - [ ] support `--dry-run` which outputs an evaluation tree (for debugging)
 - [x] Create a https://jsfiddle.net/philschatz/hjk2z4af/ (source CSS, source HTML, output HTML, warnings/errors)
   - [x] build all the JS into 1 file (minus maybe jQuery)
