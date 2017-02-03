@@ -1,0 +1,121 @@
+$NUMBERED_EXERCISES_SEL_STR: 'exercise.conceptual, exercise.homework'; // TODO: construct me dynamically
+
+
+@mixin end-of-chapter($which, $title, $exerciseSelStr) {
+
+  &::after(#{$which}) {
+    // STEP 2
+    &::before {
+      class-add: "title";
+      content: $title; // STEP 1
+    }
+    attrs-add: "data-type" "eoc-item";
+
+    // STEP 4
+    &::for-each-descendant(1, '> section') {
+      &:has(#{$exerciseSelStr}) {
+        &::before {
+          class-add: "section-title";
+          content: descendant-context('> .title', text-contents());
+        }
+        class-add: "eoc-section";
+
+        // STEP 3
+        // Select the proper exercises to move here (all of the ones in the section)
+        // the context for move-here is the current section.
+        content: move-here($exerciseSelStr);
+      }
+    }
+  } // for-each-descendant
+}
+
+
+@mixin generate-numbered-exercises($sel) {
+  #{$sel} {
+    // STEP 5
+    &::before {
+      class-add: "number";
+      content: ancestor-context('chapter', count-of-type($sel));
+    }
+
+    > answer::before {
+
+      // Make this thing a link to the exercise (STEP 10)
+      tag-name-set: "a";
+      attrs-add: "href" "#" parent-context(attr(id));
+
+      // Number exercise answers (STEP 9)
+      content:
+        // Chapter number
+        ancestor-context('body', count-of-type('chapter'))
+        "."
+        // Exercise number
+        ancestor-context('chapter', count-of-type($sel));
+    }
+
+    // (STEP 10)
+    &:has(> answer)::before(1) {
+      tag-name-set: "a";
+      // attrs-add: "href" "#" descendant-context('> answer', attr-ensure(id));
+      attrs-add: "href" "#" descendant-context('> answer', attr(id));
+    }
+
+  }
+}
+
+// Link target text (STEP 6)
+@mixin generate-numbered-exercise-link-text($sel) {
+  // Link target text (STEP 6)
+  a:target(href, '#{$sel}') {
+    content:
+      "See Exercise "
+      // Chapter number
+      target-context(attr(href), ancestor-context('body', count-of-type('chapter')))
+      "."
+      // Exercise number
+      target-context(attr(href), ancestor-context('chapter', count-of-type($sel)));
+  }
+}
+
+// Wrap Lists with labels (STEP 7)
+@mixin wrap-labeled-lists() {
+  ol[data-label]::outside(1) {
+    &::before(1) {
+      class-add: "list-label";
+      content: attr(data-label);
+    }
+    class-add: "list-wrapper";
+  }
+}
+
+
+// Generate the CSS!
+
+
+body {
+  /* End-of-chapter collation */
+  chapter {
+    @include end-of-chapter(1, "Conceptual Questions", 'exercise.conceptual');
+    @include end-of-chapter(2, "Homework Problems", 'exercise.homework');
+  }
+
+  // End-of-book answer key (STEP 9)
+  &::after(1) {
+    &::before { content: "Answer Key"; }
+    content: move-here('answer');
+  }
+}
+
+
+/* Exercise numbering */
+@include generate-numbered-exercises($NUMBERED_EXERCISES_SEL_STR);
+/* Link target text (STEP 6) */
+@include generate-numbered-exercise-link-text($NUMBERED_EXERCISES_SEL_STR);
+
+/* Wrap Lists with labels (STEP 7) */
+@include wrap-labeled-lists();
+
+/* Wrap the inside of notes with an element (STEP 8) */
+note::inside(1) {
+  class-add: "note-body";
+}
