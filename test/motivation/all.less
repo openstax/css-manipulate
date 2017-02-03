@@ -37,15 +37,26 @@
       content: ancestor-context('chapter', count-of-type(@NUMBERED_EXERCISES_SEL_STR));
     }
 
-    // Number exercise answers (STEP 9)
     > answer::before {
+
+      // Make this thing a link to the exercise (STEP 10)
+      tag-name-set: "a";
+      attrs-add: "href" "#" parent-context(attr(id));
+
+      // Number exercise answers (STEP 9)
       content:
         // Chapter number
         ancestor-context('body', count-of-type('chapter'))
         "."
         // Exercise number
-        // TODO: This is not currently being evaluated before stuff is moved which causes this test to fail
         ancestor-context('chapter', count-of-type(@NUMBERED_EXERCISES_SEL_STR));
+    }
+
+    // (STEP 10)
+    &:has(> answer)::before(1) {
+      tag-name-set: "a";
+      // attrs-add: "href" "#" descendant-context('> answer', attr-ensure(id));
+      attrs-add: "href" "#" descendant-context('> answer', attr(id));
     }
 
   }
@@ -57,11 +68,20 @@
 // Generate the CSS!
 
 
-/* End-of-chapter collation */
-chapter {
-  .end-of-chapter(1, "Conceptual Questions", 'exercise.conceptual');
-  .end-of-chapter(2, "Homework Problems", 'exercise.homework');
+body {
+  /* End-of-chapter collation */
+  chapter {
+    .end-of-chapter(1, "Conceptual Questions", 'exercise.conceptual');
+    .end-of-chapter(2, "Homework Problems", 'exercise.homework');
+  }
+
+  // End-of-book answer key (STEP 9)
+  &::after(1) {
+    &::before { content: "Answer Key"; }
+    content: move-here('answer');
+  }
 }
+
 
 // Link target text
 @hack1: e(%("(href, '%s')", @NUMBERED_EXERCISES_SEL_STR));
