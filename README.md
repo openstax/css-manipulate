@@ -132,6 +132,17 @@ rm -rf node_modules/jsdom
 mv ../PATH_TO_CHECKED_OUT_jsdom ./node_modules
 ```
 
+# Running from the commandline
+
+Until this becomes a real package on npm you can do the following:
+
+```sh
+./bin/css-plus --css ${INPUT_CSS} --html ${INPUT_HTML} --output ${OUTPUT_HTML}
+
+# Or if you are lazy:
+./bin/css-plus ${INPUT_CSS} ${INPUT_HTML} ${OUTPUT_HTML}
+```
+
 # Debugging
 
 run `npm run debugger` to start up a debugger and run the tests.

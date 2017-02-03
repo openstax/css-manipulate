@@ -3,9 +3,15 @@ const jsdom = require('jsdom')
 const jquery = require('jquery')
 const converter = require('../converter')
 
+function toRelative(outputPath, inputPath) {
+  return path.relative(path.dirname(path.join(process.cwd(), outputPath)), path.join(process.cwd(), inputPath))
+}
+
 let hasBeenWarned = false
 function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath) {
-  const htmlSourceFilename = path.basename(htmlPath)
+  debugger
+  const htmlSourcePathRelativeToSourceMapFile = toRelative(htmlOutputPath, htmlPath)
+  const cssPathRelativeToSourceMapFile = toRelative(htmlOutputPath, cssPath)
   const sourceMapPath = `${htmlOutputPath}.map`
   const sourceMapFileName = path.basename(sourceMapPath) // This is used for the value of the sourceMappingURL
 
@@ -25,9 +31,8 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
     const locationInfo = jsdom.nodeLocation(node)
     return locationInfo
   }
-  // use cssFilename because that is what is used for the sourceMap doc
-  const cssFilename = path.basename(cssPath)
-  return converter(document, $, cssContents, cssFilename /*cssPath*/, htmlPath, console, htmlSourceLookup, htmlSourceFilename, sourceMapFileName)
+  // use cssPathRelativeToSourceMapFile because that is what is used for the sourceMap doc
+  return converter(document, $, cssContents, cssPathRelativeToSourceMapFile /*cssPath*/, htmlPath, console, htmlSourceLookup, htmlSourcePathRelativeToSourceMapFile, sourceMapFileName)
 }
 
 
