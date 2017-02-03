@@ -1,5 +1,10 @@
+@NUMBERED_EXERCISES: 'exercise.conceptual' 'exercise.homework';
+@NUMBERED_EXERCISES_SEL_STR: 'exercise.conceptual, exercise.homework'; // TODO: construct me dynamically
 
-.end-of-chapter(@which, @title, @exerciseSel) {
+
+.end-of-chapter(@which, @title, @exerciseSelStr) {
+  @exerciseSel: e(@exerciseSelStr);
+
   &::after(@{which}) {
     &::before {
       class-add: "title";
@@ -7,10 +12,36 @@
     }
     attrs-add: "data-type" "eoc-item";
 
-    // the context for move-here is the current chapter.
-    content: move-here(@exerciseSel);
-  }
+    &::for-each-descendant(1, '> section') {
+      &:has(@{exerciseSel}) {
+        &::before {
+          class-add: "section-title";
+          content: descendant-context('> .title', text-contents());
+        }
+        class-add: "eoc-section";
+
+        // Select the proper exercises to move here (all of the ones in the section)
+        // the context for move-here is the current section.
+        content: move-here(@exerciseSelStr);
+      }
+    }
+  } // for-each-descendant
 }
+
+
+.generate-numbered-exercises(@n, @i: 1) when (@i =< @n) {
+  @exerciseSel: e(extract(@NUMBERED_EXERCISES, @i));
+  @{exerciseSel} {
+    &::before {
+      class-add: "number";
+      content: ancestor-context('chapter', count-of-type(@NUMBERED_EXERCISES_SEL_STR));
+    }
+  }
+  .generate-numbered-exercises(@n, (@i + 1));
+}
+.generate-numbered-exercises(length(@NUMBERED_EXERCISES));
+
+
 
 chapter {
   .end-of-chapter(1, "Conceptual Questions", 'exercise.conceptual');
