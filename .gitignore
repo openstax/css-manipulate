@@ -1,5 +1,6 @@
 /.nyc_output/
 /coverage/
+/npm-debug.log*
 
 /dist/browser.js
 
