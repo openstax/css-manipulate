@@ -81,7 +81,7 @@ module.exports = class PseudoElementEvaluator {
       const {secondArg} = selectors[0].getPseudoAt(depth)
       const $newEl = $('<div>')
       // Attach the CSS location info for serializing later
-      $newEl[0].__cssLocation = selectors[0].getPseudoAt(depth).astNode.loc
+      $newEl[0].__cssLocation = selectors[0].getPseudoAt(depth).astNode
 
       $newEl.attr('data-pseudo', `${this._pseudoName}(${getIndex(selectors[0], depth)})`)
       attachToAttribute($newEl, 'data-pseudo', $newEl[0].__cssLocation)

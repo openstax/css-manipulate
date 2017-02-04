@@ -46,7 +46,7 @@ module.exports = (documentElement, htmlSourceLookup, htmlSourcePath, htmlSourceF
 
     // Look up to see if there is a CSS location information
     if (node.__cssLocation) {
-      const {source: source, start: {line: startLine, column: startColumn}, end: {line: endLine, column: endColumn}} = node.__cssLocation
+      const {source: source, start: {line: startLine, column: startColumn}, end: {line: endLine, column: endColumn}} = node.__cssLocation.loc
       sourceFilePath = source
       originalLine = startLine
       originalColumn = startColumn

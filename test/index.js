@@ -28,6 +28,7 @@ const UNIT_FILES_TO_TEST = [
   './unit/tag-name-set',
   './unit/html-serialization',
   './unit/x-log',
+  './unit/display-none',
 
   // 'outside',
 

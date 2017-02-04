@@ -35,6 +35,7 @@ Each declaration can also take the value of `none` (like `class-add: none;`) to 
 - `attrs-add: "name1" "val1" "val2 is concatenated", "name2" attr(href);`
 - `attrs-remove: "name1", "name2";` (or maybe `attrs-remove: *;`)
 - `tag-name-set: "tagName";` : changes the element type (`div`, `a`, `strong`)
+- `display: none;` or `display: default;` : removes the element from the DOM
 - `x-log: "message" "or elements:" move-here('.foo');` : generates a log message for debugging
 - `x-throw: now;` or `x-throw: later;` or `x-throw: attr(href);` : used by unit tests to intentionally explode
 

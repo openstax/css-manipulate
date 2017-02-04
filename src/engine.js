@@ -458,6 +458,13 @@ module.exports = class Applier {
             for (let index = 0; index < reducedRules.length; index++) {
               const promises = newElementsAndContexts[index].map(({$newElPromise, $newLookupEl}) => {
 
+                // $newElPromise.then(($newEl) => {
+                //   if(!$newEl.parents(':last').is('html')) {
+                //     throwError(`BUG: provided element is not attached to the DOM`, null, $newEl)
+                //   }
+                //   return $newEl
+                // })
+
                 // This loop-and-check is here to support ::for-each-descendant(1, 'section'):has('exercise.homework')
                 const rulesAtDepth = reducedRules[index].filter((matchedRuleWithPseudo) => {
                   // Check if additional pseudoClasses have caused this to end prematurely.

@@ -77,7 +77,7 @@ DECLARATIONS.push(new RuleDeclaration('content', ($, $lookupEl, $elPromise, vals
       // HACK ish way to add sourcemap
       if (typeof val === 'string') {
         const textNode = $el[0].ownerDocument.createTextNode(val)
-        textNode.__cssLocation = astRule.loc
+        textNode.__cssLocation = astRule
         $el.append(textNode)
       } else {
         // we are likely moving nodes around so just keep them.
@@ -103,7 +103,7 @@ DECLARATIONS.push(new RuleDeclaration('class-add', ($, $lookupEl, $elPromise, va
       assert($el.length >= 1)
       const classNames = val.join(' ')
       $el.addClass(classNames) // use space so people can write `class-add: 'foo' 'bar'`
-      attachToAttribute($el, 'class', astRule.loc)
+      attachToAttribute($el, 'class', astRule)
     })
     return $el
   })
@@ -144,7 +144,7 @@ DECLARATIONS.push(new RuleDeclaration('attrs-add', ($, $lookupEl, $elPromise, va
       const attrName = val[0]
       const attrValue = val.slice(1).join('')
       $el.attr(attrName, attrValue)
-      attachToAttribute($el, attrName, astRule.loc)
+      attachToAttribute($el, attrName, astRule)
 
     })
     return $el
@@ -199,7 +199,7 @@ DECLARATIONS.push(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise,
           $(thisi).after(newElement).remove();
           tags[i] = newElement;
           // Add sourcemap
-          newElement.__cssLocation = astRule.loc
+          newElement.__cssLocation = astRule
       }
       return $(tags);
   }
@@ -218,6 +218,29 @@ DECLARATIONS.push(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise,
 // FIXME: tag-name-set MUST be the last rule evaluated becuase it changes the $els set.
 // So until evaluateRule can return a new set of els this needs to be the last rule that is evaluated
 
+DECLARATIONS.push(new RuleDeclaration('display', ($, $lookupEl, $elPromise, vals, astRule) => {
+  assert(vals.length === 1)
+  // Do nothing when set to default;
+  // TODO: verify that it is not the string "none" (also needed for format-number())
+  if (vals[0][0] !== 'none') {
+    assert.equal(vals.length, 1)
+    assert.equal(vals[0].length, 1)
+    return $elPromise
+  }
+  assert.equal(vals[0].length, 1)
+
+  assert($elPromise instanceof Promise)
+  return $elPromise.then(($el) => {
+    assert.equal($el.length, 1) // Just check for now, could be lifted later
+
+    $el.attr('data-debug-was-explicitly-detached', true)
+    $el.detach()
+    $el[0].__cssLocation = astRule
+    // It's very important to edit the existing $el
+    // since elements further down the promise chain need to be sure to keep mutating those new elements
+    return $el
+  })
+}))
 
 
 module.exports = DECLARATIONS

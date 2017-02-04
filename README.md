@@ -147,6 +147,10 @@ Until this becomes a real package on npm you can do the following:
 
 run `npm run debugger` to start up a debugger and run the tests.
 
+To test the commandline:
+
+- `$(npm bin)/inspect ./bin/css-plus ${CSS_PATH} ${HTML_PATH} ${OUTPUT_HTML_PATH}`
+
 
 # TODO
 
@@ -171,7 +175,7 @@ run `npm run debugger` to start up a debugger and run the tests.
 - [ ] support `--dry-run` which outputs an evaluation tree (for debugging)
 - [x] Create a https://jsfiddle.net/philschatz/hjk2z4af/ (source CSS, source HTML, output HTML, warnings/errors)
   - [x] build all the JS into 1 file (minus maybe jQuery)
-  - [ ] show console warnings/errors in the output HTML area
+  - [x] show console warnings/errors in the output HTML area
 - [ ] Support `attrs-remove: *` instead of `attrs-set:` because they are as interchangeable and the order-of-evaluation is easier (only need to know 2: `attrs-add:` and `attrs-remove:`)
 - [x] `::for-each-descendant(1, ${SELECTOR}):has(${SELECTOR_FOR_MATCHES})` should have an additional selector argument
   - [x] so it only creates the element if there is something matching the selector

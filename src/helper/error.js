@@ -11,16 +11,19 @@ function init(consol, htmlSourceLookup, htmlSourcePath) {
   _htmlSourcePath = htmlSourcePath
 }
 
-// Generate pretty messages with source lines for debugging
-function createMessage(message, cssSnippet, $el) {
-  let cssInfo
+function cssSnippetToString(cssSnippet) {
   // matches input format for https://github.com/feross/snazzy
   if (cssSnippet && cssSnippet.loc) {
     const {source: cssSourcePath, start: {line: startLine, column: startColumn}, end: {line: endLine, column: endColumn}} = cssSnippet.loc
-    cssInfo = `  ${cssSourcePath}:${startLine}:${startColumn}:`
+    return `${cssSourcePath}:${startLine}:${startColumn}`
   } else {
-    cssInfo = `  unknown:0:0: [BUG: Invalid cssSnippet] ${JSON.stringify(cssSnippet)}`
+    return `unknown:0:0: [BUG: Invalid cssSnippet] ${JSON.stringify(cssSnippet)}`
   }
+}
+
+// Generate pretty messages with source lines for debugging
+function createMessage(message, cssSnippet, $el) {
+  let cssInfo = cssSnippetToString(cssSnippet)
   if (_htmlSourceLookup && $el) {
     const locationInfo = _htmlSourceLookup($el[0])
     function getLocationString() {
@@ -38,12 +41,14 @@ function createMessage(message, cssSnippet, $el) {
     if (locationInfo) {
       // ELements like <body> do not have location information
       const htmlDetails = getLocationString()
-      return `${cssInfo} ${message} (${htmlDetails})`
+      return `  ${cssInfo}: ${message} (${htmlDetails})`
+    } else if ($el[0].__cssLocation) {
+      return `  ${cssInfo}: ${message} (${cssSnippetToString($el[0].__cssLocation)})`
     } else {
-      return `${cssInfo} ${message} (${$el[0].tagName.toLowerCase()})`
+      return `  ${cssInfo}: ${message} (${$el[0].tagName.toLowerCase()})`
     }
   } else {
-    return `${cssInfo} ${message}`
+    return `${cssInfo}: ${message}`
   }
 }
 

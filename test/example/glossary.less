@@ -1,25 +1,39 @@
 chapter {
-  // tag-name-set: "ul";
-  // x-log: 'dt descendents of ' x-tag-name() ' ' count-of-type('dt');
+  &::after {
 
-  &::for-each-descendant(1, 'dt'):not(:has(.sdkjhfdf)) {
-    tag-name-set: "li";
+    &::before {
+      content: 'Glossary';
+    }
 
-    // Add the term
-    &::after(1) {
-      tag-name-set: "span";
-      class-add: "term";
-      content: text-contents();
+    &::after {
+      tag-name-set: "ul";
+
+      &::for-each-descendant(1, 'dt') {
+        tag-name-set: "li";
+
+        // Add the term
+        &::after(1) {
+          tag-name-set: "span";
+          class-add: "term";
+          content: text-contents();
+        }
+        &::after(2) {
+          tag-name-set: "span";
+          class-add: "separator";
+          content: ": ";
+        }
+        &::after(3) {
+          tag-name-set: "span";
+          class-add: "definition";
+          content: next-sibling-context('dd:first', text-contents());
+        }
+      }
     }
-    &::after(2) {
-      tag-name-set: "span";
-      class-add: "separator";
-      content: ": ";
-    }
-    &::after(3) {
-      tag-name-set: "span";
-      class-add: "definition";
-      content: next-sibling-context('dd:first', text-contents());
-    }
+  }
+
+  // Discard all the old glossary elements
+  // TODO: This seems to break because of all the ::after elements above even through they are unrelated and NOT beacuse of the tag-name-set
+  > section > .glossary {
+    display: none;
   }
 }

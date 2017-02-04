@@ -46,7 +46,6 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $look
   $newLookupEls.each((index, newLookupEl) => {
     const $newElPromise = $contextElPromise.then(($contextEl) => {
       if(!$contextEl.parents(':last').is('html')) {
-        debugger
         throwError(`BUG: provided element is not attached to the DOM`, null, $contextEl)
       }
 
