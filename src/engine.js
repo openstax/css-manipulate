@@ -71,13 +71,12 @@ module.exports = class Applier {
     this._pseudoClassPluginByName[plugin.getPseudoClassName()] = plugin
   }
 
-  prepare(fn) {
+  prepare(rewriteSourceMapsFn) {
     const ast = csstree.parse(this._cssContents.toString(), {positions: true, filename: this._cssSourcePath})
 
-    // Convert the internal List structure to arrays:
-    // unfortunately that means objects are simple; can no longer do instanceof checks
-    // ast = JSON.parse(JSON.stringify(ast))
-
+    if (rewriteSourceMapsFn) {
+      rewriteSourceMapsFn(ast)
+    }
 
     // Walking the DOM and calling el.matches(sel) for every selector is inefficient. (causes crash after 7min for big textbook)
     // document.querySelectorAll(sel) is MUCH faster.

@@ -14,7 +14,8 @@ function init(consol, htmlSourceLookup, htmlSourcePath) {
 function cssSnippetToString(cssSnippet) {
   // matches input format for https://github.com/feross/snazzy
   if (cssSnippet && cssSnippet.loc) {
-    const {source: cssSourcePath, start: {line: startLine, column: startColumn}, end: {line: endLine, column: endColumn}} = cssSnippet.loc
+    // Commented out the end lookup because when the CSS ast is rewritten with the original source coordinates this data is not present most of the time
+    const {source: cssSourcePath, start: {line: startLine, column: startColumn}/*, end: {line: endLine, column: endColumn}*/} = cssSnippet.loc
     return `${cssSourcePath}:${startLine}:${startColumn}`
   } else {
     return `unknown:0:0: [BUG: Invalid cssSnippet] ${JSON.stringify(cssSnippet)}`

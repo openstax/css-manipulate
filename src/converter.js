@@ -9,7 +9,7 @@ const {init: errorInit, createMessage, throwError, showWarning, showLog} = requi
 
 
 
-module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, consol, htmlSourceLookup, htmlSourceFilename, sourceMapPath) => {
+module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, consol, htmlSourceLookup, htmlSourceFilename, sourceMapPath, rewriteSourceMapsFn) => {
 
   if (process.env['NODE_ENV'] === 'debugger') {
     debugger
@@ -29,7 +29,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
   FUNCTIONS.forEach(engine.addFunction.bind(engine))
 
 
-  engine.prepare()
+  engine.prepare(rewriteSourceMapsFn)
   // console.profile('CPU Profile')
   const allElementsDoneProcessingPromise = engine.process()
   // console.profileEnd()

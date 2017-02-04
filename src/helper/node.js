@@ -1,6 +1,9 @@
+const fs = require('fs')
 const path = require('path')
+const assert = require('assert')
 const jsdom = require('jsdom')
 const jquery = require('jquery')
+const {SourceMapConsumer} = require('source-map')
 const converter = require('../converter')
 
 function toRelative(outputPath, inputPath) {
@@ -9,7 +12,6 @@ function toRelative(outputPath, inputPath) {
 
 let hasBeenWarned = false
 function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath) {
-  debugger
   const htmlSourcePathRelativeToSourceMapFile = toRelative(htmlOutputPath, htmlPath)
   const cssPathRelativeToSourceMapFile = toRelative(htmlOutputPath, cssPath)
   const sourceMapPath = `${htmlOutputPath}.map`
@@ -31,8 +33,76 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
     const locationInfo = jsdom.nodeLocation(node)
     return locationInfo
   }
+
+
+  let cssSourceMappingURL
+  const match = /sourceMappingURL=([^\ \n]+)/.exec(cssContents.toString())
+  if (match) {
+    cssSourceMappingURL = match[1]
+  }
+
+
+  let map
+  if (cssSourceMappingURL) {
+    try {
+      const mapJson = JSON.parse(fs.readFileSync(path.join(path.dirname(cssPath), cssSourceMappingURL)).toString())
+      map = new SourceMapConsumer(mapJson)
+    } catch (e) {
+      console.warn(`WARN: sourceMappingURL was found in ${cssPath} but could not open the file.`, e)
+    }
+  }
+
+  // function lookupSource(cssSourcePath, line, column) {
+  //   if (!loadedSourceMaps[cssSourcePath]) {
+  //     console.log('trying to open', path.join(path.dirname(cssPath), cssSourcePath));
+  //     const map = JSON.parse(fs.readFileSync(path.join(path.dirname(cssSourceMappingURL), cssSourcePath)).toString())
+  //     loadedSourceMaps[cssSourcePath] = new SourceMapConsumer(map)
+  //   }
+  //   return loadedSourceMaps[cssSourcePath].originalPositionFor({line, column})
+  // }
+  function rewriteSourceMapsFn(astNode) {
+    if (map && astNode.loc) {
+      const {source: cssSourcePath, start, end} = astNode.loc
+      const {source: newStartPath, line: newStartLine, column: newStartColumn} = map.originalPositionFor(start)
+      // const {source: newEndPath, line: newEndLine, column: newEndColumn} = map.originalPositionFor(end)
+      // assert.equal(newStartPath, newEndPath)
+      astNode.loc = {
+        source: newStartPath,
+        start: {
+          line: newStartLine,
+          column: newStartColumn
+        },
+        // end: {
+        //   line: newEndLine,
+        //   column: newEndColumn
+        // }
+      }
+    }
+    let hasRecursed = false
+    if (astNode.children) {
+      hasRecursed = true
+      astNode.children.toArray().forEach(rewriteSourceMapsFn)
+    }
+    if (astNode.block) {
+      hasRecursed = true
+      rewriteSourceMapsFn(astNode.block)
+    }
+    if (astNode.selector) {
+      hasRecursed = true
+      rewriteSourceMapsFn(astNode.selector)
+    }
+    // astNode.type == "Declaration"
+    if (astNode.value) {
+      hasRecursed = true
+      rewriteSourceMapsFn(astNode.value)
+    }
+    // if (!hasRecursed && astNode.loc) {
+    //   debugger
+    // }
+  }
+
   // use cssPathRelativeToSourceMapFile because that is what is used for the sourceMap doc
-  return converter(document, $, cssContents, cssPathRelativeToSourceMapFile /*cssPath*/, htmlPath, console, htmlSourceLookup, htmlSourcePathRelativeToSourceMapFile, sourceMapFileName)
+  return converter(document, $, cssContents, cssPathRelativeToSourceMapFile /*cssPath*/, htmlPath, console, htmlSourceLookup, htmlSourcePathRelativeToSourceMapFile, sourceMapFileName, rewriteSourceMapsFn)
 }
 
 
