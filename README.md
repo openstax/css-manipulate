@@ -11,6 +11,7 @@ The [Language Reference Page](./docs.md) contains a list of all selectors, rules
   - [Precise Error Messages](#precise-error-messages)
   - [HTML SourceMaps](#html-sourcemaps)
   - [Exactly 1 Pass](#exactly-1-pass)
+  - [Approximate Sourcemaps](#approximate-sourcemaps)
 - [Install Notes](#install-notes)
 - [Debugging](#debugging)
 - [TODO](#todo)
@@ -96,6 +97,26 @@ This addresses a few use-cases:
 This model is inspired by both CSS and virtualdom libraries like React: you describe what you want the result to look like rather than the "how".
 
 No more writing the intermediate steps needed to get to the desired result (ie setting temporary attributes, multiple passes to move things around).
+
+### Approximate SourceMaps
+
+This is just a script that takes 2 HTML files (raw and baked HTML) and builds a sourcemap file by looking at the id attributes of elements. It is not precise but may be "good enough" to use in the short term for things like:
+
+- Content Editors fixing typos or broken links
+- WYSIWYG Editor that renders the baked HTML file but edits the raw when you click on something
+
+It is also useful for XSLT passes (like CNXML -> HTML) that have no way to otherwise generate a sourcemap
+
+![approximate-sourcemaps](https://cloud.githubusercontent.com/assets/253202/22662394/d5c297fc-ec76-11e6-9622-d4605bb12d36.gif)
+
+_This shows a full baked textbook in Atom in the left pane and the raw book file in the right pane. It does not open up the CSS file in the right pane because the sourcemap was not generated using css-plus_
+
+To run it yourself:
+
+```
+node ./sourcemap-approximator.js ${SOURCE_FILE} ${GENERATED_FILE}
+```
+
 
 
 ### How It Works
