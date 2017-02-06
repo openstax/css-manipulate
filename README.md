@@ -143,6 +143,17 @@ Until this becomes a real package on npm you can do the following:
 ./bin/css-plus ${INPUT_CSS} ${INPUT_HTML} ${OUTPUT_HTML}
 ```
 
+### Sourcemap Approximator
+
+This takes 2 XML/HTML files (ie raw & baked) and builds a rough sourcemap using the id attribute of elements.
+
+```
+node ./sourcemap-approximator.js ${SOURCE_FILE} ${GENERATED_FILE}
+```
+
+and it generates a file at `${GENERATED_FILE}.map`
+
+
 # Debugging
 
 run `npm run debugger` to start up a debugger and run the tests.
