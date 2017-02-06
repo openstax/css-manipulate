@@ -90,5 +90,6 @@ $generatedElsWithId.each((index, el) => {
 })
 
 
+console.log(`Retroactively adding sourceMappingURL to ${convertedPath}. If you run this script multiple times you may need to remove older entris from the file`)
 fs.writeFileSync(convertedPath, `${convertedContent}\n<!-- //# sourceMappingURL=${sourceMapFileName} -->`)
 fs.writeFileSync(sourceMapPath, map.toString())
