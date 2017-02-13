@@ -44,7 +44,7 @@ let lastGeneratedLine = 1
 let lastOriginalLoc = null
 const $generatedElsWithId = $generated('[id]')
 const total = $generatedElsWithId.length
-const bar = new ProgressBar('[:bar] :count/:total :percent% :etas :rate/s', {total: total})
+const bar = new ProgressBar('[:bar] :current/:total :percent :etas', {total: total})
 $generatedElsWithId.each((index, el) => {
   bar.tick()
   // if (index > 1000) {

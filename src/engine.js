@@ -403,7 +403,7 @@ module.exports = class Applier {
     })
 
 
-    const bar = new ProgressBar('[:bar] :count/:total :percent% :etas :rate/s', { total: total})
+    const bar = new ProgressBar('[:bar] :current/:total :percent :etas', { total: total})
     const allPromises = []
     walkDOMElementsInOrder(this._document.documentElement, (el) => {
       bar.tick()
