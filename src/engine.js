@@ -1,5 +1,6 @@
 const assert = require('assert')
 const csstree = require('css-tree')
+const ProgressBar = require('progress')
 const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
 const {throwError, showWarning} = require('./helper/error')
@@ -396,8 +397,16 @@ module.exports = class Applier {
   }
 
   run(fn) {
+    let total = 0
+    walkDOMElementsInOrder(this._document.documentElement, (el) => {
+      total += 1
+    })
+
+
+    const bar = new ProgressBar(':bar :curr / :total', { total: total})
     const allPromises = []
     walkDOMElementsInOrder(this._document.documentElement, (el) => {
+      bar.tick()
       const matches = el.MATCHED_RULES || []
       el.MATCHED_RULES = null
       delete el.MATCHED_RULES // Free up some memory

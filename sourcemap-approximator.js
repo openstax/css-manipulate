@@ -3,6 +3,7 @@ const path = require('path')
 const jsdom = require('jsdom')
 const jquery = require('jquery')
 const {argv} = require('yargs')
+const ProgressBar = require('progress')
 const {SourceMapGenerator} = require('source-map')
 
 const map = new SourceMapGenerator()
@@ -42,8 +43,10 @@ const $generated = jquery(domGenerated.defaultView)
 let lastGeneratedLine = 1
 let lastOriginalLoc = null
 const $generatedElsWithId = $generated('[id]')
-console.log('Checking count = ' + $generatedElsWithId.length)
+const total = $generatedElsWithId.length
+const bar = new ProgressBar('[:bar] :current/:total :percent% :etas :rate/s', {total: total})
 $generatedElsWithId.each((index, el) => {
+  bar.tick()
   // if (index > 1000) {
   //   return
   // }
@@ -62,7 +65,6 @@ $generatedElsWithId.each((index, el) => {
   //   // $originalEl = $generated(`never-a-valid-element`)
   // }
   if ($originalEl.length == 1) {
-    console.log(`Checking #${index}`)
     // generate sourcemap entry
     const generatedLoc = jsdom.nodeLocation(el)
     const originalLoc = jsdom.nodeLocation($originalEl[0])
