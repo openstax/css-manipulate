@@ -1,0 +1,3 @@
+[data-type="chapter"]::after {
+  content: "kittens";
+}

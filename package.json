@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "archy": "^1.0.0",
-    "css-tree": "^1.0.0-alpha14",
+    "css-tree": "1.0.0-alpha14",
     "escape-html": "^1.0.3",
     "fast-diff": "^1.1.1",
     "jquery": "^3.1.1",

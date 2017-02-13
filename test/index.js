@@ -13,6 +13,7 @@ const {WRITE_TEST_RESULTS} = process.env
 const UNIT_FILES_TO_TEST = [
   // './apphysics',
   './unit/before-after',
+  './unit/selectors',
   './unit/simple-selectors',
   './unit/functions',
   './unit/functions2',
