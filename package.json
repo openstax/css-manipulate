@@ -1,4 +1,6 @@
 {
+  "name": "css-plus",
+  "version": "0.1.0",
   "bin": {
     "css-plus": "./bin/css-plus"
   },
@@ -38,5 +40,20 @@
     "inspect-process": "^0.4.1",
     "nyc": "^10.1.2",
     "webpack": "^2.2.1"
-  }
+  },
+  "main": "src/converter.js",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/philschatz/css-plus.git"
+  },
+  "author": "Philip Schatz",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/philschatz/css-plus/issues"
+  },
+  "homepage": "https://github.com/philschatz/css-plus#readme",
+  "description": "The [Motivation Page](./motivation.md) has a step-by-step introduction to the CSS features or just play around with the **[JSFiddle of all the steps combined](https://jsfiddle.net/philschatz/hjk2z4af/)**"
 }
