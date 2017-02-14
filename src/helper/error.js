@@ -22,6 +22,22 @@ function cssSnippetToString(cssSnippet) {
   }
 }
 
+function constructSelector(el) {
+  if (!el) {
+    return 'NULL'
+  } else if (el.tagName.toLowerCase(el) === 'html') {
+    return 'html'
+  } else if (el.hasAttribute('id')) {
+    return `${el.tagName.toLowerCase()}#${el.getAttribute('id')}`
+  } else if (el.className) {
+    return `${constructSelector(el.parentElement)} > ${el.tagName.toLowerCase()}.${el.className.split(' ').join('.')}`
+  } else if (el.hasAttribute('data-type')) {
+    return `${constructSelector(el.parentElement)} > ${el.tagName.toLowerCase()}[data-type="${el.getAttribute('data-type')}"]`
+  } else {
+    return `${el.tagName.toLowerCase()}`
+  }
+}
+
 // Generate pretty messages with source lines for debugging
 function createMessage(message, cssSnippet, $el) {
   let cssInfo = cssSnippetToString(cssSnippet)
@@ -35,8 +51,8 @@ function createMessage(message, cssSnippet, $el) {
           console.warn('See the installation instructions about getting a more-precise version of jsdom')
           _hasBeenWarned = true
         }
-        const htmlOffset = locationInfo.start
-        return `${_htmlSourcePath}@${htmlOffset}`
+        const selector = constructSelector($el[0])
+        return `${_htmlSourcePath} {${selector}}`
       }
     }
     if (locationInfo) {
