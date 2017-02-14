@@ -36,6 +36,18 @@ FUNCTIONS.push(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, vals,
   }
   return ret
 } ))
+FUNCTIONS.push(new FunctionEvaluator('add', ($, {$contextEl}, $currentEl, vals, mutationPromise, astNode) => {
+  assert(vals.length, 2)
+  const val1 = Number.parseInt(vals[0])
+  const val2 = Number.parseInt(vals[1])
+  if (Number.isNaN(val1)) {
+    throwError(`ERROR: First argument must be an integer but it was '${vals[0]}'`)
+  }
+  if (Number.isNaN(val2)) {
+    throwError(`ERROR: Second argument must be an integer but it was '${vals[1]}'`)
+  }
+  return val1 + val2
+} ))
 FUNCTIONS.push(new FunctionEvaluator('x-tag-name', ($, {$contextEl}, $currentEl, vals, mutationPromise, astNode) => {
   // check that we are only operating on 1 element at a time
   assert($contextEl.length, 1)
@@ -87,6 +99,14 @@ FUNCTIONS.push(new FunctionEvaluator('count-of-type', ($, {$contextEl}, $current
     }
   })
   return count
+}))
+FUNCTIONS.push(new FunctionEvaluator('count-all-of-type', ($, {$contextEl}, $currentEl, vals, mutationPromise, astNode) => {
+  assert.equal(vals.length, 1)
+  assert(Array.isArray(vals[0]))
+  const selector = vals[0].join(' ')  // vals[0] = ['li'] (notice vals is a 2-Dimensional array. If each FunctionEvaluator had a .join() method then this function could be simpler and more intuitive to add more features)
+  assert.equal(typeof selector, 'string')
+  const $matches = $contextEl.find(selector)
+  return $matches.length
 }))
 FUNCTIONS.push(new FunctionEvaluator('parent-context',
   ($, context, $currentEl, vals, mutationPromise, astNode) => {

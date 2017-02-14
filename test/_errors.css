@@ -17,3 +17,7 @@ body { content: attr(non-existent-attribute); }
 body { content: descendant-context('.nothing-matches', attr(href)); }
 body { content: ancestor-context('.nothing-matches', attr(href)); }
 body { content: target-context('.not-an-href', attr(href)); }
+body { content: add(); }
+body { content: add('not a number'); }
+body { content: add(1, 'not a number'); }
+body { content: add('not a number', 1); }

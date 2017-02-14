@@ -34,6 +34,7 @@ const UNIT_FILES_TO_TEST = [
   // 'outside',
 
   './example/exercise-numbering',
+  './example/exercise-numbering-advanced',
   './example/glossary',
 ]
 
