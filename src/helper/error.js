@@ -28,15 +28,15 @@ function createMessage(message, cssSnippet, $el) {
   if (_htmlSourceLookup && $el) {
     const locationInfo = _htmlSourceLookup($el[0])
     function getLocationString() {
-      if (locationInfo.line !== null) {
+      if (locationInfo.line !== null && typeof(locationInfo.line) !== 'undefined') {
         return `${_htmlSourcePath}:${locationInfo.line}:${locationInfo.col}`
       } else {
         if (!_hasBeenWarned) {
-          console.warn('See the installation instructions about getting the correct version of jsdom')
+          console.warn('See the installation instructions about getting a more-precise version of jsdom')
           _hasBeenWarned = true
         }
         const htmlOffset = locationInfo.start
-        return `HTMLchar=${htmlOffset}`
+        return `${_htmlSourcePath}@${htmlOffset}`
       }
     }
     if (locationInfo) {
