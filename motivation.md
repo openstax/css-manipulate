@@ -43,7 +43,7 @@ Let's start with the following HTML:
     <!-- assorted content -->
     <a href="#ex234">[link]</a>
     <note>
-      <div class="title">Note1</title>
+      <div class="title">Note1</div>
       <p>Howdy</p>
     </note>
     <ol data-label="Temperatures">
@@ -384,7 +384,7 @@ Desired HTML:
     ...
     <note>
       <div class="note-body">
-        <div class="title">Note1</title>
+        <div class="title">Note1</div>
         <p>Howdy</p>
         ...
       </div>
@@ -415,7 +415,7 @@ Desired HTML:
   <section>
     ...
     <note>
-      <div class="title">Note1</title>
+      <div class="title">Note1</div>
       <div class="note-body">
         <p>Howdy</p>
         ...

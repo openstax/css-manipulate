@@ -195,7 +195,10 @@ DECLARATIONS.push(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise,
               var attrib = thisia[a];
               newElement.setAttribute(attrib.name, attrib.value);
           };
-          newElement.innerHTML = thisi.innerHTML;
+          // The following line does not work when parsing in XML mode
+          // newElement.innerHTML = thisi.innerHTML;
+          $(newElement).append($(thisi).contents())
+
           $(thisi).after(newElement).remove();
           tags[i] = newElement;
           // Add sourcemap

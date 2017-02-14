@@ -17,7 +17,7 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
   const sourceMapPath = `${htmlOutputPath}.map`
   const sourceMapFileName = path.basename(sourceMapPath) // This is used for the value of the sourceMappingURL
 
-  const document = jsdom.jsdom(htmlContents)
+  const document = jsdom.jsdom(htmlContents, {parsingMode: 'xml'})
   const $ = jquery(document.defaultView)
   function htmlSourceLookup(node) {
     // See https://github.com/tmpvar/jsdom/pull/1316 to get the line/column info
