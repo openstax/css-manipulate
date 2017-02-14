@@ -11,7 +11,7 @@ function toRelative(outputPath, inputPath) {
 }
 
 let hasBeenWarned = false
-function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath) {
+function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, options) {
   const htmlSourcePathRelativeToSourceMapFile = toRelative(htmlOutputPath, htmlPath)
   const cssPathRelativeToSourceMapFile = toRelative(htmlOutputPath, cssPath)
   const sourceMapPath = `${htmlOutputPath}.map`
@@ -102,7 +102,7 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
   }
 
   // use cssPathRelativeToSourceMapFile because that is what is used for the sourceMap doc
-  return converter(document, $, cssContents, cssPathRelativeToSourceMapFile /*cssPath*/, htmlPath, console, htmlSourceLookup, htmlSourcePathRelativeToSourceMapFile, sourceMapFileName, rewriteSourceMapsFn)
+  return converter(document, $, cssContents, cssPathRelativeToSourceMapFile /*cssPath*/, htmlPath, console, htmlSourceLookup, htmlSourcePathRelativeToSourceMapFile, sourceMapFileName, rewriteSourceMapsFn, options)
 }
 
 

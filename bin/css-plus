@@ -21,7 +21,7 @@ const cssContents = fs.readFileSync(cssPath)
 const htmlContents = fs.readFileSync(htmlPath)
 
 
-convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath).then(({html: actualOutput, sourceMap}) => {
+convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, argv).then(({html: actualOutput, sourceMap}) => {
   fs.writeFileSync(htmlOutputPath, actualOutput)
   fs.writeFileSync(htmlOutputSourceMapPath, sourceMap)
 })

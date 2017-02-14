@@ -19,7 +19,7 @@ function walkDOMElementsInOrder(el, fn) {
 
 
 module.exports = class Applier {
-  constructor(document, $) {
+  constructor(document, $, options) {
     this._pseudoElementPlugins = []
     this._ruleDeclarationPlugins = []
     this._functionPlugins = []
@@ -31,6 +31,7 @@ module.exports = class Applier {
 
     this._document = document
     this._$ = $
+    this._options = options || {}
   }
 
   // getWindow() { return this._document.defaultView }
@@ -83,6 +84,21 @@ module.exports = class Applier {
     // document.querySelectorAll(sel) is MUCH faster.
     // So, annotate the DOM first with all the matches and then walk the DOM
 
+    let total = 0
+    ast.children.each((rule) => {
+      // if not a rule then return
+      if (rule.type === 'Atrule') {
+        return
+      }
+      assert.equal(rule.type, 'Rule')
+      rule.selector.children.each((selector) => {
+        assert.equal(selector.type, 'Selector')
+        total += 1
+      })
+    })
+
+    const bar = new ProgressBar("Matching :percent :etas ':selector'", { total: total})
+
     // This code is not css-ish because it does not walk the DOM
     ast.children.each((rule) => {
       // if not a rule then return
@@ -93,6 +109,7 @@ module.exports = class Applier {
       rule.selector.children.each((selector) => {
         assert.equal(selector.type, 'Selector')
         const browserSelector = this.toBrowserSelector(selector)
+        bar.tick({selector: browserSelector})
         let $matchedNodes = this._$(browserSelector)
 
         $matchedNodes = this._filterByPseudoClassName($matchedNodes, selector, -1/*depth*/)
@@ -403,7 +420,7 @@ module.exports = class Applier {
     })
 
 
-    const bar = new ProgressBar('[:bar] :current/:total :percent :etas', { total: total})
+    const bar = new ProgressBar('Converting :percent :etas #:current [:bar]', { total: total})
     const allPromises = []
     walkDOMElementsInOrder(this._document.documentElement, (el) => {
       bar.tick()

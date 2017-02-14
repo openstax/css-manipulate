@@ -9,7 +9,7 @@ const {init: errorInit, createMessage, throwError, showWarning, showLog} = requi
 
 
 
-module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, consol, htmlSourceLookup, htmlSourceFilename, sourceMapPath, rewriteSourceMapsFn) => {
+module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, consol, htmlSourceLookup, htmlSourceFilename, sourceMapPath, rewriteSourceMapsFn, options) => {
 
   if (process.env['NODE_ENV'] === 'debugger') {
     debugger
@@ -17,7 +17,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
 
   errorInit(consol, htmlSourceLookup, htmlSourcePath)
 
-  const engine = new Engine(document, $)
+  const engine = new Engine(document, $, options)
 
   engine.setCSSContents(cssContents, cssSourcePath)
 
