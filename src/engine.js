@@ -97,6 +97,9 @@ module.exports = class Applier {
       })
     })
 
+    // Cache matched nodes because selectors are duplicated in the CSS
+    const selectorCache = {}
+
     const bar = new ProgressBar("Matching :percent :etas ':selector'", { total: total})
 
     // This code is not css-ish because it does not walk the DOM
@@ -110,7 +113,9 @@ module.exports = class Applier {
         assert.equal(selector.type, 'Selector')
         const browserSelector = this.toBrowserSelector(selector)
         bar.tick({selector: browserSelector})
-        let $matchedNodes = this._$(browserSelector)
+
+        selectorCache[browserSelector] = selectorCache[browserSelector] || this._$(browserSelector)
+        let $matchedNodes = selectorCache[browserSelector]
 
         $matchedNodes = this._filterByPseudoClassName($matchedNodes, selector, -1/*depth*/)
 
