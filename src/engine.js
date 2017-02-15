@@ -428,7 +428,12 @@ module.exports = class Applier {
     })
 
 
-    const bar = new ProgressBar(`${chalk.bold('Converting')} :percent ${sourceColor(':etas')} #:current [${chalk.green(':bar')}]`, { total: total})
+    const bar = new ProgressBar(`${chalk.bold('Converting')} :percent ${sourceColor(':etas')} #:current [${chalk.green(':bar')}] `, {
+      complete: '=',
+      incomplete: ' ',
+      width: 40,
+      total: total
+    })
     const allPromises = []
     walkDOMElementsInOrder(this._document.documentElement, (el) => {
       bar.tick()
