@@ -31,11 +31,8 @@ FUNCTIONS.push(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, vals,
   assert($contextEl.length, 1)
   const ret = $contextEl.attr(vals.join(''))
   if (ret == null) {
-    if (IS_STRICT_MODE) {
-      throwError(`function resulted in null. This is disallowed in IS_STRICT_MODE`, vals[0]) // TODO: FOr better messages FunctionEvaluator should know the source line for the function, not just the array of vals
-    } else {
-      return ''
-    }
+    showWarning(`tried to look up an attribute that was not available attr(${vals.join('')}). Might be a bug if you are using target-context(attr(href), ...)`, astNode, $contextEl) // TODO: FOr better messages FunctionEvaluator should know the source line for the function, not just the array of vals
+    return ''
   }
   return ret
 } ))

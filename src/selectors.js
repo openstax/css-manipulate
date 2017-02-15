@@ -39,7 +39,7 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $look
   const selector = secondArg.value.substring(1, secondArg.value.length - 1)
   const $newLookupEls = $lookupEl.find(selector)
   if ($newLookupEls.length === 0) {
-    throwError(`This for-loop does not match any elements. Eventually this could be a warning`, secondArg, $lookupEl)
+    showWarning(`This for-loop does not match any elements`, secondArg, $lookupEl)
   }
 
   const ret = []

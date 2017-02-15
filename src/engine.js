@@ -103,7 +103,8 @@ module.exports = class Applier {
     // Cache matched nodes because selectors are duplicated in the CSS
     const selectorCache = {}
 
-    const bar = new ProgressBar(`${chalk.bold('Matching')} :percent ${sourceColor(':etas')} ${chalk.green("':selector'")} ${sourceColor(':cssLocation')}`, { total: total})
+    // removed `${chalk.green("':selector'")}` from the progress bar because lines were getting too long
+    const bar = new ProgressBar(`${chalk.bold('Matching')} :percent ${sourceColor(':etas')} ${sourceColor(':cssLocation')}`, { total: total})
 
     // This code is not css-ish because it does not walk the DOM
     ast.children.each((rule) => {
@@ -458,7 +459,7 @@ module.exports = class Applier {
         allPromises.push(promise)
       }
     })
-    assert(allPromises.length > 0)
+    // assert(allPromises.length > 0)
     return allPromises
   }
 
