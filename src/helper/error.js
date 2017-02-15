@@ -100,9 +100,14 @@ function throwBug(message, cssSnippet, $el, err) {
   }
 }
 
+const displayedWarningCache = {} // Only show a warning for a particular source line once. Otherwise it is annoying
 function showWarning(message, cssSnippet, $el) {
-  const msg = createMessage(`${warnColor('WARN')}: ${message}`, cssSnippet, $el)
-  _console.warn(msg)
+  const key = `${cssSnippetToString(cssSnippet)} | ${message}`
+  if (!displayedWarningCache[key] || _options.verbose) {
+    const msg = createMessage(`${warnColor('WARN')}: ${message}`, cssSnippet, $el)
+    _console.warn(msg)
+    displayedWarningCache[key] = true
+  }
 }
 
 function showLog(message, cssSnippet, $el) {

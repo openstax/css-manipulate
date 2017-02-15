@@ -84,8 +84,7 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
           // }
         }
       } else if (!showedNoSourceWarning) {
-        showWarning('Could not find original source line. Maybe a bug in SASS/LESS', astNode, null)
-        // console.warn(`WARN: Could not find original source line for ${cssSourcePath}:${start.line}:${start.column}-${end.line}:${end.column}. Maybe a bug in SASS/LESS`)
+        showWarning('Could not find original source line via sourcemap file. Maybe a bug in SASS/LESS?', astNode, null)
         showedNoSourceWarning = true
       }
     }

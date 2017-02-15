@@ -11,6 +11,7 @@ The [Language Reference Page](./docs.md) contains a list of all selectors, rules
   - [Precise Error Messages](#precise-error-messages)
   - [HTML SourceMaps](#html-sourcemaps)
   - [Exactly 1 Pass](#exactly-1-pass)
+    - [Parallelizing](#parallelizing)
   - [Approximate Sourcemaps](#approximate-sourcemaps)
 - [Install Notes](#install-notes)
 - [Debugging](#debugging)
@@ -93,12 +94,17 @@ _(there is no trickery here, this is real working code using a slightly modified
 This addresses a few use-cases:
 
 - As a CSS Developer I want to not have to reason about intermediate state of the DOM
+- As a CSS Developer I want the conversion to be fast
 
 This model is inspired by both CSS and virtualdom libraries like React: you describe what you want the result to look like rather than the "how".
 
 No more writing the intermediate steps needed to get to the desired result (ie setting temporary attributes, multiple passes to move things around).
 
-### Approximate SourceMaps
+### Parallelizing
+
+Since each element does not depend on the state of other elements (and there is only 1 pass), the conversion can be parallelized, further reducing the conversion time.
+
+## Approximate SourceMaps
 
 This is just a script that takes 2 HTML files (raw and baked HTML) and builds a sourcemap file by looking at the id attributes of elements. It is not precise but may be "good enough" to use in the short term for things like:
 
@@ -192,17 +198,18 @@ To test the commandline:
 - [x] Add `::for-each-descendant(1, ${SELECTOR})`
 - [x] Add `:target(${ATTRIBUTE_NAME}, ${MATCH_SELECTORS...})`
 - [x] Use Promises to defer DOM Manipulation to all be after selector/rule/attribute evaluation is done
-- [ ] Add a command-line script to run the conversion
+- [x] Add a command-line script to run the conversion
 - [ ] Add Examples
   - [x] Add example showing [complex numbering](./test/example/) (only counting some exercises)
     - [ ] may need to introduce `:is(${SELECTOR})` to add exceptions
   - [ ] Add example showing how to only transform certain chapters (or any selector)
     - May require adding support for multiple CSS files and an `env(NAME, DEFAULT)` function
-  - [ ] Add example showing how to build a glossary
-    - [ ] add `sort($NODES, ${SELECTOR})` for sorting a glossary
+  - [x] Add example showing how to build a glossary
+    - [ ] add `sort-children-by: ${SELECTOR};` for sorting a glossary
     - [ ] add `copy-to(${SELECTOR})` which does a deep clone
+    - [ ] support `tag-name-set: none;` which unwraps the element (useful for `<dt>` and `<dd>` pairs)
 - [ ] add `build-index(${TERM_SELECTOR})` for building an index
-- [ ] Convert the "motivation" examples to 1 big SASS file
+- [x] Convert the "motivation" examples to 1 big SASS file
 - [x] output a sourcemap file (contains all the strings in the resulting HTML file that came from the CSS file)
 - [ ] support `--dry-run` which outputs an evaluation tree (for debugging)
 - [x] Create a https://jsfiddle.net/philschatz/hjk2z4af/ (source CSS, source HTML, output HTML, warnings/errors)
@@ -213,4 +220,4 @@ To test the commandline:
   - [x] so it only creates the element if there is something matching the selector
   - This way a "Homework" section will not be created if there are no Homework problems to show
 - [x] Show colorful error messages
-- [ ] Show colorful warnings
+- [x] Show colorful warnings
