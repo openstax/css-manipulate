@@ -30,6 +30,7 @@ const UNIT_FILES_TO_TEST = [
   './unit/html-serialization',
   './unit/x-log',
   './unit/display-none',
+  './unit/has',
 
   // 'outside',
 
