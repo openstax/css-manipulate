@@ -4,6 +4,9 @@ const {showLog, showWarning, throwError} = require('./helper/error')
 const {IS_STRICT_MODE} = process.env
 const FUNCTIONS = []
 
+// TODO: Speed up count-all-of-type, count-of-type, move-here, and descendant-context by memoizing the query maybe? (they're spending a lot of time in Sizzle)
+
+
 
 class FunctionEvaluator {
   constructor(name, fn, preFn) {

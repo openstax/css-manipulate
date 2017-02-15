@@ -103,7 +103,7 @@ module.exports = class Applier {
     // Cache matched nodes because selectors are duplicated in the CSS
     const selectorCache = {}
 
-    const bar = new ProgressBar(`${chalk.bold('Matching')} :percent ${sourceColor(':etas')} ${chalk.green("':selector'")}`, { total: total})
+    const bar = new ProgressBar(`${chalk.bold('Matching')} :percent ${sourceColor(':etas')} ${chalk.green("':selector'")} ${sourceColor(':cssLocation')}`, { total: total})
 
     // This code is not css-ish because it does not walk the DOM
     ast.children.each((rule) => {
@@ -115,10 +115,15 @@ module.exports = class Applier {
       rule.selector.children.each((selector) => {
         assert.equal(selector.type, 'Selector')
         const browserSelector = this.toBrowserSelector(selector)
-        bar.tick({selector: browserSelector})
+        bar.tick({selector: browserSelector, cssLocation: cssSnippetToString(selector)})
 
         selectorCache[browserSelector] = selectorCache[browserSelector] || this._$(browserSelector)
         let $matchedNodes = selectorCache[browserSelector]
+
+        if (this._options.verbose) {
+          console.log(` Matched ${$matchedNodes.length}`);
+          // bar.interrupt(`Matched ${$matchedNodes.length}`);
+        }
 
         $matchedNodes = this._filterByPseudoClassName($matchedNodes, selector, -1/*depth*/)
 
@@ -127,6 +132,13 @@ module.exports = class Applier {
           el.MATCHED_RULES.push({rule, selector})
         })
       })
+    })
+
+    // TODO: Does this actually clear up memory?
+    // Clear up some memory by removing all the memoizedQueries that jsdom added for caching:
+    // This is a little hacky but it works
+    walkDOMElementsInOrder(this._document.documentElement, (el) => {
+      el[Object.getOwnPropertySymbols(el)[0]]._clearMemoizedQueries()
     })
   }
 
@@ -293,6 +305,7 @@ module.exports = class Applier {
         const {value, specificity, isImportant, selector} = declarations[declarations.length - 1]
         // Log that other rules were skipped because they were overridden
         declarations.slice(0, declarations.length - 1).forEach(({value}) => {
+          // BUG: Somehow the same selector can be matched twice for an element . This occurs with the `:not(:has(...))` ones
           showWarning(`Skipping because this was overridden by ${sourceColor(cssSnippetToString(declarations[declarations.length - 1].value))}`, value, $currentEl)
         })
 
@@ -428,7 +441,7 @@ module.exports = class Applier {
     })
 
 
-    const bar = new ProgressBar(`${chalk.bold('Converting')} :percent ${sourceColor(':etas')} #:current [${chalk.green(':bar')}] `, {
+    const bar = new ProgressBar(`${chalk.bold('Converting')} :percent ${sourceColor(':etas')} [${chalk.green(':bar')}] #:current `, {
       complete: '=',
       incomplete: ' ',
       width: 40,
