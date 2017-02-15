@@ -52,6 +52,7 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
     }
   }
 
+  showedNoSourceWarning = false // Only show this warning once, not for every element
   // function lookupSource(cssSourcePath, line, column) {
   //   if (!loadedSourceMaps[cssSourcePath]) {
   //     console.log('trying to open', path.join(path.dirname(cssPath), cssSourcePath));
@@ -80,8 +81,9 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
           //   column: newEndColumn
           // }
         }
-      } else {
+      } else if (!showedNoSourceWarning) {
         console.warn(`WARN: Could not find original source line for ${cssSourcePath}:${start.line}:${start.column}-${end.line}:${end.column}. Maybe a bug in SASS/LESS`)
+        showedNoSourceWarning = true
       }
     }
     let hasRecursed = false
