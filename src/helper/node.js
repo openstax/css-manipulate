@@ -6,8 +6,8 @@ const jquery = require('jquery')
 const {SourceMapConsumer} = require('source-map')
 const converter = require('../converter')
 
-function toRelative(outputPath, inputPath) {
-  return path.relative(path.dirname(path.join(process.cwd(), outputPath)), path.join(process.cwd(), inputPath))
+function toRelative(outputPath, inputPath, contextPath='') {
+  return path.relative(path.dirname(path.join(process.cwd(), outputPath)), path.join(process.cwd(), contextPath, inputPath))
 }
 
 let hasBeenWarned = false
@@ -63,9 +63,10 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
   function rewriteSourceMapsFn(astNode) {
     if (map && astNode.loc) {
       const {source: cssSourcePath, start, end} = astNode.loc
-      const {source: newStartPath, line: newStartLine, column: newStartColumn} = map.originalPositionFor(start)
+      let {source: newStartPath, line: newStartLine, column: newStartColumn} = map.originalPositionFor(start)
       // const {source: newEndPath, line: newEndLine, column: newEndColumn} = map.originalPositionFor(end)
       // assert.equal(newStartPath, newEndPath)
+      newStartPath = toRelative(htmlOutputPath, newStartPath, path.dirname(cssSourcePath))
       astNode.loc = {
         source: newStartPath,
         start: {

@@ -77,6 +77,7 @@ module.exports = class Applier {
     const ast = csstree.parse(this._cssContents.toString(), {positions: true, filename: this._cssSourcePath})
 
     if (rewriteSourceMapsFn) {
+      // TODO: Optimization: Only rewrite nodes needed for serializing (and add a flag that it was rewritten)
       rewriteSourceMapsFn(ast)
     }
 
