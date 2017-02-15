@@ -4,21 +4,19 @@
 // Number collated exercises on their own
 exercise {
   // Number exercises by how they occur in the chapter
-  &::before(1) {
+  &::before {
     tag-name-set: 'strong';
     content: ancestor-context('chapter', count-of-type('exercise:not(@{collated-exercise-classes})')) '. ';
   }
 
   &.homework {
-    &::before(1) {
-      tag-name-set: 'strong';
+    &::before {
       content: ancestor-context('chapter', count-of-type('exercise.homework')) '. ';
     }
   }
 
   &.conceptual {
-    &::before(1) {
-      tag-name-set: 'strong';
+    &::before {
       content: ancestor-context('chapter', add(count-all-of-type('exercise.homework'), count-of-type('exercise.conceptual')), ) '. ';
     }
   }

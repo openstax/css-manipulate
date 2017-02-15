@@ -38,8 +38,10 @@ FUNCTIONS.push(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, vals,
 } ))
 FUNCTIONS.push(new FunctionEvaluator('add', ($, {$contextEl}, $currentEl, vals, mutationPromise, astNode) => {
   assert(vals.length, 2)
-  const val1 = Number.parseInt(vals[0])
-  const val2 = Number.parseInt(vals[1])
+  assert(vals[0].length, 1)
+  assert(vals[1].length, 1)
+  const val1 = Number.parseInt(vals[0][0])
+  const val2 = Number.parseInt(vals[1][0])
   if (Number.isNaN(val1)) {
     throwError(`ERROR: First argument must be an integer but it was '${vals[0]}'`)
   }

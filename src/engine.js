@@ -3,7 +3,7 @@ const csstree = require('css-tree')
 const ProgressBar = require('progress')
 const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
-const {throwError, showWarning} = require('./helper/error')
+const {throwError, showWarning, cssSnippetToString} = require('./helper/error')
 
 
 function walkDOMElementsInOrder(el, fn) {
@@ -290,7 +290,7 @@ module.exports = class Applier {
         const {value, specificity, isImportant, selector} = declarations[declarations.length - 1]
         // Log that other rules were skipped because they were overridden
         declarations.slice(0, declarations.length - 1).forEach(({value}) => {
-          showWarning(`Skipping because this was overridden by [TODO: insert other CSS snippet here]`, value, $currentEl)
+          showWarning(`Skipping because this was overridden by ${cssSnippetToString(declarations[declarations.length - 1].value)}`, value, $currentEl)
         })
 
         if (value) {

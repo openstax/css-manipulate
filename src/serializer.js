@@ -13,11 +13,7 @@ function walkDOMNodesInOrder(el, startFn, endFn) {
   endFn(el)
 }
 
-const SELF_CLOSING_ELEMENTS = {
-  img: true,
-  hr: true,
-  br: true,
-}
+const SELF_CLOSING_TAGS = ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr']
 
 // We use a custom serializer so sourcemaps can be generated (we know the output line and columns for things)
 module.exports = (documentElement, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, htmlSourceMapPath) => {
@@ -87,7 +83,7 @@ module.exports = (documentElement, htmlSourceLookup, htmlSourcePath, htmlSourceF
     } else {
       // Skipping this node for some reason
       if (node.tagName !== 'HEAD') {
-        debugger
+        // debugger
       }
     }
 
@@ -115,7 +111,7 @@ module.exports = (documentElement, htmlSourceLookup, htmlSourcePath, htmlSourceF
           const attribute = node.attributes[index]
           pushAndMap(attribute, ` ${attribute.name}="${escapeHtml(attribute.value)}"` + DEBUGGING_NEWLINE)
         }
-        if (SELF_CLOSING_ELEMENTS[tagName]) {
+        if (SELF_CLOSING_TAGS.indexOf(tagName) >= 0) {
           pushAndMap(node, `/>` + DEBUGGING_NEWLINE)
         } else {
           pushAndMap(node, `>` + DEBUGGING_NEWLINE)
@@ -139,7 +135,7 @@ module.exports = (documentElement, htmlSourceLookup, htmlSourcePath, htmlSourceF
         if ('html' === tagName && htmlSourceMapPath) {
           pushAndMap(node, `\n<!-- //# sourceMappingURL=${htmlSourceMapPath} -->`, true /*isEndTag*/)
         }
-        if (!SELF_CLOSING_ELEMENTS[tagName]) {
+        if (!(SELF_CLOSING_TAGS.indexOf(tagName) >= 0)) {
           pushAndMap(node, `</${node.tagName.toLowerCase()}>` + DEBUGGING_NEWLINE, true /*isEndTag*/)
         }
         break

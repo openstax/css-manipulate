@@ -89,4 +89,4 @@ function showLog(message, cssSnippet, $el) {
   _console.log(msg)
 }
 
-module.exports = {init, createMessage, throwError, showWarning, showLog}
+module.exports = {init, createMessage, throwError, showWarning, showLog, cssSnippetToString}
