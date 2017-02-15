@@ -79,7 +79,7 @@ FUNCTIONS.push(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, 
   const selector = vals[0].join('')
   const ret = $contextEl.find(selector)
   if (ret.length === 0) {
-    showWarning(`Moving 0 items using selector ${selector}. Maybe add a :has() guard to prevent this warning [TODO: Show the selector that matched]`, astNode, $contextEl)
+    showWarning(`Moved 0 items. Maybe add a :has() guard to prevent this warning`, astNode, $contextEl)
   }
   // detach (instead of remove) because we do not want to destroy the elements
   mutationPromise.then(() => ret.detach())

@@ -1,14 +1,22 @@
+const chalk = require('chalk')
 // const jsdom = require('jsdom')
+
+const sourceColor = chalk.dim
+const errorColor = chalk.red
+const warnColor = chalk.yellow
+const logColor = chalk.blue
 
 let _console = console
 let _htmlSourceLookup
 let _htmlSourcePath
+let _options = {}
 let _hasBeenWarned = false
 
-function init(consol, htmlSourceLookup, htmlSourcePath) {
+function init(consol, htmlSourceLookup, htmlSourcePath, options) {
   _console = consol
   _htmlSourceLookup = htmlSourceLookup
   _htmlSourcePath = htmlSourcePath
+  _options = options
 }
 
 function cssSnippetToString(cssSnippet) {
@@ -42,30 +50,30 @@ function constructSelector(el) {
 
 // Generate pretty messages with source lines for debugging
 function createMessage(message, cssSnippet, $el) {
-  let cssInfo = cssSnippetToString(cssSnippet)
+  let cssInfo = sourceColor(cssSnippetToString(cssSnippet))
   if (_htmlSourceLookup && $el) {
     const locationInfo = _htmlSourceLookup($el[0])
     function getLocationString() {
       if (locationInfo.line !== null && typeof(locationInfo.line) !== 'undefined') {
-        return `${_htmlSourcePath}:${locationInfo.line}:${locationInfo.col}`
+        return sourceColor(`${_htmlSourcePath}:${locationInfo.line}:${locationInfo.col}`)
       } else {
         if (!_hasBeenWarned) {
           console.warn('See the installation instructions about getting a more-precise version of jsdom')
           _hasBeenWarned = true
         }
         const selector = constructSelector($el[0])
-        return `${_htmlSourcePath}:{${selector}}`
+        return sourceColor(`${_htmlSourcePath}:{${selector}}`)
       }
     }
     if (locationInfo) {
       // ELements like <body> do not have location information
       const htmlDetails = getLocationString()
-      return `  ${cssInfo}: ${message} (${htmlDetails})`
+      return `  ${cssInfo}: ${message} (${sourceColor(htmlDetails)})`
     } else if ($el[0].__cssLocation) {
-      return `  ${cssInfo}: ${message} (${cssSnippetToString($el[0].__cssLocation)})`
+      return `  ${cssInfo}: ${message} (${sourceColor(cssSnippetToString($el[0].__cssLocation))})`
     } else {
       const selector = constructSelector($el[0])
-      return `  ${cssInfo}: ${message} (${_htmlSourcePath}:{${selector}})`
+      return `  ${cssInfo}: ${message} (${sourceColor(_htmlSourcePath + ':' + selector)})`
     }
   } else {
     return `${cssInfo}: ${message}`
@@ -73,7 +81,7 @@ function createMessage(message, cssSnippet, $el) {
 }
 
 function throwError(message, cssSnippet, $el, err) {
-  const msg = createMessage(message, cssSnippet, $el)
+  const msg = createMessage(`${errorColor('ERROR')} ${message}`, cssSnippet, $el)
   if (err) {
     _console.error(msg)
     throw err
@@ -83,12 +91,14 @@ function throwError(message, cssSnippet, $el, err) {
 }
 
 function showWarning(message, cssSnippet, $el) {
-  const msg = createMessage(`WARNING: ${message}`, cssSnippet, $el)
-  _console.warn(msg)
+  if (_options['no-warnings']) {
+    const msg = createMessage(`${warnColor('WARN')}: ${message}`, cssSnippet, $el)
+    _console.warn(msg)
+  }
 }
 
 function showLog(message, cssSnippet, $el) {
-  const msg = createMessage(`LOG: ${message}`, cssSnippet, $el)
+  const msg = createMessage(`${logColor('LOG')}: ${message}`, cssSnippet, $el)
   _console.log(msg)
 }
 

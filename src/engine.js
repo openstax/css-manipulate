@@ -1,10 +1,12 @@
 const assert = require('assert')
 const csstree = require('css-tree')
 const ProgressBar = require('progress')
+const chalk = require('chalk')
 const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
 const {throwError, showWarning, cssSnippetToString} = require('./helper/error')
 
+const sourceColor = chalk.dim
 
 function walkDOMElementsInOrder(el, fn) {
   fn(el)
@@ -101,7 +103,7 @@ module.exports = class Applier {
     // Cache matched nodes because selectors are duplicated in the CSS
     const selectorCache = {}
 
-    const bar = new ProgressBar("Matching :percent :etas ':selector'", { total: total})
+    const bar = new ProgressBar(`${chalk.bold('Matching')} :percent ${sourceColor(':etas')} ${chalk.green("':selector'")}`, { total: total})
 
     // This code is not css-ish because it does not walk the DOM
     ast.children.each((rule) => {
@@ -291,7 +293,7 @@ module.exports = class Applier {
         const {value, specificity, isImportant, selector} = declarations[declarations.length - 1]
         // Log that other rules were skipped because they were overridden
         declarations.slice(0, declarations.length - 1).forEach(({value}) => {
-          showWarning(`Skipping because this was overridden by ${cssSnippetToString(declarations[declarations.length - 1].value)}`, value, $currentEl)
+          showWarning(`Skipping because this was overridden by ${sourceColor(cssSnippetToString(declarations[declarations.length - 1].value))}`, value, $currentEl)
         })
 
         if (value) {
@@ -426,7 +428,7 @@ module.exports = class Applier {
     })
 
 
-    const bar = new ProgressBar('Converting :percent :etas #:current [:bar]', { total: total})
+    const bar = new ProgressBar(`${chalk.bold('Converting')} :percent ${sourceColor(':etas')} #:current [${chalk.green(':bar')}]`, { total: total})
     const allPromises = []
     walkDOMElementsInOrder(this._document.documentElement, (el) => {
       bar.tick()

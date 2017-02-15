@@ -15,7 +15,7 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
     debugger
   }
 
-  errorInit(consol, htmlSourceLookup, htmlSourcePath)
+  errorInit(consol, htmlSourceLookup, htmlSourcePath, options)
 
   const engine = new Engine(document, $, options)
 
