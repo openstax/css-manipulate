@@ -90,11 +90,19 @@ function throwError(message, cssSnippet, $el, err) {
   }
 }
 
-function showWarning(message, cssSnippet, $el) {
-  if (_options['no-warnings']) {
-    const msg = createMessage(`${warnColor('WARN')}: ${message}`, cssSnippet, $el)
-    _console.warn(msg)
+function throwBug(message, cssSnippet, $el, err) {
+  const msg = createMessage(`${errorColor('BUG')} ${message}`, cssSnippet, $el)
+  if (err) {
+    _console.error(msg)
+    throw err
+  } else {
+    throw new Error(msg)
   }
+}
+
+function showWarning(message, cssSnippet, $el) {
+  const msg = createMessage(`${warnColor('WARN')}: ${message}`, cssSnippet, $el)
+  _console.warn(msg)
 }
 
 function showLog(message, cssSnippet, $el) {
@@ -102,4 +110,4 @@ function showLog(message, cssSnippet, $el) {
   _console.log(msg)
 }
 
-module.exports = {init, createMessage, throwError, showWarning, showLog, cssSnippetToString}
+module.exports = {init, createMessage, throwError, throwBug, showWarning, showLog, cssSnippetToString}

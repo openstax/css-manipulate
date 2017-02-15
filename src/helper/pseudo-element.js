@@ -1,5 +1,5 @@
 const assert = require('assert')
-const {throwError} = require('./error')
+const {throwError, throwBug} = require('./error')
 
 // Every pseudoelement results in 1 (or more) elements being created.
 // The order in which they are created matters.
@@ -89,7 +89,7 @@ module.exports = class PseudoElementEvaluator {
 
       // validation
       if (!Array.isArray(ret)) {
-        throwError(`BUG: node creator returned a non-array while evaluating ${this._pseudoName}`, selectors[0].getRule().rule)
+        throwBug(`node creator returned a non-array while evaluating ${this._pseudoName}`, selectors[0].getRule().rule)
       }
       assert(Array.isArray(ret))
       ret.forEach((item) => {

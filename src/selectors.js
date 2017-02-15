@@ -1,6 +1,6 @@
 const assert = require('assert')
 const PseudoElementEvaluator = require('./helper/pseudo-element')
-const {showLog, showWarning, throwError} = require('./helper/error')
+const {showLog, showWarning, throwError, throwBug} = require('./helper/error')
 
 const PSEUDO_ELEMENTS = []
 const PSEUDO_CLASSES = []
@@ -39,14 +39,14 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $look
   const selector = secondArg.value.substring(1, secondArg.value.length - 1)
   const $newLookupEls = $lookupEl.find(selector)
   if ($newLookupEls.length === 0) {
-    throwError(`ERROR: This for-loop does not match any elements. Eventually this could be a warning`, secondArg, $lookupEl)
+    throwError(`This for-loop does not match any elements. Eventually this could be a warning`, secondArg, $lookupEl)
   }
 
   const ret = []
   $newLookupEls.each((index, newLookupEl) => {
     const $newElPromise = $contextElPromise.then(($contextEl) => {
       if(!$contextEl.parents(':last').is('html')) {
-        throwError(`BUG: provided element is not attached to the DOM`, null, $contextEl)
+        throwBug(`provided element is not attached to the DOM`, null, $contextEl)
       }
 
       const $newEl = $('<div data-pseudo="for-each-descendant-element"/>')

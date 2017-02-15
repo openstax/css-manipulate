@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-sass --sourcemap test/motivation/all.scss test/motivation/all.css
+sass test/motivation/all.scss test/motivation/all.css
 
 for filename in $(ls ./test/*/*.less)
 do

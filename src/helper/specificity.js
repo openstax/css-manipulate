@@ -1,5 +1,5 @@
 const assert = require('assert')
-const {throwError} = require('./error')
+const {throwError, throwBug} = require('./error')
 
 module.exports = {
   // Returns a triple of numbers to match https://www.w3.org/TR/CSS21/cascade.html#specificity
@@ -31,7 +31,7 @@ module.exports = {
           // TODO: Verify that these do not count
           break
         default:
-          throwError(`BUG: Unsupported seletor item type = ${type}`, selectorItem)
+          throwBug(`Unsupported seletor item type = ${type}`, selectorItem)
       }
     })
 

@@ -5,6 +5,7 @@ const jsdom = require('jsdom')
 const jquery = require('jquery')
 const {SourceMapConsumer} = require('source-map')
 const converter = require('../converter')
+const {showWarning} = require('./error')
 
 function toRelative(outputPath, inputPath, contextPath='') {
   return path.relative(path.dirname(path.join(process.cwd(), outputPath)), path.join(process.cwd(), contextPath, inputPath))
@@ -44,11 +45,12 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
 
   let map
   if (cssSourceMappingURL) {
+    const sourceMapURLPath = path.join(path.dirname(cssPath), cssSourceMappingURL)
     try {
-      const mapJson = JSON.parse(fs.readFileSync(path.join(path.dirname(cssPath), cssSourceMappingURL)).toString())
+      const mapJson = JSON.parse(fs.readFileSync(sourceMapURLPath).toString())
       map = new SourceMapConsumer(mapJson)
     } catch (e) {
-      console.warn(`WARN: sourceMappingURL was found in ${cssPath} but could not open the file.`, e)
+      showWarning(`sourceMappingURL was found in ${cssPath} but could not open the file ${sourceMapURLPath}`, null, null)
     }
   }
 
@@ -82,7 +84,8 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
           // }
         }
       } else if (!showedNoSourceWarning) {
-        console.warn(`WARN: Could not find original source line for ${cssSourcePath}:${start.line}:${start.column}-${end.line}:${end.column}. Maybe a bug in SASS/LESS`)
+        showWarning('Could not find original source line. Maybe a bug in SASS/LESS', astNode, null)
+        // console.warn(`WARN: Could not find original source line for ${cssSourcePath}:${start.line}:${start.column}-${end.line}:${end.column}. Maybe a bug in SASS/LESS`)
         showedNoSourceWarning = true
       }
     }

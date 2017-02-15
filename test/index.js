@@ -67,7 +67,7 @@ function buildTest(cssFilename, htmlFilename) {
     const cssContents = fs.readFileSync(cssPath)
     const htmlContents = fs.readFileSync(htmlPath)
 
-    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath).then(({html: actualOutput, sourceMap}) => {
+    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, {} /*argv*/).then(({html: actualOutput, sourceMap}) => {
       if (fs.existsSync(htmlOutputPath)) {
         const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
 

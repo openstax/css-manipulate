@@ -21,7 +21,7 @@ class FunctionEvaluator {
 
 
 FUNCTIONS.push(new FunctionEvaluator('x-throw', ($, {$contextEl}, $currentEl, vals, mutationPromise, astNode) => {
-  throwError(`ERROR: "x-throw()" was called.`, vals[0])
+  throwError(`"x-throw()" was called.`, vals[0])
 } ))
 FUNCTIONS.push(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, vals, mutationPromise, astNode) => {
   // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
@@ -29,7 +29,7 @@ FUNCTIONS.push(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, vals,
   const ret = $contextEl.attr(vals.join(''))
   if (ret == null) {
     if (IS_STRICT_MODE) {
-      throwError(`ERROR: function resulted in null. This is disallowed in IS_STRICT_MODE`, vals[0]) // TODO: FOr better messages FunctionEvaluator should know the source line for the function, not just the array of vals
+      throwError(`function resulted in null. This is disallowed in IS_STRICT_MODE`, vals[0]) // TODO: FOr better messages FunctionEvaluator should know the source line for the function, not just the array of vals
     } else {
       return ''
     }
@@ -43,10 +43,10 @@ FUNCTIONS.push(new FunctionEvaluator('add', ($, {$contextEl}, $currentEl, vals, 
   const val1 = Number.parseInt(vals[0][0])
   const val2 = Number.parseInt(vals[1][0])
   if (Number.isNaN(val1)) {
-    throwError(`ERROR: First argument must be an integer but it was '${vals[0]}'`)
+    throwError(`First argument must be an integer but it was '${vals[0]}'`)
   }
   if (Number.isNaN(val2)) {
-    throwError(`ERROR: Second argument must be an integer but it was '${vals[1]}'`)
+    throwError(`Second argument must be an integer but it was '${vals[1]}'`)
   }
   return val1 + val2
 } ))
@@ -64,7 +64,7 @@ FUNCTIONS.push(new FunctionEvaluator('text-contents', ($, {$contextEl}, $current
   const ret = $contextEl[0].textContent // HACK! $contextEl.contents() (need to clone these if this is the case; and remove id's)
   if (ret == null) {
     if (IS_STRICT_MODE) {
-      throwError(`ERROR: function resulted in null. This is disallowed in IS_STRICT_MODE`, vals[0]) // TODO: FOr better messages FunctionEvaluator should know the source line for the function, not just the array of vals
+      throwError(`function resulted in null. This is disallowed in IS_STRICT_MODE`, vals[0]) // TODO: FOr better messages FunctionEvaluator should know the source line for the function, not just the array of vals
     } else {
       return ''
     }
@@ -146,7 +146,7 @@ FUNCTIONS.push(new FunctionEvaluator('target-context',
     if ('#' === selector[0]) {
       return {$contextEl: $(selector) }
     } else {
-      throwError(`ERROR: Only selectors starting with "#" are supported for now`, args[0], $currentEl)
+      throwError(`Only selectors starting with "#" are supported for now`, args[0], $currentEl)
       // return {$contextEl: $contextEl.find(selector) }
     }
 }))
@@ -168,7 +168,7 @@ FUNCTIONS.push(new FunctionEvaluator('ancestor-context',
 
     const $closestAncestor = $contextEl.closest(selector)
     if ($closestAncestor.length !== 1) {
-      throwError('ERROR: Could not find ancestor-context', args[0], $currentEl)
+      throwError('Could not find ancestor-context', args[0], $currentEl)
     }
     // If we are looking up an id then look up against the whole document
     return {$contextEl: $closestAncestor }
@@ -193,7 +193,7 @@ FUNCTIONS.push(new FunctionEvaluator('descendant-context',
     const $firstDescendant = $contextEl.find(selector)
     if ($firstDescendant.length !== 1) {
       debugger
-      throwError(`ERROR: Could not find unique descendant-context when evaluating "${selector}". Found ${$firstDescendant.length}`, args[0], $currentEl)
+      throwError(`Could not find unique descendant-context when evaluating "${selector}". Found ${$firstDescendant.length}`, args[0], $currentEl)
     }
     // If we are looking up an id then look up against the whole document
     return {$contextEl: $firstDescendant }
@@ -217,7 +217,7 @@ FUNCTIONS.push(new FunctionEvaluator('next-sibling-context',
 
     const $firstDescendant = $contextEl.next(selector)
     if ($firstDescendant.length !== 1) {
-      throwError(`ERROR: Could not find unique next-sibling-context. Found ${$firstDescendant.length}. Consider using ":first" in the argument`, args[0], $currentEl)
+      throwError(`Could not find unique next-sibling-context. Found ${$firstDescendant.length}. Consider using ":first" in the argument`, args[0], $currentEl)
     }
     // If we are looking up an id then look up against the whole document
     return {$contextEl: $firstDescendant }

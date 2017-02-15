@@ -4,7 +4,7 @@ const ProgressBar = require('progress')
 const chalk = require('chalk')
 const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
-const {throwError, showWarning, cssSnippetToString} = require('./helper/error')
+const {throwError, throwBug, showWarning, cssSnippetToString} = require('./helper/error')
 
 const sourceColor = chalk.dim
 
@@ -243,14 +243,14 @@ module.exports = class Applier {
         case 'Function':
           const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0]
           if (!theFunction) {
-            throwError(`BUG: Unsupported function named ${arg.name}`, arg)
+            throwBug(`Unsupported function named ${arg.name}`, arg)
           }
           const newContext = theFunction.preEvaluateChildren(this._$, context, $currentEl, this._evaluateVals.bind(this), arg.children.toArray(), $elPromise)
           const fnArgs = this._evaluateVals(newContext, $currentEl, $elPromise, arg.children.toArray())
           const mutationPromise = Promise.resolve('HACK_FOR_NOW')
           const fnReturnVal = theFunction.evaluateFunction(this._$, newContext, $currentEl, fnArgs, mutationPromise, arg /*AST node*/)
           if (!(typeof fnReturnVal === 'string' || typeof fnReturnVal === 'number' || (typeof fnReturnVal === 'object' && typeof fnReturnVal.appendTo === 'function'))) {
-            throwError(`BUG: CSS function should return a string or number. Found ${typeof fnReturnVal} while evaluating ${theFunction.getFunctionName()}.`, arg, $currentEl)
+            throwBug(`CSS function should return a string or number. Found ${typeof fnReturnVal} while evaluating ${theFunction.getFunctionName()}.`, arg, $currentEl)
           }
           ret[index].push(fnReturnVal) // Should not matter if this is context or newContext
           break
@@ -301,7 +301,7 @@ module.exports = class Applier {
           try {
             return ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $elPromise, vals, value)
           } catch (e) {
-            throwError(`BUG: evaluating ${ruleDeclarationPlugin.getRuleName()}`, value, $currentEl, e)
+            throwBug(`evaluating ${ruleDeclarationPlugin.getRuleName()}`, value, $currentEl, e)
           }
         } else {
           return Promise.resolve('NO_RULES_TO_EVALUATE')
@@ -356,7 +356,7 @@ module.exports = class Applier {
             break
           default:
             console.log(sel)
-            throwError(`BUG: Unmatched nameType=${name.type}`, name)
+            throwBug(`Unmatched nameType=${name.type}`, name)
         }
         let val
         if (value) {
@@ -366,7 +366,7 @@ module.exports = class Applier {
               break
             default:
               console.log(sel)
-              throwError(`BUG: Unmatched valueType=${value.type}`, value)
+              throwBug(`Unmatched valueType=${value.type}`, value)
           }
           return `[${nam}${sel.operator}${val}]`
         } else {
@@ -417,7 +417,7 @@ module.exports = class Applier {
         }
       default:
         console.log(sel);
-        throwError(`BUG: Unsupported ${sel.name}(${sel.type})`, sel)
+        throwBug(`Unsupported ${sel.name}(${sel.type})`, sel)
     }
   }
 
@@ -493,7 +493,7 @@ module.exports = class Applier {
 
                 // $newElPromise.then(($newEl) => {
                 //   if(!$newEl.parents(':last').is('html')) {
-                //     throwError(`BUG: provided element is not attached to the DOM`, null, $newEl)
+                //     throwBug(`provided element is not attached to the DOM`, null, $newEl)
                 //   }
                 //   return $newEl
                 // })

@@ -1,5 +1,5 @@
 const assert = require('assert')
-const {throwError} = require('./error')
+const {throwError, throwBug} = require('./error')
 
 // Parses a rule and caches the pseudoelements at the end of it for lookup later
 module.exports = class RuleWithPseudos {
@@ -11,15 +11,15 @@ module.exports = class RuleWithPseudos {
     this._pseudos = pseudoElements.map((pseudoElement) => {
       const args = pseudoElement.children ? pseudoElement.children.toArray() : [] // handle no-arg case
       // if (args.length >=1 && args[0].type !== 'Number') {
-      //   throwError(`BUG: for now, the 1st arg to a pseudoelement selector must be empty or a number. It was a ${args[0].type}`, args[0])
+      //   throwBug(`for now, the 1st arg to a pseudoelement selector must be empty or a number. It was a ${args[0].type}`, args[0])
       // } else if (args.length === 2) {
-      //   throwError(`ERROR: You must specify a comma when specifying a second argument`, args[1])
+      //   throwError(`You must specify a comma when specifying a second argument`, args[1])
       // } else if (args.length === 3) {
       //   if (args[1].type !== 'Operator' || args[1].value !== ',') {
-      //     throwError(`ERROR: You must specify a comma when specifying a second argument`, args[1])
+      //     throwError(`You must specify a comma when specifying a second argument`, args[1])
       //   }
       // } else if (args.length >= 4) {
-      //   throwError(`BUG: Only 2 arguments are supported for now`, args[3])
+      //   throwBug(`Only 2 arguments are supported for now`, args[3])
       // }
       // css-tree now combines the arguments to a pseudoelement into a single Raw value (ie `1, '.selector'`)
       // so we need to split it here
