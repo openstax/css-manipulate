@@ -27,6 +27,8 @@ function constructSelector(el) {
     return 'NULL'
   } else if (el.tagName.toLowerCase(el) === 'html') {
     return 'html'
+  } else if (el.tagName.toLowerCase(el) === 'body') {
+    return 'body'
   } else if (el.hasAttribute('id')) {
     return `${el.tagName.toLowerCase()}#${el.getAttribute('id')}`
   } else if (el.className) {
@@ -34,7 +36,7 @@ function constructSelector(el) {
   } else if (el.hasAttribute('data-type')) {
     return `${constructSelector(el.parentElement)} > ${el.tagName.toLowerCase()}[data-type="${el.getAttribute('data-type')}"]`
   } else {
-    return `${el.tagName.toLowerCase()}`
+    return `${constructSelector(el.parentElement)} > ${el.tagName.toLowerCase()}`
   }
 }
 
@@ -52,7 +54,7 @@ function createMessage(message, cssSnippet, $el) {
           _hasBeenWarned = true
         }
         const selector = constructSelector($el[0])
-        return `${_htmlSourcePath} {${selector}}`
+        return `${_htmlSourcePath}:{${selector}}`
       }
     }
     if (locationInfo) {
@@ -62,7 +64,8 @@ function createMessage(message, cssSnippet, $el) {
     } else if ($el[0].__cssLocation) {
       return `  ${cssInfo}: ${message} (${cssSnippetToString($el[0].__cssLocation)})`
     } else {
-      return `  ${cssInfo}: ${message} (${$el[0].tagName.toLowerCase()})`
+      const selector = constructSelector($el[0])
+      return `  ${cssInfo}: ${message} (${_htmlSourcePath}:{${selector}})`
     }
   } else {
     return `${cssInfo}: ${message}`
