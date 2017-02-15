@@ -66,17 +66,22 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
       let {source: newStartPath, line: newStartLine, column: newStartColumn} = map.originalPositionFor(start)
       // const {source: newEndPath, line: newEndLine, column: newEndColumn} = map.originalPositionFor(end)
       // assert.equal(newStartPath, newEndPath)
-      newStartPath = toRelative(htmlOutputPath, newStartPath, path.dirname(cssSourcePath))
-      astNode.loc = {
-        source: newStartPath,
-        start: {
-          line: newStartLine,
-          column: newStartColumn
-        },
-        // end: {
-        //   line: newEndLine,
-        //   column: newEndColumn
-        // }
+
+      if (newStartPath) {
+        newStartPath = toRelative(htmlOutputPath, newStartPath, path.dirname(cssSourcePath))
+        astNode.loc = {
+          source: newStartPath,
+          start: {
+            line: newStartLine,
+            column: newStartColumn
+          },
+          // end: {
+          //   line: newEndLine,
+          //   column: newEndColumn
+          // }
+        }
+      } else {
+        console.warn(`WARN: Could not find original source line for ${cssSourcePath}:${start.line}:${start.column}-${end.line}:${end.column}. Maybe a bug in SASS/LESS`)
       }
     }
     let hasRecursed = false

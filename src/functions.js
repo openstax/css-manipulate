@@ -72,6 +72,9 @@ FUNCTIONS.push(new FunctionEvaluator('text-contents', ($, {$contextEl}, $current
   return ret
 } ))
 FUNCTIONS.push(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, vals, mutationPromise, astNode) => {
+  if (vals.length !== 1) {
+    throwError(`move-here(...) only accepts 1 argument (a string selector) but was given ${vals.length}`, astNode, $contextEl)
+  }
   assert.equal(vals.length, 1)
   const selector = vals[0].join('')
   const ret = $contextEl.find(selector)
