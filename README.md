@@ -13,6 +13,7 @@ The [Language Reference Page](./docs.md) contains a list of all selectors, rules
   - [Exactly 1 Pass](#exactly-1-pass)
     - [Parallelizing](#parallelizing)
   - [Approximate Sourcemaps](#approximate-sourcemaps)
+- [Screencasts](#screencasts)
 - [Install Notes](#install-notes)
 - [Debugging](#debugging)
 - [TODO](#todo)
@@ -141,6 +142,16 @@ There are 3 phases (annotate, build a work tree, manipulate):
 - [ ] ensure empty elements are not created (no children or attributes have been added)
 - [ ] support a `--dry-run` which renders the work tree
   - optionally specify a selector to only show elements you are interested in
+
+
+# Screencasts
+
+Example of converting an entire book:
+
+[![](https://asciinema.org/a/9a274xl7njm0hwfc8kbi9tnd2.png)](https://asciinema.org/a/9a274xl7njm0hwfc8kbi9tnd2)
+
+Log messages and error examples: [![](https://asciinema.org/a/1icz3mdxqyhnxanytkgsr5cs5.png)](https://asciinema.org/a/1icz3mdxqyhnxanytkgsr5cs5)
+
 
 
 # Install Notes
