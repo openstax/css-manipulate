@@ -4,7 +4,7 @@ const ProgressBar = require('progress')
 const chalk = require('chalk')
 const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
-const {throwError, throwBug, showWarning, cssSnippetToString} = require('./helper/error')
+const {throwError, throwBug, showWarning, cssSnippetToString, htmlLocation} = require('./helper/error')
 
 const sourceColor = chalk.dim
 
@@ -103,8 +103,7 @@ module.exports = class Applier {
     // Cache matched nodes because selectors are duplicated in the CSS
     const selectorCache = {}
 
-    // removed `${chalk.green("':selector'")}` from the progress bar because lines were getting too long
-    const bar = new ProgressBar(`${chalk.bold('Matching')} :percent ${sourceColor(':etas')} ${sourceColor(':cssLocation')}`, { total: total})
+    const bar = new ProgressBar(`${chalk.bold('Matching')} :percent ${sourceColor(':etas')} ${chalk.green("':selector'")} ${sourceColor(':sourceLocation')}`, { total: total})
 
     // This code is not css-ish because it does not walk the DOM
     ast.children.each((rule) => {
@@ -116,12 +115,13 @@ module.exports = class Applier {
       rule.selector.children.each((selector) => {
         assert.equal(selector.type, 'Selector')
         const browserSelector = this.toBrowserSelector(selector)
-        bar.tick({selector: browserSelector, cssLocation: cssSnippetToString(selector)})
+        bar.tick({selector: browserSelector, sourceLocation: this._options.verbose ? cssSnippetToString(selector) : ' '})
 
         selectorCache[browserSelector] = selectorCache[browserSelector] || this._$(browserSelector)
         let $matchedNodes = selectorCache[browserSelector]
 
-        if (this._options.verbose) {
+        // TODO: remove me when we have code coverage
+        if (this._options.debug) {
           console.log(` Matched ${$matchedNodes.length}`);
           // bar.interrupt(`Matched ${$matchedNodes.length}`);
         }
@@ -398,6 +398,13 @@ module.exports = class Applier {
           case 'target': // this is new
             return ''
           // keep these
+          case 'not-has': // This was added because SASS has a bug and silently drops `:not(:has(foo))`. A more-hacky way would be to write `:not(:not(SASS_HACK):has(foo))`
+            assert(sel.children)
+            const children = sel.children.map((child) => {
+              assert.equal(child.type, 'SelectorList')
+              return child.children.map(this.toBrowserSelector.bind(this)).join(', ')
+            })
+            return `:not(:has(${children}))`
           case 'has':
           case 'last-child':
           case 'not':
@@ -442,7 +449,7 @@ module.exports = class Applier {
     })
 
 
-    const bar = new ProgressBar(`${chalk.bold('Converting')} :percent ${sourceColor(':etas')} [${chalk.green(':bar')}] #:current `, {
+    const bar = new ProgressBar(`${chalk.bold('Converting')} :percent ${sourceColor(':etas')} [${chalk.green(':bar')}] #:current ${sourceColor(':sourceLocation')}`, {
       complete: '=',
       incomplete: ' ',
       width: 40,
@@ -450,7 +457,9 @@ module.exports = class Applier {
     })
     const allPromises = []
     walkDOMElementsInOrder(this._document.documentElement, (el) => {
-      bar.tick()
+      // Do not bother showing the source location for elements that did not match anything
+      bar.tick({ sourceLocation: (el.MATCHED_RULES && this._options.verbose) ? htmlLocation(el) : '' })
+
       const matches = el.MATCHED_RULES || []
       el.MATCHED_RULES = null
       delete el.MATCHED_RULES // Free up some memory
