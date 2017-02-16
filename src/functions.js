@@ -22,6 +22,18 @@ class FunctionEvaluator {
 }
 
 
+// It is expensive to call $el.find() and friends. Since the DOM does not change, just remember what was returned
+// This occurs frequently for making counters
+function memoize(el, key, value, fn) {
+  el[key] = el[key] || {}
+  if (typeof el[key][value] === 'undefined') {
+    el[key][value] = fn()
+  // } else {
+  //   console.log(`SAVING TIME AND MONEY WITH MEMOIZATION!!!!!!!!!!!!!!!!!!! ${key} ${value}`);
+  }
+  return el[key][value]
+}
+
 
 FUNCTIONS.push(new FunctionEvaluator('x-throw', ($, {$contextEl}, $currentEl, vals, mutationPromise, astNode) => {
   throwError(`"x-throw()" was called.`, vals[0])
@@ -90,27 +102,43 @@ FUNCTIONS.push(new FunctionEvaluator('count-of-type', ($, {$contextEl}, $current
   assert(Array.isArray(vals[0]))
   const selector = vals[0].join(' ')  // vals[0] = ['li'] (notice vals is a 2-Dimensional array. If each FunctionEvaluator had a .join() method then this function could be simpler and more intuitive to add more features)
   assert.equal(typeof selector, 'string')
-  const $matches = $contextEl.find(selector)
-  const $closest = $currentEl.closest(selector)
 
-  let count = 0
-  let isDoneCounting = false
-  $matches.each((index, el) => {
-    if (!isDoneCounting) {
-      if ($closest.length > 0 && el === $closest[0]) {
-        isDoneCounting = true
+  // TODO: Separately memoize the $contextEl.find(selector) code
+  // Check if we have already memoized this query
+  return memoize($currentEl[0], '_COUNT_OF_TYPE', selector, () => {
+    // const $matches = $contextEl.find(selector)
+    // const $closest = $currentEl.closest(selector)
+    const $matches = memoize($contextEl[0], '_find', selector, () => {
+      return $contextEl.find(selector)
+    })
+    const $closest = memoize($currentEl[0], '_closest', selector, () => {
+      return $currentEl.closest(selector)
+    })
+
+    let count = 0
+    let isDoneCounting = false
+    $matches.each((index, el) => {
+      if (!isDoneCounting) {
+        if ($closest.length > 0 && el === $closest[0]) {
+          isDoneCounting = true
+        }
+        count += 1
       }
-      count += 1
-    }
+    })
+    return count
   })
-  return count
+
 }))
 FUNCTIONS.push(new FunctionEvaluator('count-all-of-type', ($, {$contextEl}, $currentEl, vals, mutationPromise, astNode) => {
   assert.equal(vals.length, 1)
   assert(Array.isArray(vals[0]))
   const selector = vals[0].join(' ')  // vals[0] = ['li'] (notice vals is a 2-Dimensional array. If each FunctionEvaluator had a .join() method then this function could be simpler and more intuitive to add more features)
   assert.equal(typeof selector, 'string')
-  const $matches = $contextEl.find(selector)
+
+  const $matches = memoize($contextEl[0], '_find', selector, () => {
+    const $matches = $contextEl.find(selector)
+    return $matches
+  })
   return $matches.length
 }))
 FUNCTIONS.push(new FunctionEvaluator('parent-context',
@@ -190,7 +218,10 @@ FUNCTIONS.push(new FunctionEvaluator('descendant-context',
     const {$contextEl} = context
     const selector = evaluator(context, $currentEl, mutationPromise, [args[0]]).join('')
 
-    const $firstDescendant = $contextEl.find(selector)
+    const $firstDescendant = memoize($contextEl[0], '_find', selector, () => {
+      const $firstDescendant = $contextEl.find(selector)
+      return $firstDescendant
+    })
     if ($firstDescendant.length !== 1) {
       debugger
       throwError(`Could not find unique descendant-context when evaluating "${selector}". Found ${$firstDescendant.length}`, args[0], $currentEl)
