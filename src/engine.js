@@ -401,10 +401,10 @@ module.exports = class Applier {
           case 'not-has': // This was added because SASS has a bug and silently drops `:not(:has(foo))`. A more-hacky way would be to write `:not(:not(SASS_HACK):has(foo))`
             assert(sel.children)
             const children = sel.children.map((child) => {
-              assert.equal(child.type, 'SelectorList')
-              return child.children.map(this.toBrowserSelector.bind(this)).join(', ')
+              assert.equal(child.type, 'Raw')
+              return child.value
             })
-            return `:not(:has(${children}))`
+            return `:not(:has(${children.join(',')}))`
           case 'has':
           case 'last-child':
           case 'not':

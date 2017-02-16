@@ -8,7 +8,8 @@ These all test if something is true about the current node.
   - `:has(> .selector .foo)`
   - `:contains(text)`
   - `:lang()`
-  - `:not(div > p)`
+  - `:not(div > p)` (**Note:** Sass will silently fail if you write `:not(:has(foo))`)
+  - `:not-has(> .selector .foo)` (the same as `:not(:has(...))` except that SASS will not silently fail)
 - `:target(href, '.match > .selector, .foo')`
 
 

@@ -1,2 +1,2 @@
-div:not(:has(kittens))::before { content: 'I wish there were some kittens.'; }
+div:not-has(kittens)::before { content: 'I wish there were some kittens.'; }
 div:has(kittens)::before { content: 'Ooh, look at those...'; }
