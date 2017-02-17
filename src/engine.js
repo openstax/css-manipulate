@@ -2,6 +2,7 @@ const assert = require('assert')
 const csstree = require('css-tree')
 const ProgressBar = require('progress')
 const chalk = require('chalk')
+const jqueryXmlns = require('./helper/jquery.xmlns')
 const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
 const {throwError, throwBug, showWarning, cssSnippetToString, htmlLocation} = require('./helper/error')
@@ -22,6 +23,9 @@ function walkDOMElementsInOrder(el, fn) {
 
 module.exports = class Applier {
   constructor(document, $, options) {
+    // Add the jquery.xmlns plugin
+    // jqueryXmlns(document, $)
+
     this._pseudoElementPlugins = []
     this._ruleDeclarationPlugins = []
     this._functionPlugins = []

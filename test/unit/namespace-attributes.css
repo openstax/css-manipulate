@@ -1,0 +1,4 @@
+@namespace epub url('http://www.idpf.org/2007/ops');
+[epub|type] {
+  content: "kittens";
+}

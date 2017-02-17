@@ -31,6 +31,7 @@ const UNIT_FILES_TO_TEST = [
   './unit/x-log',
   './unit/display-none',
   './unit/has',
+  './unit/namespace-attributes',
 
   // 'outside',
 
