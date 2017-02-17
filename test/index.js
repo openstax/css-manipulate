@@ -11,7 +11,6 @@ const {WRITE_TEST_RESULTS} = process.env
 
 
 const UNIT_FILES_TO_TEST = [
-  // './apphysics',
   './unit/before-after',
   './unit/selectors',
   './unit/simple-selectors',
@@ -32,8 +31,6 @@ const UNIT_FILES_TO_TEST = [
   './unit/display-none',
   './unit/has',
   './unit/namespace-attributes',
-
-  // 'outside',
 
   './example/exercise-numbering',
   './example/exercise-numbering-advanced',
@@ -109,6 +106,7 @@ function buildErrorTests() {
   const cssPath = `test/${ERROR_TEST_FILENAME}.css`
   const errorRules = fs.readFileSync(cssPath).toString().split('\n')
   const htmlPath = cssPath.replace('.css', '.in.html')
+  const htmlOutputPath = cssPath.replace('.css', '.out.html')
   const htmlContents = fs.readFileSync(htmlPath)
 
   errorRules.forEach((cssContents) => {
@@ -118,18 +116,28 @@ function buildErrorTests() {
     }
     test(`Errors while trying to evaluate ${cssContents}`, (t) => {
       try {
-        convertNodeJS(cssContents, htmlContents, cssPath, htmlPath)
+        convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, {} /*argv*/)
         .then(() => {
           t.fail('Expected to fail but succeeded')
         })
         .catch((e) => {
           // TODO: Test if the Error is useful for the end user or if it is just an assertion error
           // If the error occurred while manipulating the DOM it will show up here (in a Promise rejection)
-          t.pass(e)
+          if (e instanceof TypeError) {
+            // checking for path.relative was causing an TypeError which caused this test to not fail
+            t.fail(e)
+          } else {
+            t.pass(e)
+          }
         })
       } catch (e) {
         // If the error was spotted before manipulating the DOM then it will show up here
-        t.pass(e)
+        if (e instanceof TypeError) {
+          // checking for path.relative was causing an TypeError which caused this test to not fail
+          t.fail(e)
+        } else {
+          t.pass(e)
+        }
       }
     })
 

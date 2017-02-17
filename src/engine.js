@@ -23,8 +23,9 @@ function walkDOMElementsInOrder(el, fn) {
 
 module.exports = class Applier {
   constructor(document, $, options) {
-    // Add the jquery.xmlns plugin
-    // jqueryXmlns(document, $)
+    // Add the jquery.xmlns plugin so we can select on attributes like epub:type
+    jqueryXmlns(document, $)
+    // $.xmlns.epub = 'http://www.idpf.org/2007/ops'
 
     this._pseudoElementPlugins = []
     this._ruleDeclarationPlugins = []
@@ -95,6 +96,33 @@ module.exports = class Applier {
     ast.children.each((rule) => {
       // if not a rule then return
       if (rule.type === 'Atrule') {
+        switch (rule.name) {
+          case 'namespace':
+            const args = rule.expression.children.toArray()
+            assert.equal(args.length, 3)
+            assert.equal(args[0].type, 'Identifier')
+            assert.equal(args[1].type, 'Space')
+
+            const nsPrefix = args[0].name
+            let ns
+            switch (args[2].type) {
+              case 'Url':
+                assert.equal(args[2].value.type, 'String')
+                ns = args[2].value.value
+                break
+              case 'String':
+                ns = args[2].value
+                break
+              default:
+                throwError('Malformed namespace declaration', rule)
+            }
+            ns = ns.substring(1, ns.length - 1) // Strip the quotes off the URL
+            this._$.xmlns[nsPrefix] = ns
+            break
+          default:
+            showWarning('Unrecognized at-rule. Skipping', rule)
+            return
+        }
         return
       }
       assert.equal(rule.type, 'Rule')
@@ -239,7 +267,6 @@ module.exports = class Applier {
           ret[index] = []
           break
         case 'Raw': // The value of this is something like `href, '.foo'`
-          debugger
           // // Make it Look like multitple args
           // const rawArgs = arg.value.split(', ')
           // // I'm not really sure about this if test

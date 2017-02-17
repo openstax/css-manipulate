@@ -1,4 +1,6 @@
+@namespace epub 'http://www.idpf.org/2007/ops'; /* Just checking that we can set it without a url(...) */
 @namespace epub url('http://www.idpf.org/2007/ops');
-[epub|type] {
+
+[epub|type="glossary"] {
   content: "kittens";
 }
