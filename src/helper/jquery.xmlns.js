@@ -307,7 +307,7 @@ var isXML = function(elem){
 //  Modify the ATTR match regexp to extract a namespace selector.
 //  This is basically ([namespace|])(attrname)(op)(quote)(pattern)(quote)
 //
-setExprMatchRegex("ATTR",/\[\s*((?:((?:[\w\u00c0-\uFFFF\*_-]*\|)?)((?:[\w\u00c0-\uFFFF_-]|\\.)+)))\s*(?:(\S?=)\s*(['"]*)(.*?)\5|)\s*\]/);
+setExprMatchRegex("ATTR",/^\[\s*((?:((?:[\w\u00c0-\uFFFF\*_-]*\|)?)((?:[\w\u00c0-\uFFFF_-]|\\.)+)))\s*(?:(\S?=)\s*(['"]*)(.*?)\5|)\s*\]/);
 
 
 //  Modify the ATTR preFilter function to account for new regexp match groups,

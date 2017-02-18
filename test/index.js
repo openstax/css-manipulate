@@ -11,6 +11,9 @@ const {WRITE_TEST_RESULTS} = process.env
 
 
 const UNIT_FILES_TO_TEST = [
+  './example/exercise-numbering',
+  './example/exercise-numbering-advanced',
+  './example/glossary',
   './unit/before-after',
   './unit/selectors',
   './unit/simple-selectors',
@@ -32,9 +35,6 @@ const UNIT_FILES_TO_TEST = [
   './unit/has',
   './unit/namespace-attributes',
 
-  './example/exercise-numbering',
-  './example/exercise-numbering-advanced',
-  './example/glossary',
 ]
 
 const MOTIVATION_INPUT_HTML_PATH = `./motivation/_input.html`
@@ -55,13 +55,14 @@ const MOTIVATION_FILES_TO_TEST = [
 const ERROR_TEST_FILENAME = '_errors'
 
 
-function coverageDataToLcov(coverageData) {
+function coverageDataToLcov(htmlOutputPath, coverageData) {
   const lines = []
 
   for (const filePath in coverageData) {
+    const absoluteFilePath = path.resolve(path.join(path.dirname(htmlOutputPath), filePath))
     const countData = coverageData[filePath]
     // SF:./rulesets/output/biology.css
-    lines.push(`SF:${filePath}`)
+    lines.push(`SF:${absoluteFilePath}`)
     for (const key in countData) {
       const {count, start, end} = countData[key]
       lines.push(`DA:${start.line},${count}`)
@@ -89,7 +90,7 @@ function buildTest(cssFilename, htmlFilename) {
         const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
 
         fs.writeFileSync(htmlOutputSourceMapPath, sourceMap)
-        fs.writeFileSync(htmlOutputCoveragePath, coverageDataToLcov(coverageData))
+        fs.writeFileSync(htmlOutputCoveragePath, coverageDataToLcov(htmlOutputPath, coverageData))
         if (actualOutput.trim() != expectedOutput.trim()) {
           if (WRITE_TEST_RESULTS === 'true') {
             fs.writeFileSync(htmlOutputPath, actualOutput)

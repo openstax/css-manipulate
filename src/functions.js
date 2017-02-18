@@ -223,7 +223,6 @@ FUNCTIONS.push(new FunctionEvaluator('descendant-context',
       return $firstDescendant
     })
     if ($firstDescendant.length !== 1) {
-      debugger
       throwError(`Could not find unique descendant-context when evaluating "${selector}". Found ${$firstDescendant.length}`, args[0], $currentEl)
     }
     // If we are looking up an id then look up against the whole document

@@ -71,7 +71,8 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
       // assert.equal(newStartPath, newEndPath)
 
       if (newStartPath) {
-        newStartPath = toRelative(htmlOutputPath, newStartPath, path.dirname(cssSourcePath))
+        // newStartPath = toRelative(htmlOutputPath, newStartPath, path.dirname(cssSourcePath))
+        // newStartPath = path.join(path.dirname(cssPath), newStartPath)
         astNode.loc = {
           source: newStartPath,
           start: {
