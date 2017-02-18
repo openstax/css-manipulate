@@ -67,13 +67,12 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
     if (map && astNode.loc) {
       const {source: cssSourcePath, start, end} = astNode.loc
       let {source: newStartPath, line: newStartLine, column: newStartColumn} = map.originalPositionFor(start)
+      // Unfortunately, SASS does not provide this end information properly in its source maps
       // const {source: newEndPath, line: newEndLine, column: newEndColumn} = map.originalPositionFor(end)
       // assert.equal(newStartPath, newEndPath)
 
       if (newStartPath) {
-        // newStartPath = toRelative(htmlOutputPath, newStartPath, path.dirname(cssSourcePath))
-        // newStartPath = path.relative(path.dirname(htmlOutputPath), path.join(path.dirname(cssPath), path.join(path.dirname(cssSourcePath), newStartPath)))
-        // newStartPath = path.join(path.dirname(htmlOutputPath), path.dirname(cssSourcePath), newStartPath)
+        // Make sure the path is relative to the original CSS path
         newStartPath = path.join(path.dirname(cssSourcePath), newStartPath)
         astNode.loc = {
           source: newStartPath,
