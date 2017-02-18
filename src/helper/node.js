@@ -18,7 +18,14 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
   const sourceMapPath = `${htmlOutputPath}.map`
   const sourceMapFileName = path.basename(sourceMapPath) // This is used for the value of the sourceMappingURL
 
-  const document = jsdom.jsdom(htmlContents, {parsingMode: 'xml'})
+  // If the CSS contains namespace declarations then parse the html file as XML (no HTML source line info though)
+  if (/@namespace/.test(cssContents.toString()) || /xmlns/.test(htmlContents.toString())) {
+    showWarning('Setting to XML Parsing mode')
+    jsdomArgs = {parsingMode: 'xml'}
+  } else {
+    jsdomArgs = {}
+  }
+  const document = jsdom.jsdom(htmlContents, jsdomArgs)
   const $ = jquery(document.defaultView)
   function htmlSourceLookup(node) {
     // See https://github.com/tmpvar/jsdom/pull/1316 to get the line/column info
@@ -85,9 +92,11 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
           //   column: newEndColumn
           // }
         }
-      } else if (!showedNoSourceWarning) {
-        showWarning('Could not find original source line via sourcemap file. Maybe a bug in SASS/LESS?', astNode, null)
-        showedNoSourceWarning = true
+      } else if (!newStartPath) {
+        if (!showedNoSourceWarning) {
+          showWarning('Could not find original source line via sourcemap file. Maybe a bug in SASS/LESS?', astNode, null)
+          showedNoSourceWarning = true
+        }
       }
     }
     let hasRecursed = false
@@ -114,7 +123,7 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
   }
 
   // use cssPathRelativeToSourceMapFile because that is what is used for the sourceMap doc
-  return converter(document, $, cssContents, cssPathRelativeToSourceMapFile /*cssPath*/, htmlPath, console, htmlSourceLookup, htmlSourcePathRelativeToSourceMapFile, sourceMapFileName, rewriteSourceMapsFn, options)
+  return converter(document, $, cssContents, /*cssPathRelativeToSourceMapFile*/ cssPath, htmlPath, console, htmlSourceLookup, htmlSourcePathRelativeToSourceMapFile, sourceMapFileName, rewriteSourceMapsFn, options)
 }
 
 

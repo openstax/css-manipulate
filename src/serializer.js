@@ -124,9 +124,11 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, 
     // cover the HTML node
     if (typeof  node.__COVERAGE_COUNT !== 'undefined') {
       const locationInfo = htmlSourceLookup(node)
-      if (locationInfo && locationInfo.start) {
-        const {source, start, end} = locationInfo
-        addCoverage(source, node.__COVERAGE_COUNT, start, end)
+      if (locationInfo) {
+        const {line, col} = locationInfo
+        if (line) { // lines are 1-based so they should always be truthy
+          addCoverage(htmlSourcePath, node.__COVERAGE_COUNT, {line: line, column: col}, null)
+        }
       }
     }
 

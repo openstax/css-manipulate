@@ -50,11 +50,20 @@ function constructSelector(el) {
 
 // Generate pretty messages with source lines for debugging
 function createMessage(message, cssSnippet, $el) {
-  let cssInfo = cssSnippetToString(cssSnippet)
-  if ($el && $el[0]) {
-    return `  ${sourceColor(cssInfo)} ${message} (${sourceColor(htmlLocation($el[0]))})`
+  if (typeof cssSnippet === 'undefined') {
+    if ($el && $el[0]) {
+      return `${message} (${sourceColor(htmlLocation($el[0]))})`
+    } else {
+      return `${message}`
+    }
+
   } else {
-    return `  ${sourceColor(cssInfo)} ${message}`
+    let cssInfo = cssSnippetToString(cssSnippet)
+    if ($el && $el[0]) {
+      return `  ${sourceColor(cssInfo)} ${message} (${sourceColor(htmlLocation($el[0]))})`
+    } else {
+      return `  ${sourceColor(cssInfo)} ${message}`
+    }
   }
 }
 

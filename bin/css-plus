@@ -15,13 +15,34 @@ if (!htmlPath) { console.error('Missing HTML input file'); process.exit(1) }
 if (!htmlOutputPath) { console.error('Missing HTML output file'); process.exit(1) }
 
 
+const htmlOutputLcovPath = `${htmlOutputPath}.lcov`
 const htmlOutputSourceMapPath = `${htmlOutputPath}.map`
 const htmlOutputSourceMapFilename = path.basename(htmlOutputSourceMapPath)
 const cssContents = fs.readFileSync(cssPath)
 const htmlContents = fs.readFileSync(htmlPath)
 
 
-convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, argv).then(({html: actualOutput, sourceMap}) => {
+function coverageDataToLcov(htmlOutputPath, coverageData) {
+  const lines = []
+
+  for (const filePath in coverageData) {
+    const absoluteFilePath = path.resolve(filePath)
+    const countData = coverageData[filePath]
+    // SF:./rulesets/output/biology.css
+    lines.push(`SF:${absoluteFilePath}`)
+    for (const key in countData) {
+      const {count, start, end} = countData[key]
+      lines.push(`DA:${start.line},${count}`)
+    }
+    lines.push(`end_of_record`)
+  }
+
+  return lines.join('\n')
+}
+
+
+convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, argv).then(({html: actualOutput, sourceMap, coverageData}) => {
   fs.writeFileSync(htmlOutputPath, actualOutput)
   fs.writeFileSync(htmlOutputSourceMapPath, sourceMap)
+  fs.writeFileSync(htmlOutputLcovPath, coverageDataToLcov(htmlOutputPath, coverageData))
 })

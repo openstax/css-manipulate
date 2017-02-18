@@ -59,7 +59,7 @@ function coverageDataToLcov(htmlOutputPath, coverageData) {
   const lines = []
 
   for (const filePath in coverageData) {
-    const absoluteFilePath = path.resolve(path.join(path.dirname(htmlOutputPath), filePath))
+    const absoluteFilePath = path.resolve(filePath)
     const countData = coverageData[filePath]
     // SF:./rulesets/output/biology.css
     lines.push(`SF:${absoluteFilePath}`)
