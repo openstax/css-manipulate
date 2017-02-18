@@ -12,6 +12,7 @@ The [Language Reference Page](./docs.md) contains a list of all selectors, rules
   - [HTML SourceMaps](#html-sourcemaps)
   - [Exactly 1 Pass](#exactly-1-pass)
     - [Parallelizing](#parallelizing)
+  - [CSS and HTML Coverage](#css-and-html-coverage)
   - [Approximate Sourcemaps](#approximate-sourcemaps)
 - [Screencasts](#screencasts)
 - [Install Notes](#install-notes)
@@ -105,6 +106,14 @@ No more writing the intermediate steps needed to get to the desired result (ie s
 
 Since each element does not depend on the state of other elements (and there is only 1 pass), the conversion can be parallelized, further reducing the conversion time.
 
+
+## CSS and HTML Coverage
+
+`css-plus` generates an `${OUTPUT_HTML}.lcov` file in addition to the `${OUTPUT_HTML}.map` file which contains all the CSS covered and the HTML elements that were matched during the conversion.
+
+See the [codecov page](https://codecov.io/gh/philschatz/css-plus#tree) for examples.
+
+
 ## Approximate SourceMaps
 
 This is just a script that takes 2 HTML files (raw and baked HTML) and builds a sourcemap file by looking at the id attributes of elements. It is not precise but may be "good enough" to use in the short term for things like:
@@ -131,7 +140,8 @@ node ./sourcemap-approximator.js ${SOURCE_FILE} ${GENERATED_FILE}
 There are 3 phases (annotate, build a work tree, manipulate):
 
 1. The entire HTML DOM is annotated with rulesets that match each element
-1. The DOM is traversed in-order. Selectors/declarations that require looking at DOM nodes are evaluated at this point and any manipulations that need to happen are added to a work-tree (as Closures/Promises)
+1. The DOM is traversed (in-order but that does not matter).
+  - Selectors/declarations that require looking at DOM nodes are evaluated at this point and any manipulations that need to happen are added to a work-tree (as Closures/Promises)
   - [ ] elements that will move are marked to see if 2 rules are moving the same element (aka Mark-Sweep in Garbage-Collection terms)
 1. The DOM is manipulated by evaluating the closures in the work-tree
 
@@ -172,14 +182,23 @@ mv ../PATH_TO_CHECKED_OUT_jsdom ./node_modules
 
 # Running from the commandline
 
-Until this becomes a real package on npm you can do the following:
+You can install this globally or as a package in an existing project.
+
+To install and run globally, run `npm install --global css-plus`
+
+Then you can run:
 
 ```sh
-./bin/css-plus --css ${INPUT_CSS} --html ${INPUT_HTML} --output ${OUTPUT_HTML}
+css-plus --css ${INPUT_CSS} --html ${INPUT_HTML} --output ${OUTPUT_HTML}
 
 # Or if you are lazy:
-./bin/css-plus ${INPUT_CSS} ${INPUT_HTML} ${OUTPUT_HTML}
+css-plus ${INPUT_CSS} ${INPUT_HTML} ${OUTPUT_HTML}
 ```
+
+To install locally and run, type `npm install --save css-plus`
+
+Then you can run the previous examples but replace `css-plus` with `$(npm bin)/css-plus`
+
 
 ### Sourcemap Approximator
 
@@ -232,3 +251,4 @@ To test the commandline:
   - This way a "Homework" section will not be created if there are no Homework problems to show
 - [x] Show colorful error messages
 - [x] Show colorful warnings
+- [x] Support attributes with a namespace (like `<div epub:type="glossary">` in [EPUB3 epub:type](http://www.idpf.org/epub/30/spec/epub30-contentdocs.html#sec-xhtml-content-type-attribute) )

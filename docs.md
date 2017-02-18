@@ -1,5 +1,6 @@
 # Selectors
 
+
 ## Pseudo-Class
 
 These all test if something is true about the current node.
@@ -10,7 +11,18 @@ These all test if something is true about the current node.
   - `:lang()`
   - `:not(div > p)` (**Note:** Sass will silently fail if you write `:not(:has(foo))`)
   - `:not-has(> .selector .foo)` (the same as `:not(:has(...))` except that SASS will not silently fail)
-- `:target(href, '.match > .selector, .foo')`
+- `:target(href, '.match > .selector, .foo')` this is used for creating links to things like figures.
+
+The way `:target(...)` works is best explained by providing an example:
+
+```css
+a:target(href, 'figure') { content: 'See Figure'; }
+a:target(href, 'table')  { content: 'See Table'; }
+a:target(href, '.chapter') { content: 'See Chapter'; }
+```
+
+It looks up the target (by checking using the `href` attribute on the link) and then only matches
+when the target matches the specified selector.
 
 
 ## Pseudo-Elements
@@ -26,6 +38,21 @@ These all add a node(s) in the vicinity of this node.
   - any sub pseudo-element selectors are used to continue constructing elements
 
 
+## Namespaced Attributes
+
+Selecting attributes with a namespace is supported. For example:
+
+```css
+/* Define the `epub`prefix to be 'http://www.idpf.org/2007/ops' */
+@namespace epub url('http://www.idpf.org/2007/ops');
+
+/* Match attributes like `<div epub:type="glossary">` */
+[epub|type="glossary"] {
+  content: "kittens";
+}
+```
+
+
 # Declarations
 
 Each declaration can also take the value of `none` (like `class-add: none;`) to disable the declaration.
@@ -35,7 +62,7 @@ Each declaration can also take the value of `none` (like `class-add: none;`) to 
 - `class-remove: "name1", "name2";` (or maybe `class-remove: *;`)
 - `attrs-add: "name1" "val1" "val2 is concatenated", "name2" attr(href);`
 - `attrs-remove: "name1", "name2";` (or maybe `attrs-remove: *;`)
-- `tag-name-set: "tagName";` : changes the element type (`div`, `a`, `strong`)
+- `tag-name-set: "tagName";` : changes the element name (`div`, `a`, `strong`)
 - `display: none;` or `display: default;` : removes the element from the DOM
 - `x-log: "message" "or elements:" move-here('.foo');` : generates a log message for debugging
 - `x-throw: now;` or `x-throw: later;` or `x-throw: attr(href);` : used by unit tests to intentionally explode
