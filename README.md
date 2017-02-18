@@ -219,6 +219,7 @@ To test the commandline:
 
 - `$(npm bin)/inspect ./bin/css-plus ${CSS_PATH} ${HTML_PATH} ${OUTPUT_HTML_PATH}`
 
+To pause when evaluating an element, add `data-debugger="true"` to the element.
 
 # TODO
 

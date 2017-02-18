@@ -518,6 +518,11 @@ module.exports = class Applier {
     const allElementPromises = this.run(($el, rules) => {
       if (rules.length > 0) {
 
+        // Allow pausing the engine when an element has `data-debugger="true"` set
+        if ($el.attr('data-debugger')) {
+          debugger
+        }
+
         const rulesWithPseudos = rules.map((rule) => new RuleWithPseudos(rule, allPseudoElementNames))
 
         // Recursively walk through the pseudoelements (::after::before(3)::after)
