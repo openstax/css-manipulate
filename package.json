@@ -18,7 +18,7 @@
     "debugger": "NODE_ENV=debugger inspect node_modules/ava/profile.js test/index.js",
     "dist": "webpack --entry ./src/converter.js  --output-library 'CssPlus' dist/browser.js",
     "snazzy": "nyc --reporter html --reporter text --reporter json ava ./test/index.js 2>&1 | snazzy",
-    "coverage-report": "genhtml --output-directory ./coverage/ ./test/*/*.lcov"
+    "coverage-report": "rm -rf ./coverage/; genhtml --output-directory ./coverage/ ./test/*/*.lcov"
   },
   "dependencies": {
     "archy": "^1.0.0",
