@@ -43,6 +43,6 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
   // - assign the contents of a DOM node
 
   return allElementsDoneProcessingPromise.then(() => {
-    return serializer(engine.getRoot(), htmlSourceLookup, htmlSourcePath, htmlSourceFilename, sourceMapPath)
+    return serializer(engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, sourceMapPath, document, $)
   })
 }

@@ -16,7 +16,10 @@ function walkDOMNodesInOrder(el, startFn, endFn) {
 const SELF_CLOSING_TAGS = ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr']
 
 // We use a custom serializer so sourcemaps can be generated (we know the output line and columns for things)
-module.exports = (documentElement, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, htmlSourceMapPath) => {
+module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, htmlSourceMapPath) => {
+
+  const coverageData = {}
+  const documentElement = engine.getRoot()
 
   const htmlSnippets = []
   const map = new SourceMapGenerator()
@@ -99,7 +102,34 @@ module.exports = (documentElement, htmlSourceLookup, htmlSourcePath, htmlSourceF
     htmlSnippets.push(str)
   }
 
+  statementIndex = 0
+  function addCoverage(filePath, count, start, end) {
+    if (!coverageData[filePath]) {
+      coverageData[filePath] = {}
+    }
+    const {line, column} = start
+    if (!coverageData[filePath][`${line}:${column}`]) {
+      coverageData[filePath][`${line}:${column}`] = {
+        start: start,
+        end: end,
+        count: 0
+      }
+    }
+
+    const countData = coverageData[filePath][`${line}:${column}`]
+    countData.count += count
+  }
+
   walkDOMNodesInOrder(documentElement, (node) => {
+    // cover the HTML node
+    if (typeof  node.__COVERAGE_COUNT !== 'undefined') {
+      const locationInfo = htmlSourceLookup(node)
+      if (locationInfo && locationInfo.start) {
+        const {source, start, end} = locationInfo
+        addCoverage(source, node.__COVERAGE_COUNT, start, end)
+      }
+    }
+
     // StartFn
     switch (node.nodeType) {
       case node.ELEMENT_NODE:
@@ -142,5 +172,42 @@ module.exports = (documentElement, htmlSourceLookup, htmlSourcePath, htmlSourceF
       default:
     }
   })
-  return {html: htmlSnippets.join(''), sourceMap: map.toString()}
+
+  // record coverage data on the CSS
+  function walkCssAst(astNode, fn) {
+    fn(astNode)
+
+    let hasRecursed = false
+    if (astNode.children) {
+      hasRecursed = true
+      astNode.children.toArray().forEach((child) => {
+        walkCssAst(child, fn)
+      })
+    }
+    if (astNode.block) {
+      hasRecursed = true
+      walkCssAst(astNode.block, fn)
+    }
+    if (astNode.selector) {
+      hasRecursed = true
+      walkCssAst(astNode.selector, fn)
+    }
+    // astNode.type == "Declaration"
+    if (astNode.value) {
+      hasRecursed = true
+      walkCssAst(astNode.value, fn)
+    }
+    // if (!hasRecursed && astNode.loc) {
+    //   debugger
+    // }
+  }
+
+  walkCssAst(engine._ast, (astNode) => {
+    if (astNode.loc && typeof astNode.__COVERAGE_COUNT !== 'undefined') {
+      const {source, start, end} = astNode.loc
+      addCoverage(source, astNode.__COVERAGE_COUNT, start, end)
+    }
+  })
+
+  return {html: htmlSnippets.join(''), sourceMap: map.toString(), coverageData: coverageData}
 }

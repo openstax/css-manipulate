@@ -55,6 +55,23 @@ const MOTIVATION_FILES_TO_TEST = [
 const ERROR_TEST_FILENAME = '_errors'
 
 
+function coverageDataToLcov(coverageData) {
+  const lines = []
+
+  for (const filePath in coverageData) {
+    const countData = coverageData[filePath]
+    // SF:./rulesets/output/biology.css
+    lines.push(`SF:${filePath}`)
+    for (const key in countData) {
+      const {count, start, end} = countData[key]
+      lines.push(`DA:${start.line},${count}`)
+    }
+    lines.push(`end_of_record`)
+  }
+
+  return lines.join('\n')
+}
+
 
 function buildTest(cssFilename, htmlFilename) {
   const cssPath = `test/${cssFilename}`
@@ -62,15 +79,17 @@ function buildTest(cssFilename, htmlFilename) {
   test(`Generates ${cssPath}`, (t) => {
     const htmlOutputPath = cssPath.replace('.css', '.out.html')
     const htmlOutputSourceMapPath = `${htmlOutputPath}.map`
+    const htmlOutputCoveragePath = `${htmlOutputPath}.lcov`
     const htmlOutputSourceMapFilename = path.basename(htmlOutputSourceMapPath)
     const cssContents = fs.readFileSync(cssPath)
     const htmlContents = fs.readFileSync(htmlPath)
 
-    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, {} /*argv*/).then(({html: actualOutput, sourceMap}) => {
+    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, {} /*argv*/).then(({html: actualOutput, sourceMap, coverageData}) => {
       if (fs.existsSync(htmlOutputPath)) {
         const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
 
         fs.writeFileSync(htmlOutputSourceMapPath, sourceMap)
+        fs.writeFileSync(htmlOutputCoveragePath, coverageDataToLcov(coverageData))
         if (actualOutput.trim() != expectedOutput.trim()) {
           if (WRITE_TEST_RESULTS === 'true') {
             fs.writeFileSync(htmlOutputPath, actualOutput)

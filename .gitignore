@@ -18,3 +18,4 @@
 /test/example/*.css.map
 
 /test/*/*.out.html.map
+/test/*/*.out.html.lcov

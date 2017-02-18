@@ -82,6 +82,7 @@ module.exports = class Applier {
 
   prepare(rewriteSourceMapsFn) {
     const ast = csstree.parse(this._cssContents.toString(), {positions: true, filename: this._cssSourcePath})
+    this._ast = ast
 
     if (rewriteSourceMapsFn) {
       // TODO: Optimization: Only rewrite nodes needed for serializing (and add a flag that it was rewritten)
@@ -151,6 +152,7 @@ module.exports = class Applier {
 
         selectorCache[browserSelector] = selectorCache[browserSelector] || this._$(browserSelector)
         let $matchedNodes = selectorCache[browserSelector]
+        selector.__COVERAGE_COUNT = $matchedNodes.length
 
         // TODO: remove me when we have code coverage
         if (this._options.debug) {
@@ -163,6 +165,8 @@ module.exports = class Applier {
         $matchedNodes.each((index, el) => {
           el.MATCHED_RULES = el.MATCHED_RULES || []
           el.MATCHED_RULES.push({rule, selector})
+          el.__COVERAGE_COUNT = el.__COVERAGE_COUNT || 0
+          el.__COVERAGE_COUNT += 1
         })
       })
     })
@@ -319,10 +323,11 @@ module.exports = class Applier {
 
           if (!this._isRuleDeclarationName(property)) {
             showWarning(`Skipping because I do not understand the rule ${property}, maybe a typo?`, value, $currentEl)
+            declaration.__COVERAGE_COUNT = declaration.__COVERAGE_COUNT || 0 // count that it was not covered
             return
           }
           declarationsMap[property] = declarationsMap[property] || []
-          declarationsMap[property].push({value, specificity: getSpecificity(matchedRule.getMatchedSelector(), depth), isImportant: important, selector: matchedRule.getMatchedSelector()})
+          declarationsMap[property].push({value, specificity: getSpecificity(matchedRule.getMatchedSelector(), depth), isImportant: important, selector: matchedRule.getMatchedSelector(), astNode: declaration})
         })
       }
     })
@@ -334,14 +339,19 @@ module.exports = class Applier {
       if (declarations) {
         declarations = declarations.sort(SPECIFICITY_COMPARATOR)
         // use the last declaration because that's how CSS works; the last rule (all-other-things-equal) wins
-        const {value, specificity, isImportant, selector} = declarations[declarations.length - 1]
+        const {value, specificity, isImportant, selector, declaration} = declarations[declarations.length - 1]
         // Log that other rules were skipped because they were overridden
-        declarations.slice(0, declarations.length - 1).forEach(({value}) => {
+        declarations.slice(0, declarations.length - 1).forEach((decl) => {
+          const {value} = decl
           // BUG: Somehow the same selector can be matched twice for an element . This occurs with the `:not(:has(...))` ones
           showWarning(`Skipping because this was overridden by ${sourceColor(cssSnippetToString(declarations[declarations.length - 1].value))}`, value, $currentEl)
+          decl.astNode.__COVERAGE_COUNT = decl.astNode.__COVERAGE_COUNT || 0
         })
 
         if (value) {
+          const declaration = declarations[declarations.length - 1]
+          declaration.astNode.__COVERAGE_COUNT = declaration.astNode.__COVERAGE_COUNT || 0
+          declaration.astNode.__COVERAGE_COUNT += 1
           const vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, $elPromise, value.children.toArray())
           try {
             return ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $elPromise, vals, value)
