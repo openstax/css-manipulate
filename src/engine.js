@@ -296,7 +296,7 @@ module.exports = class Applier {
           const newContext = theFunction.preEvaluateChildren(this._$, context, $currentEl, this._evaluateVals.bind(this), arg.children.toArray(), $elPromise)
           const fnArgs = this._evaluateVals(newContext, $currentEl, $elPromise, arg.children.toArray())
           const mutationPromise = Promise.resolve('HACK_FOR_NOW')
-          const fnReturnVal = theFunction.evaluateFunction(this._$, newContext, $currentEl, fnArgs, mutationPromise, arg /*AST node*/)
+          const fnReturnVal = theFunction.evaluateFunction(this._$, newContext, $currentEl, this._evaluateVals.bind(this), fnArgs, mutationPromise, arg /*AST node*/)
           if (!(typeof fnReturnVal === 'string' || typeof fnReturnVal === 'number' || (typeof fnReturnVal === 'object' && typeof fnReturnVal.appendTo === 'function'))) {
             throwBug(`CSS function should return a string or number. Found ${typeof fnReturnVal} while evaluating ${theFunction.getFunctionName()}.`, arg, $currentEl)
           }

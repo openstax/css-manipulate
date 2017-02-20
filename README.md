@@ -56,7 +56,7 @@ When coupled with source maps (see below), this vastly reduces debugging time be
 
 ### Future Work
 
-- [ ] add more errors and warnings
+- [x] add more errors and warnings
 - [ ] add "Strict" mode that fails on any warnings
 - [ ] create a linter plugin that parses the output text
 - [ ] create an atom plugin that allows you to run from the commandline but report the errors to the atom linter
@@ -85,7 +85,7 @@ _(there is no trickery here, this is real working code using a slightly modified
 
 ### Future Work
 
-- [ ] The right pane could show the original SCSS instead of the CSS file so you can edit and save directly
+- [x] The right pane could show the original SCSS instead of the CSS file so you can edit and save directly
 - [ ] In the left pane the HTML could be rendered instead of looking at the HTML Source. Then, when you click around, the right pane would still do the same thing it does now.
 - [ ] This sourcemap information could be loaded into a WYSIWYG editor so an author can view the baked book but edit the source Page/Module (this animation only showed 1 source HTML file and 1 source CSS file)
 - [ ] Sourcemaps could be used to provide more precise validation errors (ie broken links, unused class names)
