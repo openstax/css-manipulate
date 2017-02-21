@@ -9,6 +9,18 @@ const {throwError, throwBug, showWarning, cssSnippetToString, htmlLocation} = re
 
 const sourceColor = chalk.dim
 
+// It is expensive to call $el.find() and friends. Since the DOM does not change, just remember what was returned
+// This occurs frequently for making counters
+function memoize(el, key, value, fn) {
+  el[key] = el[key] || {}
+  if (typeof el[key][value] === 'undefined') {
+    el[key][value] = fn()
+  // } else {
+  //   console.log(`SAVING TIME AND MONEY WITH MEMOIZATION!!!!!!!!!!!!!!!!!!! ${key} ${value}`);
+  }
+  return el[key][value]
+}
+
 function walkDOMElementsInOrder(el, fn) {
   fn(el)
   if (el.firstElementChild) {
@@ -57,7 +69,8 @@ function splitOnCommas(args) {
 module.exports = class Applier {
   constructor(document, $, options) {
     // Add the jquery.xmlns plugin so we can select on attributes like epub:type
-    jqueryXmlns(document, $)
+    // But only add it when the CSS file has @namespace in it. Otherwise, it just adds to execution time
+    // jqueryXmlns(document, $)
     // $.xmlns.epub = 'http://www.idpf.org/2007/ops'
 
     this._pseudoElementPlugins = []
@@ -150,6 +163,12 @@ module.exports = class Applier {
                 throwError('Malformed namespace declaration', rule)
             }
             ns = ns.substring(1, ns.length - 1) // Strip the quotes off the URL
+            // only add jquery.xmlns when @namespace is used in the CSS
+            // Add the jquery.xmlns plugin so we can select on attributes like epub:type
+            if (!this._$.xmlns) {
+              jqueryXmlns(this._document, this._$)
+            }
+            // $.xmlns.epub = 'http://www.idpf.org/2007/ops'
             this._$.xmlns[nsPrefix] = ns
             break
           default:
@@ -257,7 +276,14 @@ module.exports = class Applier {
     }).join('')
 
     if (startDepth >= 0 && browserSelector) { // it could be an empty string
-      $matchedNodes = $matchedNodes.filter(browserSelector)
+      if ($matchedNodes.length === 1) {
+        $matchedNodes = memoize($matchedNodes[0], '_filter', browserSelector, () => {
+          return $matchedNodes.filter(browserSelector)
+        })
+      } else {
+        $matchedNodes = $matchedNodes.filter(browserSelector)
+      }
+
     }
 
     // Perform additional filtering only if there are nodes to filter on
