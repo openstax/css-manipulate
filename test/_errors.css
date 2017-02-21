@@ -9,6 +9,7 @@ body::for-each-descendant(1,) { content: "no 2nd arg specified"; }
 body::for-each-descendant(1,0) { content: "2nd arg must be a string"; }
 body::for-each-descendant(1, '.no-matches') { content: "no elements were matched (may become a warning)"; }
 body { contentssss: "bug"; }
+body { content: attr(hreffooo); } /* non-existant attribute */
 body { x-throw: now; }
 /*body { x-throw: later; }*/
 body { x-throw: attr(href); }

@@ -14,10 +14,8 @@ class FunctionEvaluator {
     assert.equal(typeof fn, 'function')
     this._name = name
     this._fn = fn
-    this._preFn = preFn ? preFn : ($, context, evaluator, args) => { return context }
   }
   getFunctionName() { return this._name }
-  preEvaluateChildren() { return this._preFn.apply(null, arguments) }
   evaluateFunction($, context, $currentEl, evaluator, args, mutationPromise, astNode) { return this._fn.apply(null, arguments) }
 }
 
@@ -37,7 +35,7 @@ function memoize(el, key, value, fn) {
 
 FUNCTIONS.push(new FunctionEvaluator('x-throw', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
   const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
-  throwError(`"x-throw()" was called.`, vals[0])
+  throwError(`"x-throw()" was called. ${vals[0]}`, astNode)
 } ))
 FUNCTIONS.push(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
   const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
@@ -45,7 +43,7 @@ FUNCTIONS.push(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, evalu
   assert.equal($contextEl.length, 1)
   const ret = $contextEl.attr(vals.join(''))
   if (ret == null) {
-    showWarning(`tried to look up an attribute that was not available attr(${vals.join('')}). Might be a bug if you are using target-context(attr(href), ...)`, astNode, $contextEl) // TODO: FOr better messages FunctionEvaluator should know the source line for the function, not just the array of vals
+    throwError(`tried to look up an attribute that was not available attr(${vals.join('')}).`, astNode, $contextEl)
     return ''
   }
   return ret
@@ -151,6 +149,9 @@ FUNCTIONS.push(new FunctionEvaluator('count-all-of-type', ($, {$contextEl}, $cur
 }))
 FUNCTIONS.push(new FunctionEvaluator('parent-context',
   ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+    // Determine the new $contextEl
+    $contextEl = $contextEl.parent()
+
     const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
     assert.equal(vals.length, 1)
     // The argument to this `-context` function needs to be fully-evaluated, hence this
@@ -158,77 +159,59 @@ FUNCTIONS.push(new FunctionEvaluator('parent-context',
     assert.equal(vals[0].length, 1)
     assert(vals[0][0])
     return vals[0][0]
-  },
-  ($, {$contextEl}, $currentEl, evaluator, args, mutationPromise) => {
-    return {$contextEl: $contextEl.parent()
-  }
 }))
 FUNCTIONS.push(new FunctionEvaluator('target-context',
   ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
-    const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
-    assert.equal(vals.length, 2) // TODO: This should be validated before the function is enginelied so a better error message can be made
-    // skip the 1st arg which is the selector
-    // and return the 2nd arg
-
-    // The argument to this `-context` function needs to be fully-evaluated, hence this
-    // assertion below: (TODO: Change this in the future to not require full-evaluation)
-    assert.equal(vals[1].length, 1)
-    assert(vals[1][0] !== null)
-    return vals[1][0]
-  },
-  ($, context, $currentEl, evaluator, argExprs, mutationPromise) => {
-    const {$contextEl} = context
-    const selector = evaluator(context, $currentEl, mutationPromise, [argExprs[0]]).join('')
+    // Determine the new $contextEl
+    const selector = evaluator({$contextEl}, $currentEl, mutationPromise, [argExprs[0]]).join('')
     assert.equal(typeof selector, 'string')
     // If we are looking up an id then look up against the whole document
     if ('#' === selector[0]) {
-      return {$contextEl: $(selector) }
+      $contextEl = $(selector)
     } else {
       throwError(`Only selectors starting with "#" are supported for now`, args[0], $currentEl)
-      // return {$contextEl: $contextEl.find(selector) }
     }
-}))
-FUNCTIONS.push(new FunctionEvaluator('ancestor-context',
-  ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
-    const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
-    assert.equal(vals.length, 2) // TODO: This should be validated before the function is enginelied so a better error message can be made
+
+
+    const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs.slice(1))
+    assert.equal(vals.length, 1)
     // skip the 1st arg which is the selector
-    // and return the 2nd arg
+    // and use the 2nd arg
 
     // The argument to this `-context` function needs to be fully-evaluated, hence this
     // assertion below: (TODO: Change this in the future to not require full-evaluation)
-    assert.equal(vals[1].length, 1)
-    assert(vals[1][0] !== null) // TODO: Move this assertion test to the enginelier
-    return vals[1][0]
-  },
-  ($, context, $currentEl, evaluator, argExprs, mutationPromise) => {
-    const {$contextEl} = context
-    const selector = evaluator(context, $currentEl, mutationPromise, [argExprs[0]]).join('')
+    assert.equal(vals[0].length, 1)
+    assert(vals[0][0] !== null)
+    return vals[0][0]
+}))
+FUNCTIONS.push(new FunctionEvaluator('ancestor-context',
+  ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+    // Determine the new $contextEl
+    const selector = evaluator({$contextEl}, $currentEl, mutationPromise, [argExprs[0]]).join('')
 
     const $closestAncestor = $contextEl.closest(selector)
     if ($closestAncestor.length !== 1) {
       throwError('Could not find ancestor-context', args[0], $currentEl)
     }
     // If we are looking up an id then look up against the whole document
-    return {$contextEl: $closestAncestor }
-}))
-FUNCTIONS.push(new FunctionEvaluator('descendant-context',
-  ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
-    const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
-    assert.equal(vals.length, 2) // TODO: This should be validated before the function is enginelied so a better error message can be made
+    $contextEl = $closestAncestor
+
+
+    const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs.slice(1))
+    assert.equal(vals.length, 1) // TODO: This should be validated before the function is enginelied so a better error message can be made
     // skip the 1st arg which is the selector
     // and return the 2nd arg
 
     // The argument to this `-context` function needs to be fully-evaluated, hence this
     // assertion below: (TODO: Change this in the future to not require full-evaluation)
-    assert.equal(vals[1].length, 1)
-    assert(vals[1][0] !== null) // TODO: Move this assertion test to the enginelier
-    return vals[1][0]
-  },
-  ($, context, $currentEl, evaluator, argExprs, mutationPromise) => {
-    assert(mutationPromise instanceof Promise)
-    const {$contextEl} = context
-    const selector = evaluator(context, $currentEl, mutationPromise, [argExprs[0]]).join('')
+    assert.equal(vals[0].length, 1)
+    assert(vals[0][0] !== null) // TODO: Move this assertion test to the enginelier
+    return vals[0][0]
+  }))
+FUNCTIONS.push(new FunctionEvaluator('descendant-context',
+  ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+    // Determine the new $contextEl
+    const selector = evaluator({$contextEl}, $currentEl, mutationPromise, [argExprs[0]]).join('')
 
     const $firstDescendant = memoize($contextEl[0], '_find', selector, () => {
       const $firstDescendant = $contextEl.find(selector)
@@ -237,34 +220,41 @@ FUNCTIONS.push(new FunctionEvaluator('descendant-context',
     if ($firstDescendant.length !== 1) {
       throwError(`Could not find unique descendant-context when evaluating "${selector}". Found ${$firstDescendant.length}`, args[0], $currentEl)
     }
-    // If we are looking up an id then look up against the whole document
-    return {$contextEl: $firstDescendant }
-}))
-FUNCTIONS.push(new FunctionEvaluator('next-sibling-context',
-  ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
-    const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
-    assert.equal(vals.length, 2) // TODO: This should be validated before the function is enginelied so a better error message can be made
+    $contextEl = $firstDescendant
+
+
+    const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs.slice(1))
+    assert.equal(vals.length, 1) // TODO: This should be validated before the function is enginelied so a better error message can be made
     // skip the 1st arg which is the selector
     // and return the 2nd arg
 
     // The argument to this `-context` function needs to be fully-evaluated, hence this
     // assertion below: (TODO: Change this in the future to not require full-evaluation)
-    assert.equal(vals[1].length, 1)
-    assert(vals[1][0] !== null) // TODO: Move this assertion test to the enginelier
-    return vals[1][0]
-  },
-  ($, context, $currentEl, evaluator, argExprs, mutationPromise) => {
-    assert(mutationPromise instanceof Promise)
-    const {$contextEl} = context
-    const selector = evaluator(context, $currentEl, mutationPromise, [argExprs[0]]).join('')
-
-    const $firstDescendant = $contextEl.next(selector)
-    if ($firstDescendant.length !== 1) {
-      throwError(`Could not find unique next-sibling-context. Found ${$firstDescendant.length}. Consider using ":first" in the argument`, args[0], $currentEl)
+    assert.equal(vals[0].length, 1)
+    assert(vals[0][0] !== null) // TODO: Move this assertion test to the enginelier
+    return vals[0][0]
+  }))
+FUNCTIONS.push(new FunctionEvaluator('next-sibling-context',
+  ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+    // Determine the new $contextEl
+    const selector = evaluator({$contextEl}, $currentEl, mutationPromise, [argExprs[0]])
+    $contextEl = $contextEl.next(selector)
+    if ($contextEl.length !== 1) {
+      throwBug(`Could not find unique next-sibling-context. Found ${$contextEl.length}. Consider using ":first" in the argument`, astNode, $currentEl)
     }
-    // If we are looking up an id then look up against the whole document
-    return {$contextEl: $firstDescendant }
-}))
+
+
+    const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs.slice(1))
+    assert.equal(vals.length, 1) // TODO: This should be validated before the function is enginelied so a better error message can be made
+    // skip the 1st arg which is the selector
+    // and return the 2nd arg
+
+    // The argument to this `-context` function needs to be fully-evaluated, hence this
+    // assertion below: (TODO: Change this in the future to not require full-evaluation)
+    assert.equal(vals[0].length, 1)
+    assert(vals[0][0] !== null) // TODO: Move this assertion test to the enginelier
+    return vals[0][0]
+  }))
 
 
 module.exports = FUNCTIONS

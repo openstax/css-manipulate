@@ -100,7 +100,6 @@ module.exports = class Applier {
 
   addFunction(plugin) {
     assert.equal(typeof plugin.evaluateFunction, 'function')
-    assert.equal(typeof plugin.preEvaluateChildren, 'function')
     assert.equal(typeof plugin.getFunctionName(), 'string')
     this._functionPlugins.push(plugin)
   }
@@ -318,9 +317,8 @@ module.exports = class Applier {
             if (!theFunction) {
               throwBug(`Unsupported function named ${arg.name}`, arg)
             }
-            const newContext = theFunction.preEvaluateChildren(this._$, context, $currentEl, this._evaluateVals.bind(this), splitOnCommas(arg.children.toArray()), $elPromise)
             const mutationPromise = Promise.resolve('HACK_FOR_NOW')
-            const fnReturnVal = theFunction.evaluateFunction(this._$, newContext, $currentEl, this._evaluateVals.bind(this), splitOnCommas(arg.children.toArray()), mutationPromise, arg /*AST node*/)
+            const fnReturnVal = theFunction.evaluateFunction(this._$, context, $currentEl, this._evaluateVals.bind(this), splitOnCommas(arg.children.toArray()), mutationPromise, arg /*AST node*/)
             if (!(typeof fnReturnVal === 'string' || typeof fnReturnVal === 'number' || (typeof fnReturnVal === 'object' && typeof fnReturnVal.appendTo === 'function'))) {
               throwBug(`CSS function should return a string or number. Found ${typeof fnReturnVal} while evaluating ${theFunction.getFunctionName()}.`, arg, $currentEl)
             }
@@ -381,7 +379,7 @@ module.exports = class Applier {
           try {
             return ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $elPromise, vals, value)
           } catch (e) {
-            throwBug(`evaluating ${ruleDeclarationPlugin.getRuleName()}`, value, $currentEl, e)
+            throwBug(`Problem while evaluating rule "${ruleDeclarationPlugin.getRuleName()}:". Message was "${e.message}"`, value, $currentEl, e)
           }
         } else {
           return Promise.resolve('NO_RULES_TO_EVALUATE')
