@@ -19,6 +19,39 @@ function walkDOMElementsInOrder(el, fn) {
   }
 }
 
+// css-tree parses css arguments a little oddly.
+// For example the args in this expression are a single list of length 5:
+// foo('a' 'b', 'c' 'd')
+//
+// This function returns [ ['a', 'b'], ['c', 'd'] ]
+function splitOnCommas(args) {
+  const ret = []
+  let index = 0
+  ret[index] = []
+  args.forEach((arg) => {
+    switch (arg.type) {
+      case 'Operator': // comma TODO: Group items based on this operator
+        index += 1
+        ret[index] = []
+        break
+      case 'String':
+      case 'Identifier':
+      case 'Space':
+      case 'Raw':
+      case 'Function':
+        ret[index].push(arg)
+        break
+      default:
+        throwError('BUG: Unsupported value type ' + arg.type, arg)
+    }
+  })
+  // If we didn't add anything then this must be 0-arguments
+  if (ret.length === 1 && ret[0].length === 0) {
+    return []
+  }
+  return ret
+
+}
 
 
 module.exports = class Applier {
@@ -238,7 +271,7 @@ module.exports = class Applier {
               const $matchedNode = this._$(matchedNode)
               const context = {$contextEl: $matchedNode}
               const $elPromise = Promise.resolve('IT_IS_A_BUG_IF_YOU_RELY_ON_THIS_PROMISE_BECAUSE_WE_ARE_FILTERING_ON_A_CLASS_NAME')
-              const args = this._evaluateVals(context, $matchedNode, $elPromise, pseudoClassElement.children.toArray())
+              const args = this._evaluateVals(context, $matchedNode, $elPromise, splitOnCommas(pseudoClassElement.children.toArray()))
               return pseudoClassPlugin.matches(this._$, $matchedNode, args)
             })
           }
@@ -251,60 +284,52 @@ module.exports = class Applier {
 
   _evaluateVals(context, $currentEl, $elPromise, vals) {
     assert($elPromise instanceof Promise)
-    // use comma ('Operator') to denote multiple arguments
-    const ret = []
-    let index = 0
-    ret[index] = []
-    vals.forEach((arg) => {
-      switch (arg.type) {
-        case 'String':
-          // strip off the leading and trailing quote characters
-          ret[index].push(arg.value.substring(1, arg.value.length - 1))
-          break
-        case 'Identifier':
-          ret[index].push(arg.name)
-          break
-        case 'Space':
-          return ''
-        case 'Operator': // comma TODO: Group items based on this operator
-          index += 1
-          ret[index] = []
-          break
-        case 'Raw': // The value of this is something like `href, '.foo'`
-          // // Make it Look like multitple args
-          // const rawArgs = arg.value.split(', ')
-          // // I'm not really sure about this if test
-          // if (rawArgs.length > 1) {
-          //   rawArgs.forEach((rawArg) => {
-          //     ret[index].push(rawArg)
-          //     index += 1
-          //     ret[index] = [] // FIXME: This leaves a trailing empty Array.
-          //   })
-          // } else {
-          //   ret[index].push(rawArg)
-          // }
+    return vals.map((argTmp) => {
+      return argTmp.map((arg) => {
+        switch (arg.type) {
+          case 'String':
+            // strip off the leading and trailing quote characters
+            return arg.value.substring(1, arg.value.length - 1)
+          case 'Identifier':
+            return arg.name
+          case 'Space':
+            return ''
+          case 'Operator': // comma TODO: Group items based on this operator
+            throwBug('All of these commas should have been parsed out by now', arg)
+            break
+          case 'Raw': // The value of this is something like `href, '.foo'`
+            // // Make it Look like multitple args
+            // const rawArgs = arg.value.split(', ')
+            // // I'm not really sure about this if test
+            // if (rawArgs.length > 1) {
+            //   rawArgs.forEach((rawArg) => {
+            //     ret[index].push(rawArg)
+            //     index += 1
+            //     ret[index] = [] // FIXME: This leaves a trailing empty Array.
+            //   })
+            // } else {
+            //   ret[index].push(rawArg)
+            // }
 
-          // Too complex to parse because commas can occur inside selector strings so punt
-          ret[index] = arg.value
+            // Too complex to parse because commas can occur inside selector strings so punt
+            return arg.value
+          case 'Function':
+            const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0]
+            if (!theFunction) {
+              throwBug(`Unsupported function named ${arg.name}`, arg)
+            }
+            const newContext = theFunction.preEvaluateChildren(this._$, context, $currentEl, this._evaluateVals.bind(this), splitOnCommas(arg.children.toArray()), $elPromise)
+            const mutationPromise = Promise.resolve('HACK_FOR_NOW')
+            const fnReturnVal = theFunction.evaluateFunction(this._$, newContext, $currentEl, this._evaluateVals.bind(this), splitOnCommas(arg.children.toArray()), mutationPromise, arg /*AST node*/)
+            if (!(typeof fnReturnVal === 'string' || typeof fnReturnVal === 'number' || (typeof fnReturnVal === 'object' && typeof fnReturnVal.appendTo === 'function'))) {
+              throwBug(`CSS function should return a string or number. Found ${typeof fnReturnVal} while evaluating ${theFunction.getFunctionName()}.`, arg, $currentEl)
+            }
+            return fnReturnVal // Should not matter if this is context or newContext
+          default:
+            throwError('BUG: Unsupported value type ' + arg.type, arg)
+        }
 
-          break
-        case 'Function':
-          const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0]
-          if (!theFunction) {
-            throwBug(`Unsupported function named ${arg.name}`, arg)
-          }
-          const newContext = theFunction.preEvaluateChildren(this._$, context, $currentEl, this._evaluateVals.bind(this), arg.children.toArray(), $elPromise)
-          const fnArgs = this._evaluateVals(newContext, $currentEl, $elPromise, arg.children.toArray())
-          const mutationPromise = Promise.resolve('HACK_FOR_NOW')
-          const fnReturnVal = theFunction.evaluateFunction(this._$, newContext, $currentEl, this._evaluateVals.bind(this), fnArgs, mutationPromise, arg /*AST node*/)
-          if (!(typeof fnReturnVal === 'string' || typeof fnReturnVal === 'number' || (typeof fnReturnVal === 'object' && typeof fnReturnVal.appendTo === 'function'))) {
-            throwBug(`CSS function should return a string or number. Found ${typeof fnReturnVal} while evaluating ${theFunction.getFunctionName()}.`, arg, $currentEl)
-          }
-          ret[index].push(fnReturnVal) // Should not matter if this is context or newContext
-          break
-        default:
-          throwError('BUG: Unsupported value type ' + arg.type, arg)
-      }
+      })
     })
     return ret
 
@@ -352,7 +377,7 @@ module.exports = class Applier {
           const declaration = declarations[declarations.length - 1]
           declaration.astNode.__COVERAGE_COUNT = declaration.astNode.__COVERAGE_COUNT || 0
           declaration.astNode.__COVERAGE_COUNT += 1
-          const vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, $elPromise, value.children.toArray())
+          const vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, $elPromise, splitOnCommas(value.children.toArray()))
           try {
             return ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $elPromise, vals, value)
           } catch (e) {

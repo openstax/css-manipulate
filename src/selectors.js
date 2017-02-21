@@ -64,9 +64,12 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $look
 
 
 PSEUDO_CLASSES.push(new PseudoClassFilter('target', ($, $el, args) => {
-  const firstComma = args[0].indexOf(',')
-  const attributeName = args[0].substring(0, firstComma)
-  const matchSelector = args[0].substring(firstComma + 1).trim()
+  assert.equal(args.length, 1)
+  assert.equal(args[0].length, 1)
+  assert(args[0][0].indexOf(',') >= 1) // ensure that there is a comma
+  const firstComma = args[0][0].indexOf(',')
+  const attributeName = args[0][0].substring(0, firstComma)
+  const matchSelector = args[0][0].substring(firstComma + 1).trim()
 
   assert($el.length === 1) // for now, assume only 1 element
   assert.equal(matchSelector[0], "'")

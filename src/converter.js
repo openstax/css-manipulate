@@ -11,12 +11,6 @@ const {init: errorInit, createMessage, throwError, showWarning, showLog} = requi
 
 module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, consol, htmlSourceLookup, htmlSourceFilename, sourceMapPath, rewriteSourceMapsFn, options) => {
 
-  if (process.env['NODE_ENV'] === 'debugger') {
-    console.log('======================================================')
-    console.log(' Remember to add a `debugger` statement in your code!')
-    console.log('======================================================')
-  }
-
   errorInit(consol, htmlSourceLookup, htmlSourcePath, options)
 
   const engine = new Engine(document, $, options)

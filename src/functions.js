@@ -35,12 +35,14 @@ function memoize(el, key, value, fn) {
 }
 
 
-FUNCTIONS.push(new FunctionEvaluator('x-throw', ($, {$contextEl}, $currentEl, evaluator, vals, mutationPromise, astNode) => {
+FUNCTIONS.push(new FunctionEvaluator('x-throw', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+  const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
   throwError(`"x-throw()" was called.`, vals[0])
 } ))
-FUNCTIONS.push(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, evaluator, vals, mutationPromise, astNode) => {
+FUNCTIONS.push(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+  const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
   // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
-  assert($contextEl.length, 1)
+  assert.equal($contextEl.length, 1)
   const ret = $contextEl.attr(vals.join(''))
   if (ret == null) {
     showWarning(`tried to look up an attribute that was not available attr(${vals.join('')}). Might be a bug if you are using target-context(attr(href), ...)`, astNode, $contextEl) // TODO: FOr better messages FunctionEvaluator should know the source line for the function, not just the array of vals
@@ -48,10 +50,11 @@ FUNCTIONS.push(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, evalu
   }
   return ret
 } ))
-FUNCTIONS.push(new FunctionEvaluator('add', ($, {$contextEl}, $currentEl, evaluator, vals, mutationPromise, astNode) => {
-  assert(vals.length, 2)
-  assert(vals[0].length, 1)
-  assert(vals[1].length, 1)
+FUNCTIONS.push(new FunctionEvaluator('add', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+  const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
+  assert.equal(vals.length, 2)
+  assert.equal(vals[0].length, 1)
+  assert.equal(vals[1].length, 1)
   const val1 = Number.parseInt(vals[0][0])
   const val2 = Number.parseInt(vals[1][0])
   if (Number.isNaN(val1)) {
@@ -62,15 +65,17 @@ FUNCTIONS.push(new FunctionEvaluator('add', ($, {$contextEl}, $currentEl, evalua
   }
   return val1 + val2
 } ))
-FUNCTIONS.push(new FunctionEvaluator('x-tag-name', ($, {$contextEl}, $currentEl, evaluator, vals, mutationPromise, astNode) => {
+FUNCTIONS.push(new FunctionEvaluator('x-tag-name', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+  const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
   // check that we are only operating on 1 element at a time
-  assert($contextEl.length, 1)
-  if (vals[0].join() === 'current') {
+  assert.equal($contextEl.length, 1)
+  if (vals.length >= 1 && vals[0].join() === 'current') {
     return $currentEl[0].tagName.toLowerCase()
   }
   return $contextEl[0].tagName.toLowerCase()
 } ))
-FUNCTIONS.push(new FunctionEvaluator('text-contents', ($, {$contextEl}, $currentEl, evaluator, vals, mutationPromise, astNode) => {
+FUNCTIONS.push(new FunctionEvaluator('text-contents', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+  const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
   // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
   assert($contextEl.length, 1)
   const ret = $contextEl[0].textContent // HACK! $contextEl.contents() (need to clone these if this is the case; and remove id's)
@@ -83,7 +88,8 @@ FUNCTIONS.push(new FunctionEvaluator('text-contents', ($, {$contextEl}, $current
   }
   return ret
 } ))
-FUNCTIONS.push(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, evaluator, vals, mutationPromise, astNode) => {
+FUNCTIONS.push(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+  const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
   if (vals.length !== 1) {
     throwError(`move-here(...) only accepts 1 argument (a string selector) but was given ${vals.length}`, astNode, $contextEl)
   }
@@ -97,7 +103,8 @@ FUNCTIONS.push(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, 
   mutationPromise.then(() => ret.detach())
   return ret
 }))
-FUNCTIONS.push(new FunctionEvaluator('count-of-type', ($, {$contextEl}, $currentEl, evaluator, vals, mutationPromise, astNode) => {
+FUNCTIONS.push(new FunctionEvaluator('count-of-type', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+  const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
   assert.equal(vals.length, 1)
   assert(Array.isArray(vals[0]))
   const selector = vals[0].join(' ')  // vals[0] = ['li'] (notice vals is a 2-Dimensional array. If each FunctionEvaluator had a .join() method then this function could be simpler and more intuitive to add more features)
@@ -129,7 +136,8 @@ FUNCTIONS.push(new FunctionEvaluator('count-of-type', ($, {$contextEl}, $current
   })
 
 }))
-FUNCTIONS.push(new FunctionEvaluator('count-all-of-type', ($, {$contextEl}, $currentEl, evaluator, vals, mutationPromise, astNode) => {
+FUNCTIONS.push(new FunctionEvaluator('count-all-of-type', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+  const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
   assert.equal(vals.length, 1)
   assert(Array.isArray(vals[0]))
   const selector = vals[0].join(' ')  // vals[0] = ['li'] (notice vals is a 2-Dimensional array. If each FunctionEvaluator had a .join() method then this function could be simpler and more intuitive to add more features)
@@ -142,7 +150,8 @@ FUNCTIONS.push(new FunctionEvaluator('count-all-of-type', ($, {$contextEl}, $cur
   return $matches.length
 }))
 FUNCTIONS.push(new FunctionEvaluator('parent-context',
-  ($, context, $currentEl, evaluator, vals, mutationPromise, astNode) => {
+  ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+    const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
     assert.equal(vals.length, 1)
     // The argument to this `-context` function needs to be fully-evaluated, hence this
     // assertion below: (TODO: Change this in the future to not require full-evaluation)
@@ -155,7 +164,8 @@ FUNCTIONS.push(new FunctionEvaluator('parent-context',
   }
 }))
 FUNCTIONS.push(new FunctionEvaluator('target-context',
-  ($, context, $currentEl, evaluator, vals, mutationPromise, astNode) => {
+  ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+    const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
     assert.equal(vals.length, 2) // TODO: This should be validated before the function is enginelied so a better error message can be made
     // skip the 1st arg which is the selector
     // and return the 2nd arg
@@ -166,9 +176,9 @@ FUNCTIONS.push(new FunctionEvaluator('target-context',
     assert(vals[1][0] !== null)
     return vals[1][0]
   },
-  ($, context, $currentEl, evaluator, args, mutationPromise) => {
+  ($, context, $currentEl, evaluator, argExprs, mutationPromise) => {
     const {$contextEl} = context
-    const selector = evaluator(context, $currentEl, mutationPromise, [args[0]]).join('')
+    const selector = evaluator(context, $currentEl, mutationPromise, [argExprs[0]]).join('')
     assert.equal(typeof selector, 'string')
     // If we are looking up an id then look up against the whole document
     if ('#' === selector[0]) {
@@ -179,7 +189,8 @@ FUNCTIONS.push(new FunctionEvaluator('target-context',
     }
 }))
 FUNCTIONS.push(new FunctionEvaluator('ancestor-context',
-  ($, context, $currentEl, evaluator, vals, mutationPromise, astNode) => {
+  ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+    const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
     assert.equal(vals.length, 2) // TODO: This should be validated before the function is enginelied so a better error message can be made
     // skip the 1st arg which is the selector
     // and return the 2nd arg
@@ -190,9 +201,9 @@ FUNCTIONS.push(new FunctionEvaluator('ancestor-context',
     assert(vals[1][0] !== null) // TODO: Move this assertion test to the enginelier
     return vals[1][0]
   },
-  ($, context, $currentEl, evaluator, args, mutationPromise) => {
+  ($, context, $currentEl, evaluator, argExprs, mutationPromise) => {
     const {$contextEl} = context
-    const selector = evaluator(context, $currentEl, mutationPromise, [args[0]]).join('')
+    const selector = evaluator(context, $currentEl, mutationPromise, [argExprs[0]]).join('')
 
     const $closestAncestor = $contextEl.closest(selector)
     if ($closestAncestor.length !== 1) {
@@ -202,7 +213,8 @@ FUNCTIONS.push(new FunctionEvaluator('ancestor-context',
     return {$contextEl: $closestAncestor }
 }))
 FUNCTIONS.push(new FunctionEvaluator('descendant-context',
-  ($, context, $currentEl, evaluator, vals, mutationPromise, astNode) => {
+  ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+    const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
     assert.equal(vals.length, 2) // TODO: This should be validated before the function is enginelied so a better error message can be made
     // skip the 1st arg which is the selector
     // and return the 2nd arg
@@ -213,10 +225,10 @@ FUNCTIONS.push(new FunctionEvaluator('descendant-context',
     assert(vals[1][0] !== null) // TODO: Move this assertion test to the enginelier
     return vals[1][0]
   },
-  ($, context, $currentEl, evaluator, args, mutationPromise) => {
+  ($, context, $currentEl, evaluator, argExprs, mutationPromise) => {
     assert(mutationPromise instanceof Promise)
     const {$contextEl} = context
-    const selector = evaluator(context, $currentEl, mutationPromise, [args[0]]).join('')
+    const selector = evaluator(context, $currentEl, mutationPromise, [argExprs[0]]).join('')
 
     const $firstDescendant = memoize($contextEl[0], '_find', selector, () => {
       const $firstDescendant = $contextEl.find(selector)
@@ -229,7 +241,8 @@ FUNCTIONS.push(new FunctionEvaluator('descendant-context',
     return {$contextEl: $firstDescendant }
 }))
 FUNCTIONS.push(new FunctionEvaluator('next-sibling-context',
-  ($, context, $currentEl, evaluator, vals, mutationPromise, astNode) => {
+  ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+    const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
     assert.equal(vals.length, 2) // TODO: This should be validated before the function is enginelied so a better error message can be made
     // skip the 1st arg which is the selector
     // and return the 2nd arg
@@ -240,10 +253,10 @@ FUNCTIONS.push(new FunctionEvaluator('next-sibling-context',
     assert(vals[1][0] !== null) // TODO: Move this assertion test to the enginelier
     return vals[1][0]
   },
-  ($, context, $currentEl, evaluator, args, mutationPromise) => {
+  ($, context, $currentEl, evaluator, argExprs, mutationPromise) => {
     assert(mutationPromise instanceof Promise)
     const {$contextEl} = context
-    const selector = evaluator(context, $currentEl, mutationPromise, [args[0]]).join('')
+    const selector = evaluator(context, $currentEl, mutationPromise, [argExprs[0]]).join('')
 
     const $firstDescendant = $contextEl.next(selector)
     if ($firstDescendant.length !== 1) {

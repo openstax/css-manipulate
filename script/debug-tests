@@ -1,0 +1,8 @@
+#!/bin/bash
+set -e
+
+echo '======================================================'
+echo ' Remember to add a `debugger` statement in your code!'
+echo '======================================================'
+
+npm run-script debugger
