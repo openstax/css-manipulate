@@ -78,7 +78,8 @@ DECLARATIONS.push(new RuleDeclaration('content', ($, $lookupEl, $elPromise, vals
       if (typeof val === 'string') {
         const textNode = $el[0].ownerDocument.createTextNode(val)
         textNode.__cssLocation = astRule
-        $el.append(textNode)
+        $el[0].appendChild(textNode) // use the DOM append so the __cssLocation on the textNode is preserved
+        // $el.append(textNode)
       } else {
         // we are likely moving nodes around so just keep them.
         $el.append(val)
