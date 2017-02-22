@@ -32,6 +32,17 @@ function memoize(el, key, value, fn) {
   return el[key][value]
 }
 
+function STRING_OR_NUMBER_COMPARATOR(a, b) {
+  // This should work for numbers or strings (lexicographic sort)
+  if (a.sortKey < b.sortKey) {
+    return -1
+  } else if (a.sortKey > b.sortKey) {
+    return 1
+  } else {
+    return 0
+  }
+}
+
 
 FUNCTIONS.push(new FunctionEvaluator('x-throw', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
   const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
@@ -87,16 +98,40 @@ FUNCTIONS.push(new FunctionEvaluator('text-contents', ($, {$contextEl}, $current
   return ret
 } ))
 FUNCTIONS.push(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
-  const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
-  if (vals.length !== 1) {
-    throwError(`move-here(...) only accepts 1 argument (a string selector) but was given ${vals.length}`, astNode, $contextEl)
-  }
+  const vals = evaluator({$contextEl}, $currentEl, mutationPromise, [argExprs[0]])
   assert.equal(vals.length, 1)
   const selector = vals[0].join('')
-  const ret = $contextEl.find(selector)
+  let ret = $contextEl.find(selector)
   if (ret.length === 0) {
     showWarning(`Moved 0 items. Maybe add a :has() guard to prevent this warning`, astNode, $contextEl)
   }
+
+  // Sort the elements based on additional args
+  if (argExprs.length > 1) {
+    let sortCriteria = ret.toArray().map((el) => {
+      const $el = $(el)
+      for (let index = 1; index < argExprs.length; index++) { // start at 1 because we already evaluated the 1st arg (what to move)
+        assert.equal(argExprs[index].length, 3)
+        assert.equal(argExprs[index][0].type, 'String')
+        assert.equal(argExprs[index][1].type, 'Space')
+        // assert.equal(argExprs[index][2].type, 'Function')
+        let selector = argExprs[index][0].value
+        selector = selector.substring(1, selector.length - 1)
+        // if the element matches the selector guard then evaluate the expression to find out how to sort
+        if ($el.is(selector)) {
+          const sortKey = evaluator({$contextEl: $el}, $el, mutationPromise, [[argExprs[index][2]]])[0][0] // TODO: implement evaluateVal to get rid of these nested arrays
+          return {sortKey, el}
+        }
+        // TODO: log a warning if the element matches more than one selector
+      }
+      throwError("Found an element that did not match any of the guards in move-here(...)", astNode, $el)
+    })
+    sortCriteria = sortCriteria.sort(STRING_OR_NUMBER_COMPARATOR)
+    // add all the elements now that they are sorted
+    // ret = $().add(sortCriteria.map((crit) => crit.el)) // This does not preserve the order. it does them in DOM order
+    ret = $(sortCriteria.map((crit) => crit.el))
+  }
+
   // detach (instead of remove) because we do not want to destroy the elements
   mutationPromise.then(() => ret.detach())
   return ret

@@ -20,10 +20,10 @@ exercise {
 
   &.conceptual {
     &::before {
-      content: ancestor-context('chapter', add(count-all-of-type('exercise.homework'), count-of-type('exercise.conceptual')), ) '. ';
+      content: ancestor-context('chapter', add(count-all-of-type('exercise.homework'), count-of-type('exercise.conceptual'))) '. ';
     }
     answer::before {
-      content: ancestor-context('chapter', add(count-all-of-type('exercise.homework'), count-of-type('exercise.conceptual')), ) '. ';
+      content: ancestor-context('chapter', add(count-all-of-type('exercise.homework'), count-of-type('exercise.conceptual'))) '. ';
     }
   }
 }
@@ -58,5 +58,8 @@ chapter::after(2) {
 
 body::after {
   &::before { content: 'Answer Key'; }
-  content: move-here('answer');
+  content: move-here('answer',
+    'exercise.homework answer' ancestor-context('chapter', count-of-type('exercise.homework')),
+    'exercise.conceptual answer' ancestor-context('chapter', add(count-all-of-type('exercise.homework'), count-of-type('exercise.conceptual')))
+  );
 }
