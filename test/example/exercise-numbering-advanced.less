@@ -13,10 +13,16 @@ exercise {
     &::before {
       content: ancestor-context('chapter', count-of-type('exercise.homework')) '. ';
     }
+    answer::before {
+      content: ancestor-context('chapter', count-of-type('exercise.homework')) '. ';
+    }
   }
 
   &.conceptual {
     &::before {
+      content: ancestor-context('chapter', add(count-all-of-type('exercise.homework'), count-of-type('exercise.conceptual')), ) '. ';
+    }
+    answer::before {
       content: ancestor-context('chapter', add(count-all-of-type('exercise.homework'), count-of-type('exercise.conceptual')), ) '. ';
     }
   }
@@ -48,4 +54,9 @@ chapter::after(2) {
     }
     content: move-here('exercise.conceptual');
   }
+}
+
+body::after {
+  &::before { content: 'Answer Key'; }
+  content: move-here('answer');
 }
