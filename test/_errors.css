@@ -5,6 +5,7 @@ body { content: invalid-function(); }
 body::after(non-numeric-arg) { content: "bug"; }
 body { attrs-add: 'data-with-no-value'; }
 /*::after(non-numeric-arg) { content: "bug"; }*/
+body { content: ancestor-context('invalid-element-name', text-content()); }
 body::for-each-descendant(1,) { content: "no 2nd arg specified"; }
 body::for-each-descendant(1,0) { content: "2nd arg must be a string"; }
 body::for-each-descendant(1, '.no-matches') { content: "no elements were matched (may become a warning)"; }
