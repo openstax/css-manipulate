@@ -15,6 +15,8 @@ let hasBeenWarned = false
 function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, options) {
   const htmlSourcePathRelativeToSourceMapFile = toRelative(htmlOutputPath, htmlPath)
   const cssPathRelativeToSourceMapFile = toRelative(htmlOutputPath, cssPath)
+  const cssPathRelativeToOutputHtmlPath = path.relative(path.dirname(htmlOutputPath), cssPath)
+
   const sourceMapPath = `${htmlOutputPath}.map`
   const sourceMapFileName = path.basename(sourceMapPath) // This is used for the value of the sourceMappingURL
 
@@ -57,7 +59,7 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
       const mapJson = JSON.parse(fs.readFileSync(sourceMapURLPath).toString())
       map = new SourceMapConsumer(mapJson)
     } catch (e) {
-      showWarning(`sourceMappingURL was found in ${cssPath} but could not open the file ${sourceMapURLPath}`, null, null)
+      showWarning(`sourceMappingURL was found in ${cssPath} but could not open the file ${sourceMapURLPath}`)
     }
   }
 
@@ -123,7 +125,7 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
   }
 
   // use cssPathRelativeToSourceMapFile because that is what is used for the sourceMap doc
-  return converter(document, $, cssContents, /*cssPathRelativeToSourceMapFile*/ cssPath, htmlPath, console, htmlSourceLookup, htmlSourcePathRelativeToSourceMapFile, sourceMapFileName, rewriteSourceMapsFn, options)
+  return converter(document, $, cssContents, cssPathRelativeToOutputHtmlPath, htmlPath, console, htmlSourceLookup, htmlSourcePathRelativeToSourceMapFile, sourceMapFileName, rewriteSourceMapsFn, options)
 }
 
 
