@@ -4,6 +4,13 @@ This goes through several examples and each builds on the previous one to illust
 
 By the end you will be able to create multiple elements in the DOM, number elements, add links (like footnotes) to elements, all by writing CSS.
 
+
+# [See Here for the CSS files and comments](./test/motivation/)
+
+---
+
+# **The following examples are now outdated**
+
 [Click here to try them out yourself](https://jsfiddle.net/philschatz/hjk2z4af/)
 
 

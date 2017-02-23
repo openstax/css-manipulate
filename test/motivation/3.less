@@ -1,7 +1,8 @@
 @import './2.less';
 chapter {
   // Move Conceptual Questions and Homework.
-  // the context for move-here is the current chapter.
+  // the context for move-here is the current chapter
+  // so all exercises that match in the current chapter will be moved.
   &::after(1) { content: move-here('exercise.conceptual'); }
   &::after(2) { content: move-here('exercise.homework'); }
 }

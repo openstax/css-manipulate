@@ -1,19 +1,22 @@
 @import './9.less';
 
+/*  This changes all the `<exercise>` and `<answer>` numbers to be links.
+    The exercise links to the answer and the answer links back to the exercise.
+*/
 exercise.homework,
 exercise.conceptual {
   > answer::before(1) {
-    // see previous for how the numbers are added here
+    /* see previous steps for how the numbers are added here */
 
-    // Make this thing a link to the exercise
+    /* Make this new element a link to the exercise */
     tag-name-set: "a";
     attrs-add: "href" "#" parent-context(attr(id));
   }
 
-  &:has(> answer)::before(1) {
+  &:has(> answer)::before(1) { /* Only link to the answer if there is one (:has()) */
     tag-name-set: "a";
-    // TODO: implement attr-ensure()
-    // attrs-add: "href" "#" descendant-context('> answer', attr-ensure(id));
+    /* TODO: implement attr-ensure() */
+    /* attrs-add: "href" "#" descendant-context('> answer', attr-ensure(id)); */
     attrs-add: "href" "#" descendant-context('> answer', attr(id));
   }
 }

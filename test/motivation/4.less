@@ -1,22 +1,32 @@
-// Intentionally skip importing 3 because we are changing where the move-to happens
+/* Intentionally skip importing 3 because we are changing where the move-to happens */
 @import './2.less';
 
-// Generic styling for all end-of-chapter items
+/* This shows how to group exercises by Section and add a section title */
+
+/* Generic styling for all end-of-chapter items */
 chapter::after(1) {
-  &::for-each-descendant(1, '> section') {
-    &:has(exercise.conceptual) {
+  /* At this point the current context is the chapter */
+
+  &::for-each-descendant(1, '> section') { /* This pseudo-element creates a new element in the DOM */
+    /* Now, the current context is the section (as if you had written `chapter > section` in a vanilla CSS selector) */
+    /* but any declarations are applied to the new pseudo-element that was created */
+
+    &:has(exercise.conceptual) { /* This is a guard so titles for sections without a conceptual exercise are not created */
+
+      /* This block creates the section title for the end-of-chapter item by looking up the title */
       &::before(1) {
         class-add: "section-title";
         content: descendant-context('> .title', text-contents());
       }
       class-add: "eoc-section";
 
-      // Select the proper exercises to move here (all of the ones in the section)
+      /* Select the proper exercises to move here (all of the ones in the section) */
       content: move-here('exercise.conceptual');
     }
   }
 }
 
+/* This is the same as above except for the Homework Page */
 chapter::after(2) {
   &::for-each-descendant(1, '> section') {
     &:has(exercise.homework) {
@@ -26,7 +36,7 @@ chapter::after(2) {
       }
       class-add: "eoc-section";
 
-      // Select the proper exercises to move here (all of the ones in the section)
+      /* Select the proper exercises to move here (all of the ones in the section) */
       content: move-here('exercise.homework');
     }
   }

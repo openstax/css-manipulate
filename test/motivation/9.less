@@ -1,21 +1,27 @@
 @import './8.less';
 
+/*  This creates a simple answer key at the back of a book.
+    It also adds numbers to the answers using the same code
+    for determining the exercise number.
+ */
 exercise.homework,
 exercise.conceptual {
   > answer::before(1) {
     content:
-      // Chapter number
+      /* Chapter number */
       ancestor-context('body', count-of-type('chapter'))
       "."
-      // Exercise number
-      // TODO: This is not currently being evaluated before stuff is moved which causes this test to fail
+      /* Exercise number */
       ancestor-context('chapter', count-of-type('exercise.homework, exercise.conceptual'));
   }
 }
 
-// answer key
+/* Create the Answer key at the end of the book */
 body::after(1) {
   &::before(1) { content: "Answer Key"; }
 
+  /* This moves all `<answer>` elements that are found in the `<body>`
+      because the current context is `body` (from the selector)
+  */
   content: move-here('answer');
 }

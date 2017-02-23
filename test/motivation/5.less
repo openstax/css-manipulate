@@ -1,5 +1,21 @@
 @import './4.less';
 
+/* Simple exercise numbering */
+/* Here we want to count all of the exercises in a chapter.
+   To do that, we use count-of-type() but since the current context is an exercise
+   we change the context to be the nearest chapter.
+
+   The following code accomplishes the same thing as:
+
+      chapter { counter-reset: exerciseCounter 1; }
+      exercise.homework,
+      exercise.conceptual {
+        counter-increment: exerciseCounter;
+        &::before {
+          content: counter(exerciseCounter);
+        }
+      }
+*/
 exercise.homework,
 exercise.conceptual {
   &::before(1) {

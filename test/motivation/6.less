@@ -1,11 +1,15 @@
 @import './5.less';
 
+/*  This generates the text inside a link when the link points to an exercise.
+    :target(...) uses the `href` attribute on `<a>` and if the target matches the
+    selector (2nd argument) then the content is changed to be `See Exercise 4.3`.
+ */
 a:target(href, 'exercise.homework, exercise.conceptual') {
   content:
     "See Exercise "
-    // Chapter number
+    /* Chapter number */
     target-context(attr(href), ancestor-context('body', count-of-type('chapter')))
     "."
-    // Exercise number
+    /* Exercise number */
     target-context(attr(href), ancestor-context('chapter', count-of-type('exercise.homework, exercise.conceptual')));
 }
