@@ -13,10 +13,11 @@ The [Language Reference Page](./docs.md) contains a list of all selectors, rules
   - [Exactly 1 Pass](#exactly-1-pass)
     - [Parallelizing](#parallelizing)
   - [CSS and HTML Coverage](#css-and-html-coverage)
+  - [Debugging CSS Files](#debugging-css-files)
   - [Approximate Sourcemaps](#approximate-sourcemaps)
 - [Screencasts](#screencasts)
 - [Install Notes](#install-notes)
-- [Debugging](#debugging)
+- [Debugging css-plus](#debugging-css-plus)
 - [TODO](#todo)
 
 
@@ -54,13 +55,17 @@ These are formatted in a way that can be parsed by a linter and therefore can sh
 When coupled with source maps (see below), this vastly reduces debugging time because you know exactly where in the CSS file to look and which HTML element was being processed at the time.
 
 
-### Future Work
+<details>
+<summary>
+Click for Future Work ...
+</summary>
 
 - [x] add more errors and warnings
 - [ ] add "Strict" mode that fails on any warnings
 - [ ] create a linter plugin that parses the output text
 - [ ] create an atom plugin that allows you to run from the commandline but report the errors to the atom linter
 
+</details>
 
 ## HTML SourceMaps
 
@@ -83,12 +88,17 @@ As you click in the left pane, the right pane updates.
 _(there is no trickery here, this is real working code using a slightly modified [atom-source-preview](https://github.com/aki77/atom-source-preview))_
 
 
-### Future Work
+<details>
+<summary>
+Click for Future Work ...
+</summary>
 
 - [x] The right pane could show the original SCSS instead of the CSS file so you can edit and save directly
 - [ ] In the left pane the HTML could be rendered instead of looking at the HTML Source. Then, when you click around, the right pane would still do the same thing it does now.
 - [ ] This sourcemap information could be loaded into a WYSIWYG editor so an author can view the baked book but edit the source Page/Module (this animation only showed 1 source HTML file and 1 source CSS file)
 - [ ] Sourcemaps could be used to provide more precise validation errors (ie broken links, unused class names)
+
+</details>
 
 
 ## Exactly 1 Pass
@@ -112,6 +122,37 @@ Since each element does not depend on the state of other elements (and there is 
 `css-plus` generates an `${OUTPUT_HTML}.lcov` file in addition to the `${OUTPUT_HTML}.map` file which contains all the CSS covered and the HTML elements that were matched during the conversion.
 
 See the [codecov page](https://codecov.io/gh/philschatz/css-plus#tree) for examples.
+
+
+## Debugging CSS Files
+
+When building an interpreter for a language there are a few useful features that make development **much** easier:
+
+1. Logging within the language
+  - Add `x-log: "My message";` in CSS
+1. When the interpreter crashes, show which line of code was being executed (and with which data)
+  - Something like `foo.scss:13:2 [error message] (foo.html#id123)` followed by a stack trace
+1. A way to pause in the code and see what data is being operated on
+  - You can add a `data-debugger="true"` attribute to the HTML (or `debugger: true;` in the CSS)
+
+
+Adding the `data-debugger="true"` attribute to an element is like setting a breakpoint in other programming languages.
+
+It will output the following and if `css-plus` is run in debugging mode, pause the debugger.
+
+Example Output:
+
+```
+----------------------------------------------------
+Debugging data for ./data/statistics-raw.html:div#098e1a26-e612-4449-a45e-80fa23feba02@12
+Matched Selectors:
+  ../rulesets/books/statistics/book.scss:32:8			body > [data-type="chapter"]:has(section.summary) {...}
+Applied Declarations:
+  ../rulesets/books/statistics/book.scss:18:2			content: 1 "" "." "" 2 "" " ";
+  ../rulesets/books/statistics/book.scss:35:10		attrs-add: "href" "" "#" "" "098e1a26-e612-4449-a45e-80fa23feba02@12";
+  ../rulesets/books/statistics/book.scss:34:10		tag-name-set: "a";
+----------------------------------------------------
+```
 
 
 ## Approximate SourceMaps
@@ -146,12 +187,17 @@ There are 3 phases (annotate, build a work tree, manipulate):
 1. The DOM is manipulated by evaluating the closures in the work-tree
 
 
-### Future Work
+<details>
+<summary>
+Click for Future Work ...
+</summary>
 
 - [ ] mark the elements that will be moved
 - [ ] ensure empty elements are not created (no children or attributes have been added)
 - [ ] support a `--dry-run` which renders the work tree
   - optionally specify a selector to only show elements you are interested in
+
+</details>
 
 
 # Screencasts
@@ -211,7 +257,8 @@ node ./sourcemap-approximator.js ${SOURCE_FILE} ${GENERATED_FILE}
 and it generates a file at `${GENERATED_FILE}.map`
 
 
-# Debugging
+
+# Debugging css-plus
 
 run `npm run debugger` to start up a debugger and run the tests.
 
@@ -236,7 +283,7 @@ To pause when evaluating an element, add `data-debugger="true"` to the element.
   - [ ] Add example showing how to only transform certain chapters (or any selector)
     - May require adding support for multiple CSS files and an `env(NAME, DEFAULT)` function
   - [x] Add example showing how to build a glossary
-    - [ ] add `sort-children-by: ${SELECTOR};` for sorting a glossary
+    - [x] add additional args to `move-here()` for sorting a glossary or answers to exercises
     - [ ] add `copy-to(${SELECTOR})` which does a deep clone
     - [ ] support `tag-name-set: none;` which unwraps the element (useful for `<dt>` and `<dd>` pairs)
 - [ ] add `build-index(${TERM_SELECTOR})` for building an index

@@ -363,10 +363,12 @@ module.exports = class Applier {
     // Pull out all the declarations for this rule, and then later sort by specificity.
     // The structure is {'content': [ {specificity: [1,0,1], isImportant: false}, ... ]}
     const declarationsMap = {}
+    const debugMatchedRules = []
     // TODO: Decide if rule declarations should be evaluated before or after nested pseudoselectors
     rules.forEach((matchedRule) => {
       // Only evaluate rules that do not have additional pseudoselectors (more depth available)
       if (matchedRule.getDepth() - 1 === depth) {
+        debugMatchedRules.push(matchedRule)
         matchedRule.getRule().rule.block.children.toArray().forEach((declaration) => {
           const {type, important, property, value} = declaration
 
@@ -383,6 +385,7 @@ module.exports = class Applier {
 
     // now that all the declarations are sorted by selectivity (and filtered so they only occur once)
     // apply the declarations
+    const debugAppliedDeclarations = []
     const promises = this._ruleDeclarationPlugins.map((ruleDeclarationPlugin) => {
       let declarations = declarationsMap[ruleDeclarationPlugin.getRuleName()]
       if (declarations) {
@@ -402,6 +405,7 @@ module.exports = class Applier {
           declaration.astNode.__COVERAGE_COUNT = declaration.astNode.__COVERAGE_COUNT || 0
           declaration.astNode.__COVERAGE_COUNT += 1
           const vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, $elPromise, splitOnCommas(value.children.toArray()))
+          debugAppliedDeclarations.push({declaration, vals})
           try {
             return ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $elPromise, vals, value)
           } catch (e) {
@@ -415,7 +419,43 @@ module.exports = class Applier {
       }
     })
 
+    if ($currentEl.attr('data-debugger')) {
+      this.printDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations)
+    }
+
     return Promise.all(promises)
+  }
+
+  printDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations) {
+    console.log('----------------------------------------------------')
+    console.log(`Debugging data for ${sourceColor(htmlLocation($currentEl[0]))}`)
+    console.log('Matched Selectors:')
+    debugMatchedRules.forEach((matchedRule) => {
+      const {rule, selector} = matchedRule.getRule()
+      console.log(`  ${sourceColor(cssSnippetToString(rule))}\t\t${chalk.green(this.toBrowserSelector(selector))} {...}`)
+    })
+    console.log('Applied Declarations:')
+    debugAppliedDeclarations.forEach(({declaration, vals}) => {
+      // vals is a 2-dimensional array
+      const v = vals.map((val) => {
+        return val.map((v2) => {
+          if (typeof v2 === 'string') {
+            return chalk.yellow(`"${v2}"`)
+          } else if (typeof v2 === 'number') {
+            return chalk.blue(v2)
+          } else if (v2.jquery) {
+            return v2.toArray().map((el) => {
+              return sourceColor(`{${htmlLocation(el)}}`)
+            }).join(',')
+          } else {
+            debugger
+            return v2
+          }
+        }).join(' ')
+      }).join(',')
+      console.log(`  ${sourceColor(cssSnippetToString(declaration.astNode))}\t\t${declaration.astNode.property}: ${v};`)
+    })
+    console.log('----------------------------------------------------')
   }
 
   toBrowserSelector(selector) {

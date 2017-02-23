@@ -2,9 +2,9 @@ const chalk = require('chalk')
 // const jsdom = require('jsdom')
 
 const sourceColor = chalk.dim
-const errorColor = chalk.red
-const warnColor = chalk.yellow
-const logColor = chalk.blue
+const errorColor = chalk.red.bold
+const warnColor = chalk.yellow.bold
+const logColor = chalk.blue.bold
 
 let _console = console
 let _htmlSourceLookup
