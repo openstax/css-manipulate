@@ -206,12 +206,11 @@ Click for Future Work ...
 
 # Screencasts
 
-Example of converting an entire book:
-
-[![](https://asciinema.org/a/9a274xl7njm0hwfc8kbi9tnd2.png)](https://asciinema.org/a/9a274xl7njm0hwfc8kbi9tnd2)
-
 Log messages and error examples: [![](https://asciinema.org/a/1icz3mdxqyhnxanytkgsr5cs5.png)](https://asciinema.org/a/1icz3mdxqyhnxanytkgsr5cs5)
 
+Example of converting an entire book (takes a few minutes):
+
+[![](https://asciinema.org/a/https://asciinema.org/a/9ml3wzqzdide7r4bagigujdip.png)](https://asciinema.org/a/https://asciinema.org/a/9ml3wzqzdide7r4bagigujdip)
 
 
 # Install Notes
