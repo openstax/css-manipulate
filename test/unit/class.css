@@ -14,3 +14,9 @@ ul {
   class-add: none;
   class-remove: none;
 }
+
+section {
+  class-add: 'kittens';
+  class-remove: none;
+  class-remove: '*'; /* TODO: fix this so quotes are not needed */
+}

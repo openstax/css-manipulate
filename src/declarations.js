@@ -88,6 +88,31 @@ DECLARATIONS.push(new RuleDeclaration('content', ($, $lookupEl, $elPromise, vals
     return $el
   })
 }))
+DECLARATIONS.push(new RuleDeclaration('class-remove', ($, $lookupEl, $elPromise, vals) => {
+  // Do nothing when set to none;
+  // TODO: verify that it is not the string "none" (also needed for format-number())
+  if (vals[0][0] === 'none') {
+    assert.equal(vals.length, 1)
+    assert.equal(vals[0].length, 1)
+    return $elPromise
+  }
+
+  assert($elPromise instanceof Promise)
+  return $elPromise.then(($el) => {
+    if (vals[0][0] === '*') {
+      assert.equal(vals.length, 1)
+      assert.equal(vals[0].length, 1)
+      while($el[0].classList.length > 0) {
+        $el[0].classList.remove($el[0].classList[0])
+      }
+    } else {
+      vals.forEach((val) => {
+        $el.removeClass(val.join(' '))
+      })
+    }
+    return $el
+  })
+}))
 DECLARATIONS.push(new RuleDeclaration('class-add', ($, $lookupEl, $elPromise, vals, astRule) => {
   assert(vals.length >= 1)
   // Do nothing when set to none;
@@ -109,7 +134,10 @@ DECLARATIONS.push(new RuleDeclaration('class-add', ($, $lookupEl, $elPromise, va
     return $el
   })
 }))
-DECLARATIONS.push(new RuleDeclaration('class-remove', ($, $lookupEl, $elPromise, vals) => {
+
+DECLARATIONS.push(new RuleDeclaration('attrs-remove', ($, $lookupEl, $elPromise, vals) => {
+  // attrs-remove: attr1Name, attr2Name ...
+  assert(vals.length >= 1)
   // Do nothing when set to none;
   // TODO: verify that it is not the string "none" (also needed for format-number())
   if (vals[0][0] === 'none') {
@@ -117,16 +145,24 @@ DECLARATIONS.push(new RuleDeclaration('class-remove', ($, $lookupEl, $elPromise,
     assert.equal(vals[0].length, 1)
     return $elPromise
   }
-
   assert($elPromise instanceof Promise)
   return $elPromise.then(($el) => {
-    vals.forEach((val) => {
-      $el.removeClass(val.join(' '))
-    })
+    if (vals[0][0] === '*') {
+      assert.equal(vals.length, 1)
+      assert.equal(vals[0].length, 1)
+      while($el[0].attributes.length > 0) {
+        $el[0].removeAttribute($el[0].attributes[0].name)
+      }
+    } else {
+      vals.forEach((val) => {
+        assert.equal(val.length, 1)
+        const attrName = val[0]
+        $el.removeAttr(attrName)
+      })
+    }
     return $el
   })
 }))
-
 DECLARATIONS.push(new RuleDeclaration('attrs-add', ($, $lookupEl, $elPromise, vals, astRule) => {
   // attrs-add: attr1Name attr1Value attr1AdditionalValue , attr2Name ...
   assert(vals.length >= 1)
@@ -151,26 +187,33 @@ DECLARATIONS.push(new RuleDeclaration('attrs-add', ($, $lookupEl, $elPromise, va
     return $el
   })
 }))
-DECLARATIONS.push(new RuleDeclaration('attrs-remove', ($, $lookupEl, $elPromise, vals) => {
-  // attrs-remove: attr1Name, attr2Name ...
-  assert(vals.length >= 1)
-  // Do nothing when set to none;
+DECLARATIONS.push(new RuleDeclaration('display', ($, $lookupEl, $elPromise, vals, astRule) => {
+  assert(vals.length === 1)
+  // Do nothing when set to default;
   // TODO: verify that it is not the string "none" (also needed for format-number())
-  if (vals[0][0] === 'none') {
+  if (vals[0][0] !== 'none') {
     assert.equal(vals.length, 1)
     assert.equal(vals[0].length, 1)
     return $elPromise
   }
+  assert.equal(vals[0].length, 1)
+
   assert($elPromise instanceof Promise)
   return $elPromise.then(($el) => {
-    vals.forEach((val) => {
-      assert.equal(val.length, 1)
-      const attrName = val[0]
-      $el.removeAttr(attrName)
-    })
+    assert.equal($el.length, 1) // Just check for now, could be lifted later
+
+    $el.attr('data-debug-was-explicitly-detached', true)
+    $el.detach()
+    $el[0].__cssLocation = astRule
+    // It's very important to edit the existing $el
+    // since elements further down the promise chain need to be sure to keep mutating those new elements
     return $el
   })
 }))
+
+
+// FIXME: tag-name-set MUST be the last rule evaluated becuase it changes the $els set.
+// So until evaluateRule can return a new set of els this needs to be the last rule that is evaluated
 DECLARATIONS.push(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise, vals, astRule) => {
   assert(vals.length === 1)
   // Do nothing when set to default;
@@ -219,32 +262,5 @@ DECLARATIONS.push(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise,
     return $el
   })
 }))
-// FIXME: tag-name-set MUST be the last rule evaluated becuase it changes the $els set.
-// So until evaluateRule can return a new set of els this needs to be the last rule that is evaluated
-
-DECLARATIONS.push(new RuleDeclaration('display', ($, $lookupEl, $elPromise, vals, astRule) => {
-  assert(vals.length === 1)
-  // Do nothing when set to default;
-  // TODO: verify that it is not the string "none" (also needed for format-number())
-  if (vals[0][0] !== 'none') {
-    assert.equal(vals.length, 1)
-    assert.equal(vals[0].length, 1)
-    return $elPromise
-  }
-  assert.equal(vals[0].length, 1)
-
-  assert($elPromise instanceof Promise)
-  return $elPromise.then(($el) => {
-    assert.equal($el.length, 1) // Just check for now, could be lifted later
-
-    $el.attr('data-debug-was-explicitly-detached', true)
-    $el.detach()
-    $el[0].__cssLocation = astRule
-    // It's very important to edit the existing $el
-    // since elements further down the promise chain need to be sure to keep mutating those new elements
-    return $el
-  })
-}))
-
 
 module.exports = DECLARATIONS

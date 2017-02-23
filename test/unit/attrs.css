@@ -22,3 +22,9 @@ ul {
   tag-name-set: "ol";
   attrs-add: "attrs-add-is-evaluated-before-tag-name-set" "true";
 }
+
+section {
+  attrs-add: "data-animal" "kittens";
+  attrs-remove: none;
+  attrs-remove: '*'; /* TODO: fix this so quotes are not needed */
+}

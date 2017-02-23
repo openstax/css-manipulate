@@ -288,7 +288,7 @@ To pause when evaluating an element, add `data-debugger="true"` to the element.
     - May require adding support for multiple CSS files and an `env(NAME, DEFAULT)` function
   - [x] Add example showing how to build a glossary
     - [x] add additional args to `move-here()` for sorting a glossary or answers to exercises
-    - [ ] add `copy-to(${SELECTOR})` which does a deep clone
+    - [ ] add `contents()` which does a deep clone but removes id's
     - [ ] support `tag-name-set: none;` which unwraps the element (useful for `<dt>` and `<dd>` pairs)
 - [ ] add `build-index(${TERM_SELECTOR})` for building an index
 - [x] Convert the "motivation" examples to 1 big SASS file
@@ -297,7 +297,7 @@ To pause when evaluating an element, add `data-debugger="true"` to the element.
 - [x] Create a https://jsfiddle.net/philschatz/hjk2z4af/ (source CSS, source HTML, output HTML, warnings/errors)
   - [x] build all the JS into 1 file (minus maybe jQuery)
   - [x] show console warnings/errors in the output HTML area
-- [ ] Support `attrs-remove: *` instead of `attrs-set:` because they are as interchangeable and the order-of-evaluation is easier (only need to know 2: `attrs-add:` and `attrs-remove:`)
+- [x] Support `attrs-remove: *` instead of `attrs-set:` because they are as interchangeable and the order-of-evaluation is easier (only need to know 2: `attrs-add:` and `attrs-remove:`)
 - [x] `::for-each-descendant(1, ${SELECTOR}):has(${SELECTOR_FOR_MATCHES})` should have an additional selector argument
   - [x] so it only creates the element if there is something matching the selector
   - This way a "Homework" section will not be created if there are no Homework problems to show

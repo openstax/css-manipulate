@@ -59,9 +59,9 @@ Each declaration can also take the value of `none` (like `class-add: none;`) to 
 
 - `content: "strings or functions: " attr(href) move-here('.foo');` : replaces the contents of the current Element with these nodes
 - `class-add: "name1", "name2";`
-- `class-remove: "name1", "name2";` (or maybe `class-remove: *;`)
+- `class-remove: "name1", "name2";` (or `class-remove: '*';` to remove all)
 - `attrs-add: "name1" "val1" "val2 is concatenated", "name2" attr(href);`
-- `attrs-remove: "name1", "name2";` (or maybe `attrs-remove: *;`)
+- `attrs-remove: "name1", "name2";` (or `attrs-remove: '*';` to remove all)
 - `tag-name-set: "tagName";` : changes the element name (`div`, `a`, `strong`)
 - `display: none;` or `display: default;` : removes the element from the DOM
 - `x-log: "message" "or elements:" move-here('.foo');` : generates a log message for debugging
