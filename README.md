@@ -140,18 +140,22 @@ Adding the `data-debugger="true"` attribute to an element is like setting a brea
 
 It will output the following and if `css-plus` is run in debugging mode, pause the debugger.
 
-Example Output:
+Example Output below contains the following:
+
+- the HTML element and its location in the source code
+- which selectors were matched and their location in the source code
+- which declarations were applied and their location in the source code
 
 ```
-----------------------------------------------------
-Debugging data for ./data/statistics-raw.html:div#098e1a26-e612-4449-a45e-80fa23feba02@12
-Matched Selectors:
-  ../rulesets/books/statistics/book.scss:32:8			body > [data-type="chapter"]:has(section.summary) {...}
-Applied Declarations:
-  ../rulesets/books/statistics/book.scss:18:2			content: 1 "" "." "" 2 "" " ";
-  ../rulesets/books/statistics/book.scss:35:10		attrs-add: "href" "" "#" "" "098e1a26-e612-4449-a45e-80fa23feba02@12";
-  ../rulesets/books/statistics/book.scss:34:10		tag-name-set: "a";
-----------------------------------------------------
+/----------------------------------------------------
+| Debugging data for <<./data/statistics-raw.html:div#098e1a26-e612-4449-a45e-80fa23feba02@12>>
+| Matched Selectors:
+|   ../rulesets/books/statistics/book.scss:32:8			body > [data-type="chapter"]:has(section.summary) {...}
+| Applied Declarations:
+|   ../rulesets/books/statistics/book.scss:18:2			content: 1 "" "." "" 2 "" " ";
+|   ../rulesets/books/statistics/book.scss:35:10		attrs-add: "href" "" "#" "" "098e1a26-e612-4449-a45e-80fa23feba02@12";
+|   ../rulesets/books/statistics/book.scss:34:10		tag-name-set: "a";
+\----------------------------------------------------
 ```
 
 

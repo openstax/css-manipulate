@@ -24,7 +24,7 @@ function cssSnippetToString(cssSnippet) {
   if (cssSnippet && cssSnippet.loc) {
     // Commented out the end lookup because when the CSS ast is rewritten with the original source coordinates this data is not present most of the time
     const {source: cssSourcePath, start: {line: startLine, column: startColumn}/*, end: {line: endLine, column: endColumn}*/} = cssSnippet.loc
-    return `${cssSourcePath}:${startLine}:${startColumn}`
+    return `${cssSourcePath}:${startLine}:${startColumn + 1}` // columns start with 0 (lines start with 1)
   } else {
     return `unknown:0:0: [BUG: Invalid cssSnippet] ${JSON.stringify(cssSnippet)}`
   }

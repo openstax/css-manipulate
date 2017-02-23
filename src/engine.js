@@ -359,7 +359,7 @@ module.exports = class Applier {
 
   }
 
-  _evaluateRules(depth, rules, $currentEl, $elPromise) {
+  _evaluateRules(depth, rules, $currentEl, $elPromise, $debuggingEl) {
     // Pull out all the declarations for this rule, and then later sort by specificity.
     // The structure is {'content': [ {specificity: [1,0,1], isImportant: false}, ... ]}
     const declarationsMap = {}
@@ -419,62 +419,70 @@ module.exports = class Applier {
       }
     })
 
-    if ($currentEl.attr('data-debugger')) {
-      this.printDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations)
+    if ($debuggingEl.attr('data-debugger')) {
+      this.printDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations, $debuggingEl)
     }
 
     return Promise.all(promises)
   }
 
-  printDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations) {
-    console.log('----------------------------------------------------')
-    console.log(`Debugging data for ${sourceColor(htmlLocation($currentEl[0]))}`)
-    console.log('Matched Selectors:')
+  printDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations, $debuggingEl) {
+    console.log('')
+    console.log('/----------------------------------------------------')
+    console.log(`| Debugging data for ${sourceColor(`<<${htmlLocation($debuggingEl[0])}>>`)}`)
+    if ($currentEl[0] !== $debuggingEl[0]) {
+      console.log(`| Current Context is ${sourceColor(`<<${htmlLocation($currentEl[0])}>>`)}`)
+    }
+    console.log('| Matched Selectors:')
     debugMatchedRules.forEach((matchedRule) => {
       const {rule, selector} = matchedRule.getRule()
-      console.log(`  ${sourceColor(cssSnippetToString(rule))}\t\t${chalk.green(this.toBrowserSelector(selector))} {...}`)
+      console.log(`|   ${sourceColor(cssSnippetToString(rule))}\t\t${chalk.green(this.toBrowserSelector(selector, true /*includePseudoElements*/))} {...}`)
     })
-    console.log('Applied Declarations:')
+    console.log('| Applied Declarations:')
     debugAppliedDeclarations.forEach(({declaration, vals}) => {
       // vals is a 2-dimensional array
       const v = vals.map((val) => {
         return val.map((v2) => {
           if (typeof v2 === 'string') {
-            return chalk.yellow(`"${v2}"`)
+            if (v2.length >= 1) {
+              return chalk.yellow(`"${v2}"`)
+            } else {
+              return '' // skip empty strings just for readability
+            }
           } else if (typeof v2 === 'number') {
             return chalk.blue(v2)
           } else if (v2.jquery) {
             return v2.toArray().map((el) => {
-              return sourceColor(`{${htmlLocation(el)}}`)
-            }).join(',')
+              return sourceColor(`<<${htmlLocation(el)}>>`)
+            }).join(', ')
           } else {
             debugger
             return v2
           }
         }).join(' ')
       }).join(',')
-      console.log(`  ${sourceColor(cssSnippetToString(declaration.astNode))}\t\t${declaration.astNode.property}: ${v};`)
+      console.log(`|   ${sourceColor(cssSnippetToString(declaration.astNode))}\t\t${declaration.astNode.property}: ${v};`)
     })
-    console.log('----------------------------------------------------')
+    console.log('\\----------------------------------------------------')
   }
 
-  toBrowserSelector(selector) {
+  toBrowserSelector(selector, includePseudoElements) {
     assert.equal(selector.type, 'Selector')
     // Stop processing at the first PseudoElement
     const ret = []
     let foundPseudoElement = false
 
     selector.children.toArray().forEach((sel) => {
-      if (this._isPseudoElementSelectorElement(sel)) {
+      if (!includePseudoElements && this._isPseudoElementSelectorElement(sel)) {
         foundPseudoElement = true
       } else if (!foundPseudoElement) {
-        ret.push(this.toBrowserSelector2(sel))
+        ret.push(this.toBrowserSelector2(sel, includePseudoElements))
       }
     })
     return ret.join('')
   }
 
-  toBrowserSelector2(sel) {
+  toBrowserSelector2(sel, includePseudoElements) {
     switch (sel.type) {
       case 'Universal':
         return sel.name
@@ -526,7 +534,23 @@ module.exports = class Applier {
           case 'match':
           case 'first-of-type':
           case 'target': // this is new
-            return ''
+            if (includePseudoElements) {
+              if (sel.children) {
+                const children = sel.children.map((child) => {
+                  if (child.type === 'Raw') {
+                    return child.value
+                  } else {
+                    assert.equal(child.type, 'SelectorList')
+                    return child.children.map((child) => this.toBrowserSelector(child, includePseudoElements)).join(', ')
+                  }
+                })
+                return `:${sel.name}(${children})`
+              } else {
+                return `:${sel.name}`
+              }
+            } else {
+              return ''
+            }
           // keep these
           case 'not-has': // This was added because SASS has a bug and silently drops `:not(:has(foo))`. A more-hacky way would be to write `:not(:not(SASS_HACK):has(foo))`
             assert(sel.children)
@@ -541,7 +565,7 @@ module.exports = class Applier {
             if (sel.children) {
               const children = sel.children.map((child) => {
                 assert.equal(child.type, 'SelectorList')
-                return child.children.map(this.toBrowserSelector.bind(this)).join(', ')
+                return child.children.map((child) => this.toBrowserSelector(child, includePseudoElements)).join(', ')
               })
               return `:${sel.name}(${children})`
             } else {
@@ -562,7 +586,24 @@ module.exports = class Applier {
           case 'inside':
           case 'for-each-descendant':
           case 'deferred': // Hack for parsing the book.css file // FIXME by removing
-            return ''
+            if (includePseudoElements) {
+              if (sel.children) {
+                const children = sel.children.map((child) => {
+                  if (child.type === 'Raw') {
+                    return child.value
+                  } else {
+                    assert.equal(child.type, 'SelectorList')
+                    return child.children.map((child) => this.toBrowserSelector(child, includePseudoElements)).join(', ')
+                  }
+                })
+                return `::${sel.name}(${children})`
+              } else {
+                return `::${sel.name}`
+              }
+            } else {
+              return ''
+            }
+
           default:
             throwError(`UNKNOWN_PSEUDOELEMENT:${sel.name}(${sel.type})`, sel)
         }
@@ -606,6 +647,7 @@ module.exports = class Applier {
   process() {
     const allPseudoElementNames = this._pseudoElementPlugins.map((plugin) => plugin.getPseudoElementName())
     const allElementPromises = this.run(($el, rules) => {
+      const $debuggingEl = $el // used for the data-debugger to know which DOM node to check if debugging is enabled
       if (rules.length > 0) {
 
         // Allow pausing the engine when an element has `data-debugger="true"` set
@@ -677,7 +719,7 @@ module.exports = class Applier {
                 }
 
                 return Promise.all([
-                  this._evaluateRules(depth, reducedRules[index], $newLookupEl, $newElPromise),
+                  this._evaluateRules(depth, reducedRules[index], $newLookupEl, $newElPromise, $debuggingEl),
                   recursePseudoElements(depth + 1, reducedRules[index], $newLookupEl, $newElPromise)
                 ])
 
@@ -694,7 +736,7 @@ module.exports = class Applier {
         const $elPromise = Promise.resolve($el)
         return Promise.all([
           recursePseudoElements(0, rulesWithPseudos, $el, $elPromise),
-          this._evaluateRules(-1 /*depth*/, rulesWithPseudos, $el, $elPromise)
+          this._evaluateRules(-1 /*depth*/, rulesWithPseudos, $el, $elPromise, $el)
         ])
       }
 
