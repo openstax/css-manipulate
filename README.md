@@ -206,11 +206,13 @@ Click for Future Work ...
 
 # Screencasts
 
-Log messages and error examples: [![](https://asciinema.org/a/1icz3mdxqyhnxanytkgsr5cs5.png)](https://asciinema.org/a/1icz3mdxqyhnxanytkgsr5cs5)
+Debugging Example:
 
-Example of converting an entire book (takes a few minutes):
+[![](https://asciinema.org/a/1xtpezj5j9mmce8pxfpq7djs9.png)](https://asciinema.org/a/1xtpezj5j9mmce8pxfpq7djs9)
 
-[![](https://asciinema.org/a/https://asciinema.org/a/9ml3wzqzdide7r4bagigujdip.png)](https://asciinema.org/a/https://asciinema.org/a/9ml3wzqzdide7r4bagigujdip)
+Example of converting an entire book (takes a few minutes but you get progress bars and status updates):
+
+[![](https://asciinema.org/a/9ml3wzqzdide7r4bagigujdip.png)](https://asciinema.org/a/9ml3wzqzdide7r4bagigujdip)
 
 
 # Install Notes
