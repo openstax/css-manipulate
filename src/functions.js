@@ -201,14 +201,33 @@ FUNCTIONS.push(new FunctionEvaluator('target-context',
     const selector = evaluator({$contextEl}, $currentEl, mutationPromise, [argExprs[0]]).join('')
     assert.equal(typeof selector, 'string')
     // If we are looking up an id then look up against the whole document
-    if ('#' === selector[0]) {
-      $contextEl = $(selector)
-    } else {
+    // TODO: Verify that this memoizing actually saves time
+
+    if ('#' !== selector[0]) {
       throwError(`Only selectors starting with "#" are supported for now`, args[0], $currentEl)
     }
 
+    const $targetEl = memoize($contextEl[0], '_target', selector, () => {
+      let $targetEl
+      const targetEl = $contextEl[0].ownerDocument.getElementById(selector.substring(1))
+      if (targetEl) {
+        $targetEl = $(targetEl)
+      } else {
+        // $targetEl = $(`[id="${selector.substring(1)}"]`)
+        $targetEl = $($contextEl[0].ownerDocument.querySelectorAll(`[id="${selector.substring(1)}"]`))
+      }
+      return $targetEl
+    })
 
-    const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs.slice(1))
+    if ($targetEl.length >= 2) {
+      showWarning(`More than one element has the id=${selector.substring(1)}`, astNode, $el)
+    } else if ($targetEl.length == 0) {
+      showWarning(`Could not find target element with id=${selector.substring(1)}`, astNode, $el)
+    }
+
+
+
+    const vals = evaluator({$contextEl: $targetEl}, $currentEl, mutationPromise, argExprs.slice(1))
     assert.equal(vals.length, 1)
     // skip the 1st arg which is the selector
     // and use the 2nd arg

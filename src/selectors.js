@@ -5,6 +5,18 @@ const {showLog, showWarning, throwError, throwBug} = require('./helper/error')
 const PSEUDO_ELEMENTS = []
 const PSEUDO_CLASSES = []
 
+// It is expensive to call $el.find() and friends. Since the DOM does not change, just remember what was returned
+// This occurs frequently for making counters
+function memoize(el, key, value, fn) {
+  el[key] = el[key] || {}
+  if (typeof el[key][value] === 'undefined') {
+    el[key][value] = fn()
+  // } else {
+  //   console.log(`SAVING TIME AND MONEY WITH MEMOIZATION!!!!!!!!!!!!!!!!!!! ${key} ${value}`);
+  }
+  return el[key][value]
+}
+
 class PseudoClassFilter {
   constructor(name, fn) {
     this._name = name
@@ -63,7 +75,7 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $look
 }))
 
 
-PSEUDO_CLASSES.push(new PseudoClassFilter('target', ($, $el, args) => {
+PSEUDO_CLASSES.push(new PseudoClassFilter('target', ($, $el, args, astNode) => {
   assert.equal(args.length, 1)
   assert.equal(args[0].length, 1)
   assert(args[0][0].indexOf(',') >= 1) // ensure that there is a comma
@@ -76,9 +88,39 @@ PSEUDO_CLASSES.push(new PseudoClassFilter('target', ($, $el, args) => {
   assert.equal(matchSelector[matchSelector.length - 1], "'")
   // TODO: Check that _all_ els match, not just one
   const attrValue = $el.attr(attributeName)
-  if (attrValue[0] === '#') {
-    // only applies for internal links
-    return $(attrValue).is(matchSelector.substring(1, matchSelector.length - 1)) // Remove the wrapping quotes)
+  if (!attrValue) {
+    showWarning(`Could not find attribute named '${attributeName}' on this element`, astNode, $el)
+  }
+  // only applies for internal links
+  if (attrValue && attrValue[0] === '#') {
+    // Sizzle does not like ids like #auto_098e1a26-e612-4449-a45e-80fa23feba02@12_ch01_mod02_fig001 so we need to catch those errors
+    // and perform a slower query.
+    // TODO: Verify that this memoizing saves time
+    const $targetEl = memoize($el[0], '_target', attrValue, () => { /* Use attrValue here so there is a chance that it will be matched later when using target-context */
+      let $targetEl
+      const targetEl = $el[0].ownerDocument.getElementById(attrValue.substring(1))
+      if (targetEl) {
+        $targetEl = $(targetEl)
+      } else {
+        // $targetEl = $(`[id="${attrValue.substring(1)}"]`)
+        $targetEl = $($el[0].ownerDocument.querySelectorAll(`[id="${attrValue.substring(1)}"]`))
+      }
+      return $targetEl
+    })
+
+    if ($targetEl.length >= 2) {
+      showWarning(`More than one element has the id=${attrValue.substring(1)}`, astNode, $el)
+      return false
+    } else if ($targetEl.length == 0) {
+      showWarning(`Could not find target element with id=${attrValue.substring(1)}`, astNode, $el)
+      return false
+    }
+    const selector = matchSelector.substring(1, matchSelector.length - 1) // Remove the wrapping quotes
+    // TODO: Check if this memoizing actually helps or not
+    return memoize($targetEl[0], '_is', selector, () => {
+      return $targetEl.is(selector)
+    })
+
   } else {
     return false
   }

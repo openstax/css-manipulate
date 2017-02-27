@@ -297,7 +297,7 @@ module.exports = class Applier {
               const context = {$contextEl: $matchedNode}
               const $elPromise = Promise.resolve('IT_IS_A_BUG_IF_YOU_RELY_ON_THIS_PROMISE_BECAUSE_WE_ARE_FILTERING_ON_A_CLASS_NAME')
               const args = this._evaluateVals(context, $matchedNode, $elPromise, splitOnCommas(pseudoClassElement.children.toArray()))
-              return pseudoClassPlugin.matches(this._$, $matchedNode, args)
+              return pseudoClassPlugin.matches(this._$, $matchedNode, args, pseudoClassElement)
             })
           }
         })
