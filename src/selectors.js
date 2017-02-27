@@ -76,7 +76,12 @@ PSEUDO_CLASSES.push(new PseudoClassFilter('target', ($, $el, args) => {
   assert.equal(matchSelector[matchSelector.length - 1], "'")
   // TODO: Check that _all_ els match, not just one
   const attrValue = $el.attr(attributeName)
-  return $(attrValue).is(matchSelector.substring(1, matchSelector.length - 1)) // Remove the wrapping quotes)
+  if (attrValue[0] === '#') {
+    // only applies for internal links
+    return $(attrValue).is(matchSelector.substring(1, matchSelector.length - 1)) // Remove the wrapping quotes)
+  } else {
+    return false
+  }
 }))
 
 module.exports = {PSEUDO_ELEMENTS, PSEUDO_CLASSES}
