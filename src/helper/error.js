@@ -137,4 +137,17 @@ function showLog(message, cssSnippet, $el) {
   _console.log(msg)
 }
 
-module.exports = {init, createMessage, throwError, throwBug, showWarning, showLog, cssSnippetToString, htmlLocation}
+function assert(val, astNode, $el) {
+  if (!astNode || !$el) {
+    throwBug('Missing argument to assert')
+  }
+  if (!val) {
+    throwBug('Assertion failed', astNode, $el)
+  }
+}
+assert.equal = function(expected, actual, astNode, $el) {
+  if (expected !== actual) {
+    throwBug(`Assertion failed. Expected ${expected} but got ${actual}`, astNode, $el)
+  }
+}
+module.exports = {init, createMessage, throwError, throwBug, showWarning, showLog, cssSnippetToString, htmlLocation, assert}
