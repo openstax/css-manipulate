@@ -6,7 +6,8 @@
  */
 exercise.homework,
 exercise.conceptual {
-  > answer::before(1) {
+  // Add a number to the beginning of an answer
+  > answer::before {
     content:
       /* Chapter number */
       ancestor-context('body', count-of-type('chapter'))
@@ -16,9 +17,12 @@ exercise.conceptual {
   }
 }
 
-/* Create the Answer key at the end of the book */
+/* Create the Answer key as the 1st end-of-book item */
 body::after(1) {
-  &::before(1) { content: "Answer Key"; }
+  &::before {
+    tag-name-set: "h1";
+    content: "Answer Key";
+  }
 
   /* This moves all `<answer>` elements that are found in the `<body>`
       because the current context is `body` (from the selector)

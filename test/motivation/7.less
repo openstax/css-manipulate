@@ -1,8 +1,9 @@
 @import './6.less';
 
 /* This wraps a list and adds an element which contains the label (in [data-label]) */
-ol[data-label]::outside(1) {
-  &::before(1) {
+ol[data-label]::outside {
+  &::before {
+    tag-name-set: "label";
     class-add: "list-label";
     content: attr(data-label);
   }

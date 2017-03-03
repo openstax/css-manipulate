@@ -2,9 +2,13 @@
 
 // This adds classes and attributes to the new elements
 chapter {
-  &::after(1),
-  &::after(2) {
-    &::before(1) { class-add: "title"; }
+  // The following adds attributes to the elements created in step 1
+  &::after(1), /* Conceptual Questions */
+  &::after(2)  /* Homework Problems */ {
+    &::before {
+      tag-name-set: "h2";
+      class-add: "title";
+    }
     attrs-add: "data-type" "eoc-item";
   }
 }

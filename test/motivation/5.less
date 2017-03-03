@@ -18,7 +18,7 @@
 */
 exercise.homework,
 exercise.conceptual {
-  &::before(1) {
+  &::before {
     class-add: "number";
     content: ancestor-context('chapter', count-of-type('exercise.homework, exercise.conceptual'));
   }

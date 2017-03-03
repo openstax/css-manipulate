@@ -6,6 +6,7 @@ $NUMBERED_EXERCISES_SEL_STR: 'exercise.conceptual, exercise.homework'; // TODO: 
   &::after(#{$which}) {
     // STEP 2
     &::before {
+      tag-name-set: "h2";
       class-add: "title";
       content: $title; // STEP 1
     }
@@ -15,6 +16,7 @@ $NUMBERED_EXERCISES_SEL_STR: 'exercise.conceptual, exercise.homework'; // TODO: 
     &::for-each-descendant(1, '> section') {
       &:has(#{$exerciseSelStr}) {
         &::before {
+          tag-name-set: "h3";
           class-add: "section-title";
           content: descendant-context('> .title', text-contents());
         }
@@ -54,7 +56,7 @@ $NUMBERED_EXERCISES_SEL_STR: 'exercise.conceptual, exercise.homework'; // TODO: 
     }
 
     // (STEP 10)
-    &:has(> answer)::before(1) {
+    &:has(> answer)::before {
       tag-name-set: "a";
       // attrs-add: "href" "#" descendant-context('> answer', attr-ensure(id));
       attrs-add: "href" "#" descendant-context('> answer', attr(id));
@@ -79,8 +81,9 @@ $NUMBERED_EXERCISES_SEL_STR: 'exercise.conceptual, exercise.homework'; // TODO: 
 
 // Wrap Lists with labels (STEP 7)
 @mixin wrap-labeled-lists() {
-  ol[data-label]::outside(1) {
-    &::before(1) {
+  ol[data-label]::outside {
+    &::before {
+      tag-name-set: "label";
       class-add: "list-label";
       content: attr(data-label);
     }
@@ -101,7 +104,10 @@ body {
 
   // End-of-book answer key (STEP 9)
   &::after(1) {
-    &::before { content: "Answer Key"; }
+    &::before {
+      tag-name-set: "h1";
+      content: "Answer Key";
+    }
     content: move-here('answer');
   }
 }
@@ -116,6 +122,6 @@ body {
 @include wrap-labeled-lists();
 
 /* Wrap the inside of notes with an element (STEP 8) */
-note::inside(1) {
-  class-add: "note-body";
+note::inside {
+  class-add: "note-inside";
 }

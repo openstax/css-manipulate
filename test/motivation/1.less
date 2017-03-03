@@ -1,13 +1,13 @@
-@CONCEPT: 1;
-@HOMEWORK: 2;
-
 // At the end of a chapter, this adds 2 Pages that we will fill in later
 chapter {
+  // Note: The (1) at the end of the next line is optional but is added here
+  // to clarify that we will be adding a "Conceptual Questions" area,
+  // followed by "Homework Problems"
   &::after(1) {
-    &::before(1) { content: "Conceptual Questions"; }
+    &::before { content: "Conceptual Questions"; }
   }
 
   &::after(2) {
-    &::before(1) { content: "Homework Problems"; }
+    &::before { content: "Homework Problems"; }
   }
 }

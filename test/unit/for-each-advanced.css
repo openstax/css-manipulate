@@ -41,3 +41,9 @@ body::after(8)::for-each-descendant(1, 'section'):has(exercise)::before(1)  {
 body::after(9)::for-each-descendant(1, 'section'):has(exercise.homework)::before(1)  {
   content: 'kittens-inside-before2';
 }
+body::after(10)::for-each-descendant(1, 'section'):has(exercise.conceptual)  {
+  class-add: 'kittens-only-when-nonempty';
+}
+body::after(10)::for-each-descendant(1, 'section'):has(exercise.conceptual)::before  {
+  content: 'conceptual kittens go here';
+}

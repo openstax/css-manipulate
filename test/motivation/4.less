@@ -14,7 +14,8 @@ chapter::after(1) {
     &:has(exercise.conceptual) { /* This is a guard so titles for sections without a conceptual exercise are not created */
 
       /* This block creates the section title for the end-of-chapter item by looking up the title */
-      &::before(1) {
+      &::before {
+        tag-name-set: "h3";
         class-add: "section-title";
         content: descendant-context('> .title', text-contents());
       }
@@ -30,7 +31,8 @@ chapter::after(1) {
 chapter::after(2) {
   &::for-each-descendant(1, '> section') {
     &:has(exercise.homework) {
-      &::before(1) {
+      &::before {
+        tag-name-set: "h3";
         class-add: "section-title";
         content: descendant-context('> .title', text-contents());
       }
