@@ -108,7 +108,7 @@ This addresses a few use-cases:
 - As a CSS Developer I want to not have to reason about intermediate state of the DOM
 - As a CSS Developer I want the conversion to be fast
 
-This model is inspired by both CSS and virtualdom libraries like React: you describe what you want the result to look like rather than the "how".
+This model is inspired by both CSS and virtualdom libraries like React: you describe what you want the result to look like rather than the steps to get to the result.
 
 No more writing the intermediate steps needed to get to the desired result (ie setting temporary attributes, multiple passes to move things around).
 
@@ -129,11 +129,11 @@ See the [codecov page](https://codecov.io/gh/philschatz/css-plus#tree) for examp
 When building an interpreter for a language there are a few useful features that make development **much** easier:
 
 1. Logging within the language
-  - Add `x-log: "My message";` in CSS
+    - Add `x-log: "My message";` in CSS
 1. When the interpreter crashes, show which line of code was being executed (and with which data)
-  - Something like `foo.scss:13:2 [error message] (foo.html#id123)` followed by a stack trace
+    - Something like `foo.scss:13:2 [error message] (foo.html#id123)` followed by a stack trace
 1. A way to pause in the code and see what data is being operated on
-  - You can add a `data-debugger="true"` attribute to the HTML (or `debugger: true;` in the CSS)
+    - You can add a `data-debugger="true"` attribute to the HTML (or `debugger: true;` in the CSS)
 
 
 Adding the `data-debugger="true"` attribute to an element is like setting a breakpoint in other programming languages.
