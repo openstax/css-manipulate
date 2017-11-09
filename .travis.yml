@@ -1,12 +1,13 @@
 language: node_js
 
-before_install:
-  # - npm install -g yarn
-  # - yarn add global ruby
-  - gem install sass
+# Cache the 3rd-party packages. From https://blog.travis-ci.com/2016-11-21-travis-ci-now-supports-yarn
+cache:
+  yarn: true
+  directories:
+    - node_modules
 
-script:
-  npm run ci
+before_script: ./script/setup
+script: ./script/ci
 after_script:
   # Report coverage to codecov
   - bash <(curl -s https://codecov.io/bash)

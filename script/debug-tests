@@ -1,8 +1,9 @@
 #!/bin/bash
-set -e
+cd "$(dirname "$0")/.." || exit 111
+source ./script/bootstrap || exit 111
 
-echo '======================================================'
-echo ' Remember to add a `debugger` statement in your code!'
-echo '======================================================'
+_say '======================================================'
+_say ' Remember to add a `debugger` statement in your code!'
+_say '======================================================'
 
 npm run-script debugger

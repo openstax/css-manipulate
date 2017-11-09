@@ -1,11 +1,12 @@
 #!/bin/bash
-set -e
+cd "$(dirname "$0")/.." || exit 111
+source ./script/bootstrap || exit 111
 
-sass test/motivation/all.scss test/motivation/all.css
+do_progress_quiet "Compiling motivation example" \
+  "$(npm bin)/node-sass" test/motivation/all.scss test/motivation/all.css
 
-for filename in $(ls ./test/*/*.less)
-do
-  echo "compiling ${filename}"
+for filename in $(ls ./test/*/*.less); do
   filename="${filename%.*}" # strip off the extension
-  $(npm bin)/lessc --source-map "${filename}.less" "${filename}.css"
+  do_progress_quiet "compiling ${filename}" \
+    "$(npm bin)/lessc" --source-map "${filename}.less" "${filename}.css"
 done
