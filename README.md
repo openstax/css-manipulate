@@ -5,10 +5,9 @@
 [![dependency status][dependency-image]][dependency-url]
 [![dev dependency status][dev-dependency-image]][dev-dependency-url]
 [![code coverage][coverage-image]][coverage-url]
+[![greenkeeper][greenkeeper-image]][greenkeeper-url]
 
 # Motivation/Examples
-
-[![Greenkeeper badge](https://badges.greenkeeper.io/philschatz/css-plus.svg)](https://greenkeeper.io/)
 
 The [Motivation Page](./motivation.md) has a step-by-step introduction to the CSS features or just play around with the **[JSFiddle of all the steps combined](https://jsfiddle.net/philschatz/hjk2z4af/)**
 
@@ -315,3 +314,5 @@ To pause when evaluating an element, add `data-debugger="true"` to the element.
 [dev-dependency-url]: https://david-dm.org/philschatz/css-plus#info=devDependencies
 [coverage-image]: https://img.shields.io/codecov/c/github/philschatz/css-plus.svg
 [coverage-url]: https://codecov.io/gh/philschatz/css-plus
+[greenkeeper-image]: https://badges.greenkeeper.io/philschatz/css-plus.svg
+[greenkeeper-url]: https://greenkeeper.io/
