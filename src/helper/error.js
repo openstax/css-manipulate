@@ -75,10 +75,6 @@ function htmlLocation(el) {
         if (locationInfo.line !== null && typeof(locationInfo.line) !== 'undefined') {
           return `${_htmlSourcePath}:${locationInfo.line}:${locationInfo.col}`
         } else {
-          if (!_hasBeenWarned) {
-            console.warn('See the installation instructions about getting a more-precise version of jsdom')
-            _hasBeenWarned = true
-          }
           const selector = constructSelector(el)
           return `${_htmlSourcePath}:{${selector}}`
         }

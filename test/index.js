@@ -83,8 +83,8 @@ function buildTest(cssFilename, htmlFilename) {
     const htmlOutputSourceMapPath = `${htmlOutputPath}.map`
     const htmlOutputCoveragePath = `${htmlOutputPath}.lcov`
     const htmlOutputSourceMapFilename = path.basename(htmlOutputSourceMapPath)
-    const cssContents = fs.readFileSync(cssPath)
-    const htmlContents = fs.readFileSync(htmlPath)
+    const cssContents = fs.readFileSync(cssPath, 'utf8')
+    const htmlContents = fs.readFileSync(htmlPath, 'utf8')
 
     return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, {} /*argv*/).then(({html: actualOutput, sourceMap, coverageData}) => {
       if (fs.existsSync(htmlOutputPath)) {

@@ -2,7 +2,7 @@
 
 const fs = require('fs')
 const path = require('path')
-const {convertNodeJS} = require('../src/helper/node')
+const {convertNodeJS, finish} = require('../src/helper/node')
 const argv = require('yargs')
 .option('css', {
   demandOption: true,
@@ -69,4 +69,5 @@ convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, argv
   fs.writeFileSync(htmlOutputPath, actualOutput)
   fs.writeFileSync(htmlOutputSourceMapPath, sourceMap)
   fs.writeFileSync(htmlOutputLcovPath, coverageDataToLcov(htmlOutputPath, coverageData))
+  return finish() // Close the browser so this process exits
 })

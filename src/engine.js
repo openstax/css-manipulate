@@ -1,6 +1,6 @@
 const assert = require('assert')
 const csstree = require('css-tree')
-const ProgressBar = require('progress')
+// const ProgressBar = require('progress')
 const chalk = require('chalk')
 const jqueryXmlns = require('./helper/jquery.xmlns')
 const RuleWithPseudos = require('./helper/rule-with-pseudos')
@@ -187,7 +187,7 @@ module.exports = class Applier {
     // Cache matched nodes because selectors are duplicated in the CSS
     const selectorCache = {}
 
-    const bar = new ProgressBar(`${chalk.bold('Matching')} :percent ${sourceColor(this._options.debug ? ':elapsed' : ':etas')} ${chalk.green("':selector'")} ${sourceColor(':sourceLocation')}`, { total: total})
+    // const bar = new ProgressBar(`${chalk.bold('Matching')} :percent ${sourceColor(this._options.debug ? ':elapsed' : ':etas')} ${chalk.green("':selector'")} ${sourceColor(':sourceLocation')}`, { total: total})
 
     // This code is not css-ish because it does not walk the DOM
     ast.children.each((rule) => {
@@ -199,7 +199,7 @@ module.exports = class Applier {
       rule.selector.children.each((selector) => {
         assert.equal(selector.type, 'Selector')
         const browserSelector = this.toBrowserSelector(selector)
-        bar.tick({selector: browserSelector, sourceLocation: this._options.verbose ? cssSnippetToString(selector) : ' '})
+        // bar.tick({selector: browserSelector, sourceLocation: this._options.verbose ? cssSnippetToString(selector) : ' '})
 
         selectorCache[browserSelector] = selectorCache[browserSelector] || this._$(browserSelector)
         let $matchedNodes = selectorCache[browserSelector]
@@ -226,7 +226,7 @@ module.exports = class Applier {
     // Clear up some memory by removing all the memoizedQueries that jsdom added for caching:
     // This is a little hacky but it works
     walkDOMElementsInOrder(this._document.documentElement, (el) => {
-      el[Object.getOwnPropertySymbols(el)[0]]._clearMemoizedQueries()
+      // el[Object.getOwnPropertySymbols(el)[0]]._clearMemoizedQueries()
     })
   }
 
@@ -620,17 +620,17 @@ module.exports = class Applier {
     })
 
 
-    const bar = new ProgressBar(`${chalk.bold('Converting')} :percent ${sourceColor(this._options.debug ? ':elapsed' : ':etas')} [${chalk.green(':bar')}] #:current ${sourceColor(':sourceLocation')}`, {
-      renderThrottle: 200,
-      complete: '=',
-      incomplete: ' ',
-      width: 40,
-      total: total
-    })
+    // const bar = new ProgressBar(`${chalk.bold('Converting')} :percent ${sourceColor(this._options.debug ? ':elapsed' : ':etas')} [${chalk.green(':bar')}] #:current ${sourceColor(':sourceLocation')}`, {
+    //   renderThrottle: 200,
+    //   complete: '=',
+    //   incomplete: ' ',
+    //   width: 40,
+    //   total: total
+    // })
     const allPromises = []
     walkDOMElementsInOrder(this._document.documentElement, (el) => {
       // Do not bother showing the source location for elements that did not match anything
-      bar.tick({ sourceLocation: (el.MATCHED_RULES && this._options.verbose) ? htmlLocation(el) : '' })
+      // bar.tick({ sourceLocation: (el.MATCHED_RULES && this._options.verbose) ? htmlLocation(el) : '' })
 
       const matches = el.MATCHED_RULES || []
       el.MATCHED_RULES = null
