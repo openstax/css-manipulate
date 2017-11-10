@@ -7,6 +7,7 @@ const jquery = require('jquery')
 const {SourceMapConsumer} = require('source-map')
 const converter = require('../converter')
 const {showWarning} = require('./error')
+const renderPacket = require('./render-packet')
 
 
 const BROWSER_DIST_PATH = require.resolve('../../dist/browser')
@@ -31,7 +32,9 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
   const isXhtml = /@namespace/.test(cssContents.toString()) || /xmlns/.test(htmlContents.toString())
 
   if (!browserPromise) {
-    browserPromise = puppeteer.launch({headless: !options.debug, /*devtools: true*/})
+    const devtools = process.env['NODE_ENV'] == 'debugger'
+    const headless = devtools ? false : !options.debug
+    browserPromise = puppeteer.launch({headless: headless, devtools: devtools})
   }
   const browser = await browserPromise
   const page = await browser.newPage()
@@ -43,6 +46,8 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
       console.warn(text)
     } else if (type === 'error') {
       console.error(text)
+    } else if (type === 'info') {
+      renderPacket(text)
     } else {
       console.log(text)
     }

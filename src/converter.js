@@ -5,7 +5,7 @@ const serializer = require('./serializer')
 const DECLARATIONS = require('./declarations')
 const FUNCTIONS = require('./functions')
 const {PSEUDO_ELEMENTS, PSEUDO_CLASSES} = require('./selectors')
-const {init: errorInit, createMessage, throwError, showWarning, showLog} = require('./helper/error')
+const {init: errorInit, throwError, showWarning, showLog} = require('./helper/error')
 
 
 

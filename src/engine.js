@@ -5,7 +5,7 @@ const chalk = require('chalk')
 const jqueryXmlns = require('./helper/jquery.xmlns')
 const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
-const {throwError, throwBug, showWarning, cssSnippetToString, htmlLocation} = require('./helper/error')
+const {throwError, throwBug, showWarning, showDebuggerData} = require('./helper/error')
 
 const sourceColor = chalk.dim
 
@@ -398,7 +398,7 @@ module.exports = class Applier {
         declarations.slice(0, declarations.length - 1).forEach((decl) => {
           const {value} = decl
           // BUG: Somehow the same selector can be matched twice for an element . This occurs with the `:not(:has(...))` ones
-          showWarning(`Skipping because this was overridden by ${sourceColor(cssSnippetToString(declarations[declarations.length - 1].value))}`, value, $currentEl)
+          showWarning(`Skipping because this was overridden by `, value, $currentEl, /*additional CSS snippet*/declarations[declarations.length - 1].value)
           decl.astNode.__COVERAGE_COUNT = decl.astNode.__COVERAGE_COUNT || 0
         })
 
@@ -422,51 +422,12 @@ module.exports = class Applier {
     })
 
     if ($debuggingEl.attr('data-debugger')) {
-      this.printDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations, $debuggingEl)
+      showDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations, $debuggingEl, this.toBrowserSelector.bind(this))
     }
 
     return Promise.all(promises)
   }
 
-  printDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations, $debuggingEl) {
-    console.log('')
-    console.log('/----------------------------------------------------')
-    console.log(`| Debugging data for ${sourceColor(`<<${htmlLocation($debuggingEl[0])}>>`)}`)
-    if ($currentEl[0] !== $debuggingEl[0]) {
-      console.log(`| Current Context is ${sourceColor(`<<${htmlLocation($currentEl[0])}>>`)}`)
-    }
-    console.log('| Matched Selectors:')
-    debugMatchedRules.forEach((matchedRule) => {
-      const {rule, selector} = matchedRule.getRule()
-      console.log(`|   ${sourceColor(cssSnippetToString(rule))}\t\t${chalk.green(this.toBrowserSelector(selector, true /*includePseudoElements*/))} {...}`)
-    })
-    console.log('| Applied Declarations:')
-    debugAppliedDeclarations.forEach(({declaration, vals}) => {
-      // vals is a 2-dimensional array
-      const v = vals.map((val) => {
-        return val.map((v2) => {
-          if (typeof v2 === 'string') {
-            if (v2.length >= 1) {
-              return chalk.yellow(`"${v2}"`)
-            } else {
-              return '' // skip empty strings just for readability
-            }
-          } else if (typeof v2 === 'number') {
-            return chalk.blue(v2)
-          } else if (v2.jquery) {
-            return v2.toArray().map((el) => {
-              return sourceColor(`<<${htmlLocation(el)}>>`)
-            }).join(', ')
-          } else {
-            debugger
-            return v2
-          }
-        }).join(' ')
-      }).join(',')
-      console.log(`|   ${sourceColor(cssSnippetToString(declaration.astNode))}\t\t${declaration.astNode.property}: ${v};`)
-    })
-    console.log('\\----------------------------------------------------')
-  }
 
   toBrowserSelector(selector, includePseudoElements) {
     assert.equal(selector.type, 'Selector')
