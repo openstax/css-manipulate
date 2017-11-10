@@ -8,6 +8,8 @@
 
 # Motivation/Examples
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/philschatz/css-plus.svg)](https://greenkeeper.io/)
+
 The [Motivation Page](./motivation.md) has a step-by-step introduction to the CSS features or just play around with the **[JSFiddle of all the steps combined](https://jsfiddle.net/philschatz/hjk2z4af/)**
 
 The [Language Reference Page](./docs.md) contains a list of all selectors, rules, functions that are understood.
