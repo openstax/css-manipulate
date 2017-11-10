@@ -78,6 +78,7 @@ function buildTest(cssFilename, htmlFilename) {
   const cssPath = `test/${cssFilename}`
   const htmlPath = `test/${htmlFilename}`
   test(`Generates ${cssPath}`, (t) => {
+    t.plan(1) // 1 assertion
     const htmlOutputPath = cssPath.replace('.css', '.out.html')
     const htmlOutputSourceMapPath = `${htmlOutputPath}.map`
     const htmlOutputCoveragePath = `${htmlOutputPath}.lcov`
@@ -91,19 +92,17 @@ function buildTest(cssFilename, htmlFilename) {
 
         fs.writeFileSync(htmlOutputSourceMapPath, sourceMap)
         fs.writeFileSync(htmlOutputCoveragePath, coverageDataToLcov(htmlOutputPath, coverageData))
-        if (actualOutput.trim() != expectedOutput.trim()) {
-          if (WRITE_TEST_RESULTS === 'true') {
-            fs.writeFileSync(htmlOutputPath, actualOutput)
-          } else {
-            console.log(diff(expectedOutput.trim(), actualOutput.trim()))
-            t.fail('Mismatched output')
-          }
+
+        if (WRITE_TEST_RESULTS === 'true') {
+          fs.writeFileSync(htmlOutputPath, actualOutput)
         }
+        t.is(actualOutput.trim(), expectedOutput.trim())
       } else {
         // If the file does not exist yet then write it out to disk
-        // if (WRITE_TEST_RESULTS === 'true') {
         fs.writeFileSync(htmlOutputPath, actualOutput)
-        // }
+        if (WRITE_TEST_RESULTS === 'true') {
+          t.pass()
+        }
       }
 
     })
@@ -129,16 +128,18 @@ function buildErrorTests() {
   const htmlOutputPath = cssPath.replace('.css', '.out.html')
   const htmlContents = fs.readFileSync(htmlPath)
 
-  errorRules.forEach((cssContents) => {
-    if (!cssContents || cssContents[0] === '/' && cssContents[1] === '*') {
+  errorRules.forEach((cssContents, lineNumber) => {
+    if (!cssContents || cssContents[0] === '/' && (cssContents[1] === '*' || cssContents[1] === '/')) {
       // Skip empty newlines (like at the end of the file) or lines that start with a comment
       return
     }
-    test(`Errors while trying to evaluate ${cssContents}`, (t) => {
+    test(`Errors while trying to evaluate "${cssContents}" (see _errors.css)`, (t) => {
+      t.plan(1) // 1 assertion
+
       try {
-        convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, {} /*argv*/)
+        return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, {} /*argv*/)
         .then(() => {
-          t.fail('Expected to fail but succeeded')
+          t.fail(`Expected to fail but succeeded. See _errors.css:${lineNumber+1}`)
         })
         .catch((e) => {
           // TODO: Test if the Error is useful for the end user or if it is just an assertion error

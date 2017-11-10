@@ -23,12 +23,14 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
   // If the CSS contains namespace declarations then parse the html file as XML (no HTML source line info though)
   if (/@namespace/.test(cssContents.toString()) || /xmlns/.test(htmlContents.toString())) {
     showWarning('Setting to XML Parsing mode')
-    jsdomArgs = {parsingMode: 'xml'}
+    jsdomArgs = {parsingMode: 'xml', includeNodeLocations: true}
   } else {
-    jsdomArgs = {}
+    jsdomArgs = {includeNodeLocations: true}
   }
-  const document = jsdom.jsdom(htmlContents, jsdomArgs)
-  const $ = jquery(document.defaultView)
+  const dom = new jsdom.JSDOM(htmlContents, jsdomArgs)
+  const {window} = dom
+  const {document} = window
+  const $ = jquery(window)
   function htmlSourceLookup(node) {
     // See https://github.com/tmpvar/jsdom/pull/1316 to get the line/column info
     // Install Instructions are in the css-plus README.md
@@ -40,7 +42,7 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
     //   startTag: { start: 20, end: 36 },
     //   endTag: { start: 38, end: 44 }
     // }
-    const locationInfo = jsdom.nodeLocation(node)
+    const locationInfo = dom.nodeLocation(node)
     return locationInfo
   }
 
