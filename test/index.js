@@ -1,7 +1,6 @@
 const fs = require('fs')
 const path = require('path')
 const test = require('ava')
-const jsdom = require('jsdom')
 const jquery = require('jquery')
 const diff = require('fast-diff')
 const {convertNodeJS} = require('../src/helper/node')

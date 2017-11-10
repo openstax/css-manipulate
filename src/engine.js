@@ -225,9 +225,11 @@ module.exports = class Applier {
     // TODO: Does this actually clear up memory?
     // Clear up some memory by removing all the memoizedQueries that jsdom added for caching:
     // This is a little hacky but it works
-    walkDOMElementsInOrder(this._document.documentElement, (el) => {
-      // el[Object.getOwnPropertySymbols(el)[0]]._clearMemoizedQueries()
-    })
+    // walkDOMElementsInOrder(this._document.documentElement, (el) => {
+    //   if (el[Object.getOwnPropertySymbols(el)[0]]) {
+    //     el[Object.getOwnPropertySymbols(el)[0]]._clearMemoizedQueries()
+    //   }
+    // })
   }
 
   _isPseudoElementSelectorElement(selectorElement) {
