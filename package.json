@@ -29,7 +29,7 @@
     "less": "^2.7.2",
     "lodash": "^4.17.4",
     "node-sass": "^4.6.0",
-    "progress": "^2.0.0",
+    "progress": "^1.1.8",
     "snazzy": "^7.0.0",
     "source-map": "^0.6.1",
     "yargs": "^10.0.3"
