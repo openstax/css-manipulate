@@ -1,3 +1,11 @@
+[![gh-board][kanban-image]][kanban-url]
+[![NPM version][npm-image]][npm-url]
+[![Downloads][downloads-image]][downloads-url]
+[![build status][travis-image]][travis-url]
+[![dependency status][dependency-image]][dependency-url]
+[![dev dependency status][dev-dependency-image]][dev-dependency-url]
+[![code coverage][coverage-image]][coverage-url]
+
 # Motivation/Examples
 
 The [Motivation Page](./motivation.md) has a step-by-step introduction to the CSS features or just play around with the **[JSFiddle of all the steps combined](https://jsfiddle.net/philschatz/hjk2z4af/)**
@@ -289,3 +297,19 @@ To pause when evaluating an element, add `data-debugger="true"` to the element.
 - [x] Show colorful error messages
 - [x] Show colorful warnings
 - [x] Support attributes with a namespace (like `<div epub:type="glossary">` in [EPUB3 epub:type](http://www.idpf.org/epub/30/spec/epub30-contentdocs.html#sec-xhtml-content-type-attribute) )
+
+
+[kanban-image]: https://img.shields.io/github/issues/philschatz/css-plus.svg?label=kanban%20board%20%28gh-board%29
+[kanban-url]: http://philschatz.com/gh-board/#/r/philschatz:css-plus
+[npm-image]: https://img.shields.io/npm/v/css-plus.svg
+[npm-url]: https://npmjs.org/package/css-plus
+[downloads-image]: http://img.shields.io/npm/dm/css-plus.svg
+[downloads-url]: https://npmjs.org/package/css-plus
+[travis-image]: https://img.shields.io/travis/philschatz/css-plus.svg
+[travis-url]: https://travis-ci.org/philschatz/css-plus
+[dependency-image]: https://img.shields.io/david/philschatz/css-plus.svg
+[dependency-url]: https://david-dm.org/philschatz/css-plus
+[dev-dependency-image]: https://img.shields.io/david/dev/philschatz/css-plus.svg
+[dev-dependency-url]: https://david-dm.org/philschatz/css-plus#info=devDependencies
+[coverage-image]: https://img.shields.io/codecov/c/github/philschatz/css-plus.svg
+[coverage-url]: https://codecov.io/gh/philschatz/css-plus
