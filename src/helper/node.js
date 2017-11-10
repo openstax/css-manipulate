@@ -32,16 +32,6 @@ function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputP
   const {document} = window
   const $ = jquery(window)
   function htmlSourceLookup(node) {
-    // See https://github.com/tmpvar/jsdom/pull/1316 to get the line/column info
-    // Install Instructions are in the css-plus README.md
-    //
-    // https://github.com/tmpvar/jsdom/issues/1194
-    // jsdom.nodeLocation(el) =
-    // { start: 20,
-    //   end: 44,
-    //   startTag: { start: 20, end: 36 },
-    //   endTag: { start: 38, end: 44 }
-    // }
     const locationInfo = dom.nodeLocation(node)
     return locationInfo
   }
