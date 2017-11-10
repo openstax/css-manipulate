@@ -11,7 +11,7 @@
     "start": "ava --watch --source '**/*.{js}' --source 'test/*.{css,in.html}' ./test/index.js",
     "ci": "nyc --reporter html --reporter text --reporter json ava ./test/index.js",
     "postci": "npm run-script dist",
-    "test": "$(npm bin)/ava ./test/index.js",
+    "test": "ava ./test/index.js",
     "lint": "eslint src/**/*.js",
     "debugger": "NODE_ENV=debugger inspect node_modules/ava/profile.js test/index.js",
     "dist": "webpack --entry ./src/converter.js  --output-library 'CssPlus' dist/browser.js",
