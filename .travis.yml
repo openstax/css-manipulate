@@ -3,8 +3,6 @@ language: node_js
 # Cache the 3rd-party packages. From https://blog.travis-ci.com/2016-11-21-travis-ci-now-supports-yarn
 cache:
   yarn: true
-  directories:
-    - node_modules
 
 before_script: ./script/setup
 script: ./script/ci
