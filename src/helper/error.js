@@ -1,10 +1,4 @@
 const renderPacket = require('./render-packet')
-const chalk = require('chalk')
-
-const sourceColor = chalk.dim
-const errorColor = chalk.red.bold
-const warnColor = chalk.yellow.bold
-const logColor = chalk.blue.bold
 
 let _console = console
 let _htmlSourceLookup
@@ -141,29 +135,24 @@ function showDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclaration
       return {
         css_file_info: cssSnippetToJson(declaration.astNode),
         name: declaration.astNode.property,
-        value: vals, // TODO: Need to recursively walk through this object and convert elements to source locations
-        value_string:
+        value:
             // vals is a 2-dimensional array
             vals.map((val) => {
               return val.map((v2) => {
                 if (typeof v2 === 'string') {
-                  if (v2.length >= 1) {
-                    return chalk.yellow(`"${v2}"`)
-                  } else {
-                    return '' // skip empty strings just for readability
-                  }
+                  return v2
                 } else if (typeof v2 === 'number') {
-                  return chalk.blue(v2)
+                  return v2
                 } else if (v2.jquery) {
                   return v2.toArray().map((el) => {
-                    return sourceColor(`<<${fileDetailsToString(htmlLocation(el))}>>`)
-                  }).join(', ')
+                    return htmlLocation(el)
+                  })
                 } else {
                   debugger
                   return v2
                 }
-              }).join(' ')
-            }).join(',')
+              })
+            })
       }
     })
   }))

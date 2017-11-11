@@ -55,7 +55,31 @@ function renderPacket(jsonStr) {
       console.log(`|   ${sourceColor(fileDetailsToString(css_file_info))}\t\t${chalk.green(browser_selector)} {...}`)
     })
     console.log('| Applied Declarations:')
-    declarations.forEach(({css_file_info, name, value, value_string}) => {
+    declarations.forEach(({css_file_info, name, value}) => {
+      value_string =
+                  // vals is a 2-dimensional array
+                  value.map((val) => {
+                    return val.map((v2) => {
+                      if (typeof v2 === 'string') {
+                        if (v2.length >= 1) {
+                          return chalk.yellow(`"${v2}"`)
+                        } else {
+                          return '' // skip empty strings just for readability
+                        }
+                      } else if (typeof v2 === 'number') {
+                        return chalk.cyan(v2)
+                      } else if (Array.isArray(v2)) {
+                        // moved elements
+                        return v2.toArray().map((elDetails) => {
+                          return sourceColor(`<<${fileDetailsToString(elDetails)}>>`)
+                        }).join(', ')
+                      } else {
+                        debugger
+                        return v2
+                      }
+                    }).join(' ')
+                  }).join(',')
+
       console.log(`|   ${sourceColor(fileDetailsToString(css_file_info))}\t\t${name}: ${value_string};`)
     })
     console.log('\\----------------------------------------------------')
