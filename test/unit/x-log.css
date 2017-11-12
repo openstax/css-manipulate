@@ -1,3 +1,11 @@
 body { x-log: "EXPLODE"; }
 body { x-log: none; }
 .log-me { x-log: "encountered a .log-me"; }
+
+/* This is added here just because x-throw only has one case when it will not error
+ * so not worth creating a separate test file.
+ */
+body {
+  x-throw: now;
+  x-throw: none;
+}
