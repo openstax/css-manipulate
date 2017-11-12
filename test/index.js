@@ -94,8 +94,10 @@ function buildTest(cssFilename, htmlFilename) {
 
         if (WRITE_TEST_RESULTS === 'true') {
           fs.writeFileSync(htmlOutputPath, actualOutput)
+          t.is(true, true) // just so ava counts that 1 assertion was made
+        } else {
+          t.is(actualOutput.trim(), expectedOutput.trim())
         }
-        t.is(actualOutput.trim(), expectedOutput.trim())
       } else {
         // If the file does not exist yet then write it out to disk
         fs.writeFileSync(htmlOutputPath, actualOutput)
