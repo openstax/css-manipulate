@@ -2,6 +2,7 @@ const puppeteer = require('puppeteer')
 const fs = require('fs')
 const path = require('path')
 const assert = require('assert')
+const mkdirp = require('mkdirp')
 // const jsdom = require('jsdom')
 const jquery = require('jquery')
 const {SourceMapConsumer} = require('source-map')
@@ -222,19 +223,34 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
     return str.toString().replace(/`/g, '\\`')
   }
 
+
+  async function saveCoverage() {
+    const istanbulCoverage = await page.evaluate(`window.__coverage__`)
+    // Get the code coverage data (if available)
+    // Write the headless Chrome coverage data out
+    mkdirp.sync(path.join(__dirname, `../../.nyc_output/`))
+    fs.writeFileSync(path.join(__dirname, `../../.nyc_output/hacky-chrome-stats_${Math.random()}.json`), JSON.stringify(istanbulCoverage))
+  }
+
   if (options.verbose) {
     console.log('Transforming HTML...')
   }
+  let ret
+  let err
+
   // CssPlus = (document, $, cssContents, cssSourcePath, htmlSourcePath, consol, htmlSourceLookup, htmlSourceFilename, sourceMapPath, rewriteSourceMapsFn, options)
-  const ret = await page.evaluate(`CssPlus(window.document, window.jQuery, \`${escaped(cssContents)}\`, \`${escaped(cssPath)}\`, \`${escaped(htmlPath)}\`, console, function() { return '???sourceLookup123'}, \`${escaped(htmlPath)}\`, \`${escaped(sourceMapFileName)}\`, null, ${JSON.stringify(options)})`)
+  try {
+    ret = await page.evaluate(`CssPlus(window.document, window.jQuery, \`${escaped(cssContents)}\`, \`${escaped(cssPath)}\`, \`${escaped(htmlPath)}\`, console, function() { return '???sourceLookup123'}, \`${escaped(htmlPath)}\`, \`${escaped(sourceMapFileName)}\`, null, ${JSON.stringify(options)})`)
+    await saveCoverage()
+    await page.close()
+  } catch (e) {
+    await saveCoverage()
+    await page.close()
+    throw e
+  }
   if (options.verbose) {
     console.log('Transformed HTML')
   }
-
-  // Get the code coverage data (if available)
-  ret.__coverage__ = await page.evaluate(`window.__coverage__`)
-
-  await page.close()
 
   // clean up the new sourcemap and make the paths relative to the output file.
   // earlier the paths were relative to the current directory so error/warning messages would appear properly

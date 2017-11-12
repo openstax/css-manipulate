@@ -1,6 +1,5 @@
 const fs = require('fs')
 const path = require('path')
-const mkdirp = require('mkdirp')
 const test = require('ava')
 const jquery = require('jquery')
 const diff = require('fast-diff')
@@ -107,9 +106,6 @@ function buildTest(cssFilename, htmlFilename) {
         }
       }
 
-      // Write the headless Chrome coverage data out
-      mkdirp.sync(path.join(__dirname, `../.nyc_output/`))
-      fs.writeFileSync(path.join(__dirname, `../.nyc_output/hacky-chrome-stats_${Math.random()}.json`), JSON.stringify(__coverage__))
     })
 
 
