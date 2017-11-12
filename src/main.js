@@ -47,8 +47,11 @@ const htmlContents = fs.readFileSync(htmlPath)
 function coverageDataToLcov(htmlOutputPath, coverageData) {
   const lines = []
 
+  debugger
   for (const filePath in coverageData) {
-    const absoluteFilePath = path.resolve(filePath)
+    // LCOV files should include absolute paths per the spec but the command works with relative ones
+    // so keep them relative so we can commit them to git (& see when they change)
+    const absoluteFilePath = path.relative(path.dirname(htmlOutputPath), filePath) // path.resolve(filePath)
     const countData = coverageData[filePath]
     // SF:./rulesets/output/biology.css
     lines.push(`SF:${absoluteFilePath}`)

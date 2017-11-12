@@ -16,7 +16,7 @@ function constructSelector(node) {
       // TODO: Might be easier to just loop over the child nodes
       const nodesAry = [].concat.apply([], node.parentElement.childNodes)
       const myIndex = nodesAry.filter((node) => node.nodeType === node.ELEMENT_NODE /*Node.ELEMENT_NODE*/).indexOf(node)
-      return `${constructSelector(node.parentElement)} > :nth-child(${myIndex + 1})`
+      return `${constructSelector(node.parentElement)} > ${node.tagName.toLowerCase()}:nth-child(${myIndex + 1})`
     }
   } else if (node.nodeType === 2 /*ATTRIBUTE_NODE*/) {
     return `${constructSelector(node.ownerElement)} +++IS_ATTRIBUTE`

@@ -82,8 +82,12 @@ function throwError(message, cssSnippet, $el, err) {
   }
 }
 
-function throwBug(message, cssSnippet, $el, err) {
+function showBug(message, cssSnippet, $el) {
   sendLintMessage('BUG', message, cssSnippet, $el)
+}
+
+function throwBug(message, cssSnippet, $el, err) {
+  showBug(message, cssSnippet, $el)
   debugger
   if (err) {
     throw err
@@ -173,4 +177,4 @@ assert.equal = function(expected, actual, astNode, $el) {
     throw new Error(`Assertion failed. Expected ${expected} but got ${actual}. Throwing for stacktrace`)
   }
 }
-module.exports = {init, throwError, throwBug, showWarning, showError, showLog, showDebuggerData, sendElementCount, assert}
+module.exports = {init, throwError, throwBug, showWarning, showError, showBug, showLog, showDebuggerData, sendElementCount, assert}

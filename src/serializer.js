@@ -1,6 +1,7 @@
 const escapeHtml = require('escape-html')
 const {SourceMapGenerator} = require('source-map')
 const constructSelector = require('./helper/construct-selector')
+const {showBug} = require('./helper/packet-builder')
 
 const DEBUGGING_NEWLINE = '' // Add newlines whene serializing to more-clearly see what is being mapped
 
@@ -64,7 +65,7 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, 
         originalColumn = locationInfo.col
       }
     } else if (node.nodeType === 1 && node.tagName.toLowerCase() !== 'head') {
-      throw new Error(`BUG: No location info for elememt "${constructSelector(node)}"`)
+      // showBug('No location info for element', null, [node])
     } else {
       // TODO: Attributes/text/etc should also eventually have a sourcemap
     }

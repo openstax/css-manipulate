@@ -95,7 +95,7 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
     } else if (attributes['id']) {
       return `${tagName}#${attributes['id'].value}`
     } else {
-      return `${prefix} > :nth-child(${index})`
+      return `${prefix} > ${tagName}:nth-child(${index})`
     }
   }
 
