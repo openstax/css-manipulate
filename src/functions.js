@@ -1,5 +1,5 @@
 const assert = require('assert')
-const {showLog, showWarning, throwError} = require('./helper/error')
+const {showLog, showWarning, throwError} = require('./helper/packet-builder')
 
 const {IS_STRICT_MODE} = process.env
 const FUNCTIONS = []

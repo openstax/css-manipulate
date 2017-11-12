@@ -1,5 +1,5 @@
 const assert = require('assert')
-const {throwError, throwBug} = require('./error')
+const {throwError, throwBug} = require('./packet-builder')
 
 module.exports = {
   // Returns a triple of numbers to match https://www.w3.org/TR/CSS21/cascade.html#specificity

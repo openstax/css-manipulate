@@ -1,4 +1,4 @@
-const {assert, showLog, throwError} = require('./helper/error')
+const {assert, showLog, throwError} = require('./helper/packet-builder')
 
 class RuleDeclaration {
   constructor(name, fn) {

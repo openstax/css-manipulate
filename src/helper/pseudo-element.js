@@ -1,5 +1,5 @@
 const assert = require('assert')
-const {throwError, throwBug} = require('./error')
+const {throwError, throwBug} = require('./packet-builder')
 
 // Every pseudoelement results in 1 (or more) elements being created.
 // The order in which they are created matters.

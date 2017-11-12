@@ -1,5 +1,5 @@
 const assert = require('assert')
-const {throwError, throwBug} = require('./error')
+const {throwError, throwBug} = require('./packet-builder')
 
 // Parses a rule and caches the pseudoelements at the end of it for lookup later
 module.exports = class RuleWithPseudos {

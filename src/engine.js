@@ -5,7 +5,7 @@ const chalk = require('chalk')
 const jqueryXmlns = require('./helper/jquery.xmlns')
 const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
-const {throwError, throwBug, showWarning, showDebuggerData} = require('./helper/error')
+const {throwError, throwBug, showWarning, showDebuggerData} = require('./helper/packet-builder')
 
 const sourceColor = chalk.dim
 

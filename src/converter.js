@@ -5,7 +5,9 @@ const serializer = require('./serializer')
 const DECLARATIONS = require('./declarations')
 const FUNCTIONS = require('./functions')
 const {PSEUDO_ELEMENTS, PSEUDO_CLASSES} = require('./selectors')
-const {init: errorInit, throwError, showWarning, showLog} = require('./helper/error')
+const {init: errorInit, throwError, showWarning, showLog, sendElementCount} = require('./helper/packet-builder')
+
+const constructSelector = require('./helper/construct-selector')
 
 
 
@@ -23,6 +25,26 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
   PSEUDO_CLASSES.forEach(engine.addPseudoClass.bind(engine))
   DECLARATIONS.forEach(engine.addRuleDeclaration.bind(engine))
   FUNCTIONS.forEach(engine.addFunction.bind(engine))
+
+
+  count = 0
+  function walkDOMElementsInOrder(el, index, acc, fn) {
+    acc = fn(el, index, acc)
+    count += 1
+    if (el.firstElementChild) {
+      walkDOMElementsInOrder(el.firstElementChild, 1, acc, fn)
+    }
+    if (el.nextElementSibling) {
+      walkDOMElementsInOrder(el.nextElementSibling, index + 1, acc, fn)
+    }
+  }
+  walkDOMElementsInOrder(document.documentElement, 1, '', (el, index, acc) => {
+    // const selector = constructSelector(el)
+    // console.log(`chrome: ${selector}`);
+  })
+  // console.log('qiweuyqiuwye chromecount=' + count);
+  sendElementCount(count)
+
 
 
   engine.prepare(rewriteSourceMapsFn)
