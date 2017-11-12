@@ -88,6 +88,8 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
       throw new Error('BUG: tagName should be non-null')
     } else if (tagName === 'html') {
       return 'html'
+    } else if (tagName === 'head') {
+      return 'head'
     } else if (tagName === 'body') {
       return 'body'
     } else if (attributes['id']) {
@@ -186,6 +188,7 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
   // Inject jQuery and the JS bundle
   await page.evaluate(`(function () { ${fs.readFileSync(require.resolve('jquery'))} })()`)
   await page.evaluate(`(function () { ${BROWSER_JS}; window.CssPlus = CssPlus; })()`)
+  await page.evaluate(`(function () { window.__HTML_SOURCE_LOOKUP = ${JSON.stringify(SOURCE_LOOKUP_MAP)}; })()`)
   function escaped(str) {
     return str.toString().replace(/`/g, '\\`')
   }

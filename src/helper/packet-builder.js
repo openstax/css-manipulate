@@ -69,8 +69,12 @@ function htmlLocation(el) {
   }
 }
 
-function throwError(message, cssSnippet, $el, err) {
+function showError(message, cssSnippet, $el) {
   sendLintMessage('ERROR', message, cssSnippet, $el)
+}
+
+function throwError(message, cssSnippet, $el, err) {
+  showError(message, cssSnippet, $el)
   if (err) {
     throw err
   } else {
@@ -80,6 +84,7 @@ function throwError(message, cssSnippet, $el, err) {
 
 function throwBug(message, cssSnippet, $el, err) {
   sendLintMessage('BUG', message, cssSnippet, $el)
+  debugger
   if (err) {
     throw err
   } else {
@@ -168,4 +173,4 @@ assert.equal = function(expected, actual, astNode, $el) {
     throw new Error(`Assertion failed. Expected ${expected} but got ${actual}. Throwing for stacktrace`)
   }
 }
-module.exports = {init, throwError, throwBug, showWarning, showLog, showDebuggerData, sendElementCount, assert}
+module.exports = {init, throwError, throwBug, showWarning, showError, showLog, showDebuggerData, sendElementCount, assert}

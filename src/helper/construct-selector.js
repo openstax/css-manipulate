@@ -1,19 +1,31 @@
 // This selector runs in the browser (chrome) AND in node to match the selectors for node lookup
 // for sourcemaps
-function constructSelector(el) {
-  if (!el) {
-    return 'NULL'
-  } else if (el.tagName.toLowerCase(el) === 'html') {
-    return 'html'
-  } else if (el.tagName.toLowerCase(el) === 'body') {
-    return 'body'
-  } else if (el.hasAttribute('id')) {
-    return `${el.tagName.toLowerCase()}#${el.getAttribute('id')}`
+function constructSelector(node) {
+  if (!node) {
+    throw new Error('BUG: Forgot to pass in an object')
+  } else if (node.nodeType === 1) {
+    if (node.tagName.toLowerCase() === 'html') {
+      return 'html'
+    } else if (node.tagName.toLowerCase() === 'head') {
+      return 'head'
+    } else if (node.tagName.toLowerCase() === 'body') {
+      return 'body'
+    } else if (node.hasAttribute('id')) {
+      return `${node.tagName.toLowerCase()}#${node.getAttribute('id')}`
+    } else {
+      // TODO: Might be easier to just loop over the child nodes
+      const nodesAry = [].concat.apply([], node.parentElement.childNodes)
+      const myIndex = nodesAry.filter((node) => node.nodeType === node.ELEMENT_NODE /*Node.ELEMENT_NODE*/).indexOf(node)
+      return `${constructSelector(node.parentElement)} > :nth-child(${myIndex + 1})`
+    }
+  } else if (node.nodeType === 2 /*ATTRIBUTE_NODE*/) {
+    return `${constructSelector(node.ownerElement)} +++IS_ATTRIBUTE`
+  } else if (node.nodeType === 3 /*TEXT_NODE*/) {
+    return `${constructSelector(node.parentElement)} +++IS_TEXT`
+  } else if (node.nodeType === 8 /*COMMENT_NODE*/) {
+    return `${constructSelector(node.parentElement)} +++IS_COMMENT`
   } else {
-    // TODO: Might be easier to just loop over the child nodes
-    const nodesAry = [].concat.apply([], el.parentElement.childNodes)
-    const myIndex = nodesAry.filter((node) => node.nodeType === node.ELEMENT_NODE /*Node.ELEMENT_NODE*/).indexOf(el)
-    return `${constructSelector(el.parentElement)} > :nth-child(${myIndex + 1})`
+    throw new Error(`BUG: Unsupported nodeType=${node.nodeType}`)
   }
 }
 
