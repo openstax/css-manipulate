@@ -47,7 +47,6 @@ const htmlContents = fs.readFileSync(htmlPath)
 function coverageDataToLcov(htmlOutputPath, coverageData) {
   const lines = []
 
-  debugger
   for (const filePath in coverageData) {
     // LCOV files should include absolute paths per the spec but the command works with relative ones
     // so keep them relative so we can commit them to git (& see when they change)

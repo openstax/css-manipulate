@@ -1,4 +1,5 @@
 const {assert, showLog, throwError} = require('./helper/packet-builder')
+const ExplicitlyThrownError = require('./x-throw-error')
 
 class RuleDeclaration {
   constructor(name, fn) {
@@ -44,7 +45,7 @@ DECLARATIONS.push(new RuleDeclaration('x-log', ($, $lookupEl, $elPromise, vals, 
   return $elPromise
 }))
 DECLARATIONS.push(new RuleDeclaration('x-throw', ($, $lookupEl, $elPromise, vals, rule) => {
-  assert(vals.length <= 1)
+  assert(vals.length <= 1, rule, $lookupEl)
   // Do nothing when set to none;
   // TODO: verify that it is not the string "none" (also needed for format-number())
   if (vals[0][0] === 'none') {
@@ -52,12 +53,11 @@ DECLARATIONS.push(new RuleDeclaration('x-throw', ($, $lookupEl, $elPromise, vals
     assert.equal(vals[0].length, 1)
     return $elPromise
   } else if (vals[0][0] === 'later') {
-    $elPromise.then((val) => {
-      console.log('Declaration "x-throw:" will be thrown in a promise. Here is the value', val)
-      throw new Error('Declaration "x-throw: later;" is being thrown during node mutation')
+    return $elPromise.then((val) => {
+      throw new ExplicitlyThrownError('Declaration "x-throw: later;" is being thrown during node mutation', val)
     })
   } else {
-    throw new Error('Declaration "x-throw:" is being thrown during evaluation')
+    throw new ExplicitlyThrownError('Declaration "x-throw:" is being thrown during evaluation')
   }
 }))
 DECLARATIONS.push(new RuleDeclaration('content', ($, $lookupEl, $elPromise, vals, astNode) => {
@@ -164,7 +164,10 @@ DECLARATIONS.push(new RuleDeclaration('attrs-remove', ($, $lookupEl, $elPromise,
 }))
 DECLARATIONS.push(new RuleDeclaration('attrs-add', ($, $lookupEl, $elPromise, vals, astNode) => {
   // attrs-add: attr1Name attr1Value attr1AdditionalValue , attr2Name ...
-  assert(vals.length >= 1, astNode, $lookupEl)
+  // assert(vals.length >= 1, astNode, $lookupEl)
+  if (vals.length < 1) {
+    throwError(`Missing value to attrs-add. the format should be "attrs-add: attr1Name attr2Value attr1AdditionalValue , attr2Name ..."`, astNode, $lookupEl)
+  }
   // Do nothing when set to none;
   // TODO: verify that it is not the string "none" (also needed for format-number())
   if (vals[0][0] === 'none') {
@@ -173,10 +176,13 @@ DECLARATIONS.push(new RuleDeclaration('attrs-add', ($, $lookupEl, $elPromise, va
     return $elPromise
   }
 
-  assert($elPromise instanceof Promise, astNode, $lookupEl)
+  assert($elPromise instanceof Promise, astNode, $lookupEl, `Whoops this is not a promise`)
   return $elPromise.then(($el) => {
     vals.forEach((val) => {
-      assert(val.length >= 2, astNode, $lookupEl)
+      // assert(val.length >= 2, astNode, $lookupEl)
+      if (val.length < 2) {
+        throwError(`Missing attribute value to attrs-add. the format should be "attrs-add: attr1Name attr2Value attr1AdditionalValue , attr2Name ..."`, astNode, $lookupEl)
+      }
       const attrName = val[0]
       const attrValue = val.slice(1).join('')
       $el.attr(attrName, attrValue)

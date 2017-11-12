@@ -6,6 +6,7 @@ const jqueryXmlns = require('./helper/jquery.xmlns')
 const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
 const {throwError, throwBug, showWarning, showDebuggerData} = require('./helper/packet-builder')
+const ExplicitlyThrownError = require('./x-throw-error')
 
 const sourceColor = chalk.dim
 
@@ -54,7 +55,7 @@ function splitOnCommas(args) {
         ret[index].push(arg)
         break
       default:
-        throwError('BUG: Unsupported value type ' + arg.type, arg)
+        throwBug(`Unsupported value type "${arg.type}"`, arg)
     }
   })
   // If we didn't add anything then this must be 0-arguments
@@ -343,7 +344,7 @@ module.exports = class Applier {
           case 'Function':
             const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0]
             if (!theFunction) {
-              throwBug(`Unsupported function named ${arg.name}`, arg)
+              throwError(`Unsupported function named ${arg.name}`, arg)
             }
             const mutationPromise = Promise.resolve('HACK_FOR_NOW')
             const fnReturnVal = theFunction.evaluateFunction(this._$, context, $currentEl, this._evaluateVals.bind(this), splitOnCommas(arg.children.toArray()), mutationPromise, arg /*AST node*/)
@@ -411,7 +412,11 @@ module.exports = class Applier {
           try {
             return ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $elPromise, vals, value)
           } catch (e) {
-            throwBug(`Problem while evaluating rule "${ruleDeclarationPlugin.getRuleName()}:". Message was "${e.message}"`, value, $currentEl, e)
+            if (e instanceof ExplicitlyThrownError) {
+              throw e
+            } else {
+              throwBug(`Problem while evaluating rule "${ruleDeclarationPlugin.getRuleName()}:". Message was "${e.message}"`, value, $currentEl, e)
+            }
           }
         } else {
           return Promise.resolve('NO_RULES_TO_EVALUATE')
@@ -536,7 +541,7 @@ module.exports = class Applier {
             }
 
           default:
-            throwError(`UNKNOWN_PSEUDOCLASS: ${sel.name}`, sel)
+            throwError(`Unsupported Pseudoclass ":${sel.name}"`, sel)
         }
 
       case 'PseudoElement':
@@ -568,7 +573,7 @@ module.exports = class Applier {
             }
 
           default:
-            throwError(`UNKNOWN_PSEUDOELEMENT:${sel.name}(${sel.type})`, sel)
+            throwError(`Unsupported Pseudoelement "::${sel.name}(${sel.type})"`, sel)
         }
       default:
         console.log(sel);

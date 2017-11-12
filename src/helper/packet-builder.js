@@ -14,6 +14,10 @@ function init(consol, htmlSourceLookup, htmlSourcePath, options) {
 }
 
 function cssSnippetToJson(cssSnippet) {
+  // Sometimes we get an array of AST nodes. Just pick the 1st
+  if (Array.isArray(cssSnippet) && cssSnippet.length >= 1) {
+    cssSnippet = cssSnippet[0]
+  }
   // matches input format for https://github.com/feross/snazzy
   if (cssSnippet && cssSnippet.loc) {
     // Commented out the end lookup because when the CSS ast is rewritten with the original source coordinates this data is not present most of the time
@@ -158,16 +162,16 @@ function sendElementCount(count) {
 }
 
 
-function assert(val, astNode, $el) {
+function assert(val, astNode, $el, message) {
   if (!astNode || !$el) {
-    throwBug(`Missing argument to assert`, astNode, $el)
+    throwBug(`Missing argument to assert. Reason: ${message}`, astNode, $el)
     debugger // here so we can diagnose the assertion
     throw new Error('Missing argument to assert. Throwing for stacktrace')
   }
   if (!val) {
-    throwBug('Assertion failed', astNode, $el)
+    throwBug(`Assertion failed. Reason: ${message}`, astNode, $el)
     debugger // here so we can diagnose the assertion
-    throw new Error('Assertion failed. Throwing for stacktrace')
+    throw new Error(`Assertion failed. Throwing for stacktrace. Reason: ${message}`)
   }
 }
 assert.equal = function(expected, actual, astNode, $el) {
