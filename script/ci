@@ -2,7 +2,18 @@
 cd "$(dirname "$0")/.." || exit 111
 source ./script/bootstrap || exit 111
 
-try ./script/build # necessary for the tests to run
 try ./script/compile-css
 
 npm run-script ci
+
+
+if [[ ${CI} != "true" ]]; then
+  do_progress_quiet "Generating Javascript Coverage report at ./coverage/index.html" \
+    "$(npm bin)/nyc" report --reporter=html
+
+  # Generate an HTML report (if genhtml is installed)
+  if [[ -n "$(which genhtml)" ]]; then
+    do_progress_quiet "Generating HTML and CSS Coverage report at ./coverage-css-and-html/index.html" \
+      genhtml --quiet --output ./coverage-css-and-html/ $(find ./test/ -name "*.lcov")
+  fi
+fi

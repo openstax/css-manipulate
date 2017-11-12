@@ -1,6 +1,8 @@
 /.sass-cache/
 /.nyc_output/
 /coverage/
+/coverage-css-and-html/
+
 /npm-debug.log*
 
 /dist/browser.js

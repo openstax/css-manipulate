@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const mkdirp = require('mkdirp')
 const test = require('ava')
 const jquery = require('jquery')
 const diff = require('fast-diff')
@@ -85,7 +86,7 @@ function buildTest(cssFilename, htmlFilename) {
     const cssContents = fs.readFileSync(cssPath, 'utf8')
     const htmlContents = fs.readFileSync(htmlPath, 'utf8')
 
-    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, {} /*argv*/).then(({html: actualOutput, sourceMap, coverageData}) => {
+    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, {} /*argv*/).then(({html: actualOutput, sourceMap, coverageData, __coverage__}) => {
       if (fs.existsSync(htmlOutputPath)) {
         const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
 
@@ -106,6 +107,9 @@ function buildTest(cssFilename, htmlFilename) {
         }
       }
 
+      // Write the headless Chrome coverage data out
+      mkdirp.sync(path.join(__dirname, `../.nyc_output/`))
+      fs.writeFileSync(path.join(__dirname, `../.nyc_output/hacky-chrome-stats_${Math.random()}.json`), JSON.stringify(__coverage__))
     })
 
 

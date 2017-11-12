@@ -4,8 +4,4 @@ source ./script/bootstrap || exit 111
 
 npm test || exit 111
 
-# Generate an HTML report (if genhtml is installed)
-if [[ -n "$(which genhtml)" ]]; then
-  do_progress_quiet "Generating HTML and CSS Coverage report at ./coverage/" \
-    genhtml --quiet --output ./coverage/ $(find ./test/ -name "*.lcov")
-fi
+_say "${c_green}To see Code coverage${c_none} run ./script/ci instead"
