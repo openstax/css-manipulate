@@ -1,5 +1,6 @@
 const assert = require('assert')
 const csstree = require('css-tree')
+const {SourceMapConsumer} = require('source-map')
 const Engine = require('./engine')
 const serializer = require('./serializer')
 const DECLARATIONS = require('./declarations')
@@ -11,7 +12,7 @@ const constructSelector = require('./helper/construct-selector')
 
 
 
-module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, consol, htmlSourceLookup, htmlSourceFilename, sourceMapPath, rewriteSourceMapsFn, options) => {
+module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, consol, htmlSourceLookup, htmlSourceFilename, sourceMapPath, rewriteSourceMapsFn__Unused, options) => {
 
   errorInit(consol, htmlSourceLookup, htmlSourcePath, options)
 
@@ -74,8 +75,77 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
       }
       return null
     }
-
   }
+
+
+
+  let map
+  if (window.__CSS_SOURCE_MAP_JSON) {
+    map = new SourceMapConsumer(window.__CSS_SOURCE_MAP_JSON)
+  }
+
+  showedNoSourceWarning = false // Only show this warning once, not for every element
+  // function lookupSource(cssSourcePath, line, column) {
+  //   if (!loadedSourceMaps[cssSourcePath]) {
+  //     console.log('trying to open', path.join(path.dirname(cssPath), cssSourcePath));
+  //     const map = JSON.parse(fs.readFileSync(path.join(path.dirname(cssSourceMappingURL), cssSourcePath)).toString())
+  //     loadedSourceMaps[cssSourcePath] = new SourceMapConsumer(map)
+  //   }
+  //   return loadedSourceMaps[cssSourcePath].originalPositionFor({line, column})
+  // }
+  function rewriteSourceMapsFn(astNode) {
+    if (map && astNode.loc) {
+      const {source: cssSourcePath, start, end} = astNode.loc
+      let {source: newStartPath, line: newStartLine, column: newStartColumn} = map.originalPositionFor(start)
+      // Unfortunately, SASS does not provide this end information properly in its source maps
+      // const {source: newEndPath, line: newEndLine, column: newEndColumn} = map.originalPositionFor(end)
+      // assert.equal(newStartPath, newEndPath)
+
+      if (newStartPath) {
+        // Make sure the path is relative to the original CSS path
+        astNode.loc = {
+          source: newStartPath,
+          start: {
+            line: newStartLine,
+            column: newStartColumn
+          },
+          // end: {
+          //   line: newEndLine,
+          //   column: newEndColumn
+          // }
+        }
+      } else if (!newStartPath && astNode.type !== 'StyleSheet') {
+        if (!showedNoSourceWarning) {
+          showWarning('Could not find original source line via sourcemap file. Maybe a bug in SASS/LESS?', astNode, null)
+          showedNoSourceWarning = true
+        }
+      }
+    }
+    let hasRecursed = false
+    if (astNode.children) {
+      hasRecursed = true
+      astNode.children.toArray().forEach(rewriteSourceMapsFn)
+    }
+    if (astNode.block) {
+      hasRecursed = true
+      rewriteSourceMapsFn(astNode.block)
+    }
+    if (astNode.selector) {
+      hasRecursed = true
+      rewriteSourceMapsFn(astNode.selector)
+    }
+    // astNode.type == "Declaration"
+    if (astNode.value) {
+      hasRecursed = true
+      rewriteSourceMapsFn(astNode.value)
+    }
+    // if (!hasRecursed && astNode.loc) {
+    //   debugger
+    // }
+  }
+
+
+
 
 
   engine.prepare(rewriteSourceMapsFn)

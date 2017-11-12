@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const {convertNodeJS, finish} = require('./helper/node')
 const argv = require('yargs')
+.strict(true)
 .option('css', {
   demandOption: true,
   type: 'string',
@@ -16,6 +17,10 @@ const argv = require('yargs')
   demandOption: true,
   type: 'string',
   describe: 'Output (X)HTML file'
+})
+.option('nocssmap', {
+  type: 'boolean',
+  describe: 'Show warnings/errors with the location in the CSS file, not the original SASS/LESS file'
 })
 .option('verbose', {
   type: 'boolean',
@@ -48,9 +53,8 @@ function coverageDataToLcov(htmlOutputPath, coverageData) {
   const lines = []
 
   for (const filePath in coverageData) {
-    // LCOV files should include absolute paths per the spec but the command works with relative ones
-    // so keep them relative so we can commit them to git (& see when they change)
-    const absoluteFilePath = path.relative(path.dirname(htmlOutputPath), filePath) // path.resolve(filePath)
+    // LCOV files MUST be absolute paths (or genhtml will break)
+    const absoluteFilePath = path.resolve(path.dirname(htmlOutputPath), filePath) // path.resolve(filePath)
     const countData = coverageData[filePath]
     // SF:./rulesets/output/biology.css
     lines.push(`SF:${absoluteFilePath}`)

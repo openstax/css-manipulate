@@ -1,5 +1,5 @@
 const escapeHtml = require('escape-html')
-const {SourceMapGenerator} = require('source-map')
+const {SourceMapGenerator, SourceMapConsumer} = require('source-map')
 const constructSelector = require('./helper/construct-selector')
 const {showBug} = require('./helper/packet-builder')
 

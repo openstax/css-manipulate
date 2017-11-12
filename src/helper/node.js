@@ -77,8 +77,6 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
   const sax = require('sax')
   const parser = sax.parser(true/*strict*/, {xmlns: true, position: true, lowercase: true})
 
-
-
   // Use the sax parser to get source line/column information from the XHTML document
   // TODO: Should automatically verify that the number of SAX elements and Chrome elements
   // matches. That way we can use index numbers to refer to elements instead of these
@@ -98,8 +96,7 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
       return `${prefix} > ${tagName}:nth-child(${index})`
     }
   }
-
-  const SOURCE_LOOKUP_MAP = {} // key=selector, value={line, col}
+  const htmlSourceLookupMap = {} // key=selector, value={line, col}
   let saxCount = 0
   let depthCounts = [0]
   let depthSelectorPrefix = ['']
@@ -130,7 +127,7 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
     if (local === 'span' && isSelfClosing) {
       // do not count because chrome eats this element
     } else {
-      SOURCE_LOOKUP_MAP[str] = [parserStartTagPosition.line + 1, parserStartTagPosition.column + 1]
+      htmlSourceLookupMap[str] = [parserStartTagPosition.line + 1, parserStartTagPosition.column + 1]
       // Count the elements for checksumming later with what Chrome found
       saxCount += 1
     }
@@ -143,6 +140,37 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
     // console.log('qiweuyqiuwye saxcount=', saxCount);
   }
   parser.write(htmlContents).close()
+
+
+
+
+
+
+  // Read in the CSS sourcemap
+  let cssSourceMappingURL
+  if (!options.nocssmap) {
+    const sourceMappingURLMatch = /sourceMappingURL=([^\ \n]+)/.exec(cssContents.toString())
+    if (sourceMappingURLMatch) {
+      cssSourceMappingURL = sourceMappingURLMatch[1]
+    }
+  }
+
+
+  let map
+  let cssSourceMapJson
+  if (cssSourceMappingURL) {
+    const sourceMapURLPath = path.join(path.dirname(cssPath), cssSourceMappingURL)
+    try {
+      cssSourceMapJson = JSON.parse(fs.readFileSync(sourceMapURLPath).toString())
+      // TODO: Fix up all the paths to be relative to the output HTML file.
+      //        newStartPath = path.join(path.dirname(cssSourcePath), newStartPath)
+      cssSourceMapJson.sources = cssSourceMapJson.sources.map((sourcePath) => {
+        return path.join(path.dirname(sourceMapURLPath), sourcePath)
+      })
+    } catch (e) {
+      showWarning(`sourceMappingURL was found in ${cssPath} but could not open the file ${sourceMapURLPath}`)
+    }
+  }
 
 
 
@@ -170,7 +198,7 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
       if (json.type === 'ELEMENT_COUNT') {
         // assert.equal(saxCount, json.count, `Element count from SAX (to find line/column info) and Chrome (that does the tranform) mismatch. Expected ${saxCount} but got ${json.count}`)
       } else {
-        renderPacket(SOURCE_LOOKUP_MAP, json)
+        renderPacket(htmlSourceLookupMap, json)
       }
 
     } else {
@@ -188,7 +216,8 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
   // Inject jQuery and the JS bundle
   await page.evaluate(`(function () { ${fs.readFileSync(require.resolve('jquery'))} })()`)
   await page.evaluate(`(function () { ${BROWSER_JS}; window.CssPlus = CssPlus; })()`)
-  await page.evaluate(`(function () { window.__HTML_SOURCE_LOOKUP = ${JSON.stringify(SOURCE_LOOKUP_MAP)}; })()`)
+  await page.evaluate(`(function () { window.__HTML_SOURCE_LOOKUP = ${JSON.stringify(htmlSourceLookupMap)}; })()`)
+  await page.evaluate(`(function () { window.__CSS_SOURCE_MAP_JSON = ${JSON.stringify(cssSourceMapJson)}; })()`)
   function escaped(str) {
     return str.toString().replace(/`/g, '\\`')
   }
@@ -202,28 +231,19 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
     console.log('Transformed HTML')
   }
   await page.close()
+
+  // clean up the new sourcemap and make the paths relative to the output file.
+  // earlier the paths were relative to the current directory so error/warning messages would appear properly
+  const retSourceMapJson = JSON.parse(ret.sourceMap)
+  retSourceMapJson.sources = retSourceMapJson.sources.map((sourcePath) => {
+    const ret = path.relative(path.dirname(htmlOutputPath), sourcePath)
+    return ret
+  })
+  ret.sourceMap = JSON.stringify(retSourceMapJson)
+
+
   return ret
 
-  //
-  //
-  // let cssSourceMappingURL
-  // const match = /sourceMappingURL=([^\ \n]+)/.exec(cssContents.toString())
-  // if (match) {
-  //   cssSourceMappingURL = match[1]
-  // }
-  //
-  //
-  // let map
-  // if (cssSourceMappingURL) {
-  //   const sourceMapURLPath = path.join(path.dirname(cssPath), cssSourceMappingURL)
-  //   try {
-  //     const mapJson = JSON.parse(fs.readFileSync(sourceMapURLPath).toString())
-  //     map = new SourceMapConsumer(mapJson)
-  //   } catch (e) {
-  //     showWarning(`sourceMappingURL was found in ${cssPath} but could not open the file ${sourceMapURLPath}`)
-  //   }
-  // }
-  //
   // showedNoSourceWarning = false // Only show this warning once, not for every element
   // // function lookupSource(cssSourcePath, line, column) {
   // //   if (!loadedSourceMaps[cssSourcePath]) {

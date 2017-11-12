@@ -134,11 +134,20 @@ function buildErrorTests() {
       // Skip empty newlines (like at the end of the file) or lines that start with a comment
       return
     }
+
+    // Vertically pad the CSS text that we send so the warnings/errors correspond to the correct line in the file
+    // (since we are only testing one line at a time)
+    let cssContentsWithPadding = ''
+    for (let i = 0; i < lineNumber; i++) {
+      cssContentsWithPadding += '\n'
+    }
+    cssContentsWithPadding += cssContents
+
     test(`Errors while trying to evaluate "${cssContents}" (see _errors.css)`, (t) => {
       t.plan(1) // 1 assertion
 
       try {
-        return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, {} /*argv*/)
+        return convertNodeJS(cssContentsWithPadding, htmlContents, cssPath, htmlPath, htmlOutputPath, {} /*argv*/)
         .then(() => {
           t.fail(`Expected to fail but succeeded. See _errors.css:${lineNumber+1}`)
         })
