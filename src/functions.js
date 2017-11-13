@@ -61,16 +61,16 @@ FUNCTIONS.push(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, evalu
 } ))
 FUNCTIONS.push(new FunctionEvaluator('add', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
   const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
-  assert.equal(vals.length, 2)
-  assert.equal(vals[0].length, 1)
-  assert.equal(vals[1].length, 1)
+  assert.equal(vals.length, 2, astNode, $currentEl, 'Missing argument')
+  assert.equal(vals[0].length, 1, astNode, $currentEl, 'First argument must have 1 value')
+  assert.equal(vals[1].length, 1, astNode, $currentEl, 'Second argument must have 1 value')
   const val1 = Number.parseInt(vals[0][0])
   const val2 = Number.parseInt(vals[1][0])
   if (Number.isNaN(val1)) {
-    throwError(`First argument must be an integer but it was '${vals[0]}'`)
+    throwError(`First argument must be an integer but it was '${vals[0]}'`, astNode, $currentEl)
   }
   if (Number.isNaN(val2)) {
-    throwError(`Second argument must be an integer but it was '${vals[1]}'`)
+    throwError(`Second argument must be an integer but it was '${vals[1]}'`, astNode, $currentEl)
   }
   return val1 + val2
 } ))
@@ -204,7 +204,7 @@ FUNCTIONS.push(new FunctionEvaluator('target-context',
     // TODO: Verify that this memoizing actually saves time
 
     if ('#' !== selector[0]) {
-      throwError(`Only selectors starting with "#" are supported for now`, args[0], $currentEl)
+      throwError(`Only selectors starting with "#" are supported for now`, argExprs[0], $currentEl)
     }
 
     const $targetEl = memoize($contextEl[0], '_target', selector, () => {
