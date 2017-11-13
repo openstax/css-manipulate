@@ -251,8 +251,11 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
     const istanbulCoverage = await page.evaluate(`window.__coverage__`)
     // Get the code coverage data (if available)
     // Write the headless Chrome coverage data out
-    mkdirp.sync(path.join(__dirname, `../../.nyc_output/`))
-    fs.writeFileSync(path.join(__dirname, `../../.nyc_output/hacky-chrome-stats_${Math.random()}.json`), JSON.stringify(istanbulCoverage))
+    if (istanbulCoverage) {
+      // TODO: This should probably not be in this file. it should probably be hoisted into the test files
+      mkdirp.sync(path.join(__dirname, `../../.nyc_output/`))
+      fs.writeFileSync(path.join(__dirname, `../../.nyc_output/hacky-chrome-stats_${Math.random()}.json`), JSON.stringify(istanbulCoverage))
+    }
   }
 
   if (options.verbose) {
