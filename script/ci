@@ -3,8 +3,7 @@ cd "$(dirname "$0")/.." || exit 111
 source ./script/bootstrap || exit 111
 
 try ./script/compile-css
-
-npm run-script ci
+try npm run-script ci
 
 
 if [[ ${CI} != "true" ]]; then

@@ -21,3 +21,5 @@
 
 /test/*/*.out.html.map
 /test/*/*.out.html.lcov
+/test/*/*.out.xhtml.map
+/test/*/*.out.xhtml.lcov

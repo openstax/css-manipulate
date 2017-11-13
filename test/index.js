@@ -36,7 +36,7 @@ const UNIT_FILES_TO_TEST = [
 
 ]
 
-const MOTIVATION_INPUT_HTML_PATH = `./motivation/_input.html`
+const MOTIVATION_INPUT_HTML_PATH = `./motivation/_input.xhtml`
 const MOTIVATION_FILES_TO_TEST = [
   './motivation/1',
   './motivation/2',
@@ -78,7 +78,7 @@ function buildTest(cssFilename, htmlFilename) {
   const htmlPath = `test/${htmlFilename}`
   test(`Generates ${cssPath}`, (t) => {
     t.plan(1) // 1 assertion
-    const htmlOutputPath = cssPath.replace('.css', '.out.html')
+    const htmlOutputPath = cssPath.replace('.css', '.out.xhtml')
     const htmlOutputSourceMapPath = `${htmlOutputPath}.map`
     const htmlOutputCoveragePath = `${htmlOutputPath}.lcov`
     const htmlOutputSourceMapFilename = path.basename(htmlOutputSourceMapPath)
@@ -125,8 +125,8 @@ function buildTest(cssFilename, htmlFilename) {
 function buildErrorTests() {
   const cssPath = `test/${ERROR_TEST_FILENAME}.css`
   const errorRules = fs.readFileSync(cssPath).toString().split('\n')
-  const htmlPath = cssPath.replace('.css', '.in.html')
-  const htmlOutputPath = cssPath.replace('.css', '.out.html')
+  const htmlPath = cssPath.replace('.css', '.in.xhtml')
+  const htmlOutputPath = cssPath.replace('.css', '.out.xhtml')
   const htmlContents = fs.readFileSync(htmlPath)
 
   errorRules.forEach((cssContents, lineNumber) => {
@@ -184,7 +184,7 @@ function specificityTest(msg, correct, items) {
 }
 
 
-UNIT_FILES_TO_TEST.forEach((filename) => buildTest(`${filename}.css`, `${filename}.in.html`))
+UNIT_FILES_TO_TEST.forEach((filename) => buildTest(`${filename}.css`, `${filename}.in.xhtml`))
 MOTIVATION_FILES_TO_TEST.forEach((filename) => buildTest(`${filename}.css`, MOTIVATION_INPUT_HTML_PATH))
 buildErrorTests()
 
