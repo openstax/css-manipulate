@@ -74,4 +74,7 @@ convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, argv
   fs.writeFileSync(htmlOutputSourceMapPath, sourceMap)
   fs.writeFileSync(htmlOutputLcovPath, coverageDataToLcov(htmlOutputPath, coverageData))
   return finish() // Close the browser so this process exits
+}).catch((err) => {
+  console.error(err)
+  process.exit(111)
 })

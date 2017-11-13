@@ -162,7 +162,7 @@ function buildErrorTests() {
     }
     cssContentsWithPadding += cssContents
 
-    const stdoutPath = `test/errors/error-${lineNumber}.out.txt`
+    const stdoutPath = `test/errors/error-${lineNumber + 1}.out.txt`
     let expectedStdoutContents
     if (WRITE_TEST_RESULTS !== 'true' && fs.existsSync(stdoutPath)) {
       expectedStdoutContents = fs.readFileSync(stdoutPath, 'utf8')

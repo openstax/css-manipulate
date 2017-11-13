@@ -245,7 +245,7 @@ FUNCTIONS.push(new FunctionEvaluator('ancestor-context',
 
     const $closestAncestor = $contextEl.closest(selector)
     if ($closestAncestor.length !== 1) {
-      throwError('Could not find ancestor-context', astNode, $currentEl)
+      throwError(`Could not find ancestor-context. Selector was "${selector}"`, astNode, $currentEl)
     }
     // If we are looking up an id then look up against the whole document
     $contextEl = $closestAncestor

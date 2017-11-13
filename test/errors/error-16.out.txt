@@ -1,1 +1,1 @@
-  [2mtest/errors/_errors.css:17:18[22m [31m[1mERROR[22m[39m "x-throw()" was called. undefined
+  [2mtest/errors/_errors.css:16:18[22m [31m[1mERROR[22m[39m tried to look up an attribute that was not available attr(href). ([2mtest/errors/_errors.in.xhtml:2:7[22m)

@@ -1,1 +1,1 @@
-  [2mtest/errors/_errors.css:4:18[22m [31m[1mERROR[22m[39m Unsupported function named invalid-function
+  [2mtest/errors/_errors.css:3:2[22m [31m[1mERROR[22m[39m Unsupported Pseudoclass ":expode"

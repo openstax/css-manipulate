@@ -1,1 +1,1 @@
-  [2mtest/errors/_errors.css:25:39[22m [31m[1mBUG[22m[39m Unsupported value type "Number"
+  [2mtest/errors/_errors.css:24:22[22m [31m[1mBUG[22m[39m Unsupported value type "Number"
