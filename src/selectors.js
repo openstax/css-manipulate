@@ -1,4 +1,4 @@
-const assert = require('assert')
+const assert = require('./helper/assert')
 const PseudoElementEvaluator = require('./helper/pseudo-element')
 const {showLog, showWarning, throwError, throwBug} = require('./helper/packet-builder')
 
@@ -30,7 +30,7 @@ class PseudoClassFilter {
 
 
 function attachToEls($els, locationInfo) {
-  assert(locationInfo)
+  assert.is(locationInfo)
   $els.each((i, node) => {
     node.__cssLocation = locationInfo
   })
@@ -45,7 +45,7 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('inside', ($, $lookupEl, $contex
 PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $lookupEl, $contextElPromise, $newEl, secondArg) => {
   const locationInfo = $newEl[0].__cssLocation // HACK . Should get the ast node directly
 
-  assert(secondArg) // it is required for for-each
+  assert.is(secondArg) // it is required for for-each
   assert.equal(secondArg.type, 'HackRaw')
   // Strip off the quotes in secondArg.value
   const selector = secondArg.value.substring(1, secondArg.value.length - 1)
@@ -78,12 +78,12 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $look
 PSEUDO_CLASSES.push(new PseudoClassFilter('target', ($, $el, args, astNode) => {
   assert.equal(args.length, 1)
   assert.equal(args[0].length, 1)
-  assert(args[0][0].indexOf(',') >= 1) // ensure that there is a comma
+  assert.is(args[0][0].indexOf(',') >= 1) // ensure that there is a comma
   const firstComma = args[0][0].indexOf(',')
   const attributeName = args[0][0].substring(0, firstComma)
   const matchSelector = args[0][0].substring(firstComma + 1).trim()
 
-  assert($el.length === 1) // for now, assume only 1 element
+  assert.is($el.length === 1) // for now, assume only 1 element
   assert.equal(matchSelector[0], "'")
   assert.equal(matchSelector[matchSelector.length - 1], "'")
   // TODO: Check that _all_ els match, not just one

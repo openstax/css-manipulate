@@ -1,4 +1,4 @@
-const assert = require('assert')
+const assert = require('./helper/assert')
 const csstree = require('css-tree')
 // const ProgressBar = require('progress')
 const chalk = require('chalk')
@@ -311,7 +311,7 @@ module.exports = class Applier {
   }
 
   _evaluateVals(context, $currentEl, $elPromise, vals) {
-    assert($elPromise instanceof Promise)
+    assert.is($elPromise instanceof Promise)
     return vals.map((argTmp) => {
       return argTmp.map((arg) => {
         switch (arg.type) {
@@ -521,7 +521,7 @@ module.exports = class Applier {
             }
           // keep these
           case 'not-has': // This was added because SASS has a bug and silently drops `:not(:has(foo))`. A more-hacky way would be to write `:not(:not(SASS_HACK):has(foo))`
-            assert(sel.children)
+            assert.is(sel.children)
             const children = sel.children.map((child) => {
               assert.equal(child.type, 'Raw')
               return child.value
@@ -608,7 +608,7 @@ module.exports = class Applier {
         allPromises.push(promise)
       }
     })
-    // assert(allPromises.length > 0)
+    // assert.is(allPromises.length > 0)
     return allPromises
   }
 

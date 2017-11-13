@@ -1,4 +1,4 @@
-const assert = require('assert')
+const assert = require('./assert')
 const {throwError, throwBug} = require('./packet-builder')
 
 // Every pseudoelement results in 1 (or more) elements being created.
@@ -74,7 +74,7 @@ module.exports = class PseudoElementEvaluator {
   }
 
   nodeCreator($, reducedSelectors, $lookupEl, $contextElPromise, depth) {
-    assert($contextElPromise instanceof Promise)
+    assert.is($contextElPromise instanceof Promise)
     return reducedSelectors.map((selectors) => {
       // Some pseudoelement selectors have an additional arg (like ::for-each)
       // HACK: Just use the 2nd arg of the first-found pseudo-selector. Eventually, loop over all selectors, find the unique 2ndargs, and run this._creator on them
@@ -91,11 +91,11 @@ module.exports = class PseudoElementEvaluator {
       if (!Array.isArray(ret)) {
         throwBug(`node creator returned a non-array while evaluating ${this._pseudoName}`, selectors[0].getRule().rule)
       }
-      assert(Array.isArray(ret))
+      assert.is(Array.isArray(ret))
       ret.forEach((item) => {
-        assert(item.$newElPromise)
-        assert(item.$newElPromise instanceof Promise)
-        assert(item.$newLookupEl)
+        assert.is(item.$newElPromise)
+        assert.is(item.$newElPromise instanceof Promise)
+        assert.is(item.$newLookupEl)
       })
       return ret
       // return $newEl

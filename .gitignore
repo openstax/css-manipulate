@@ -6,6 +6,7 @@
 /npm-debug.log*
 
 /dist/browser.js
+/dist/browser.js.map
 
 /test/apphysics.css
 /test/apphysics.css.skip

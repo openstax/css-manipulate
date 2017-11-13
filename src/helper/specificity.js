@@ -1,11 +1,11 @@
-const assert = require('assert')
+const assert = require('./assert')
 const {throwError, throwBug} = require('./packet-builder')
 
 module.exports = {
   // Returns a triple of numbers to match https://www.w3.org/TR/CSS21/cascade.html#specificity
   // a rule can have multiple selectors. to find the specificity, we need to know which selector was matched
   getSpecificity: (selector, depth) => {
-    assert(depth >= -1) //TODO: Really should make depth be 0-based. it's -1 based because 0 is the depth of the array of pseudo-element selectors
+    assert.is(depth >= -1) //TODO: Really should make depth be 0-based. it's -1 based because 0 is the depth of the array of pseudo-element selectors
 
     let idCount = 0                             // b (in the w3c spec)
     let attributesAndPseudoClassesCount = 0     // c

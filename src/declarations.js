@@ -1,4 +1,5 @@
-const {assert, showLog, throwError} = require('./helper/packet-builder')
+const assert = require('./helper/assert')
+const {showLog, throwError} = require('./helper/packet-builder')
 const ExplicitlyThrownError = require('./x-throw-error')
 
 class RuleDeclaration {
@@ -9,14 +10,14 @@ class RuleDeclaration {
   getRuleName() { return this._name }
   evaluateRule($lookupEl, $elPromise, args, astNode) {
     const ret = this._fn.apply(null, arguments)
-    assert(ret instanceof Promise, astNode, $lookupEl)
+    assert.is(ret instanceof Promise, astNode, $lookupEl)
     return ret
   }
 }
 
 // This is copy/pasta'd into pseudo-element
 function attachToAttribute($els, attrName, astNode) {
-  assert(astNode, astNode, $els) //TODO: Maybe this should astNode so we do not need to do this hack
+  assert.is(astNode, astNode, $els) //TODO: Maybe this should astNode so we do not need to do this hack
   $els.each((i, node) => {
     for(let index = 0; index < node.attributes.length; index++) {
       if (node.attributes[index].name === attrName) {
@@ -31,7 +32,7 @@ function attachToAttribute($els, attrName, astNode) {
 const DECLARATIONS = []
 
 DECLARATIONS.push(new RuleDeclaration('x-log', ($, $lookupEl, $elPromise, vals, astNode) => {
-  assert(vals.length >= 1, astNode, $lookupEl)
+  assert.is(vals.length >= 1, astNode, $lookupEl)
   // Do nothing when set to none;
   // TODO: verify that it is not the string "none" (also needed for format-number())
   if (vals[0][0] === 'none') {
@@ -45,7 +46,7 @@ DECLARATIONS.push(new RuleDeclaration('x-log', ($, $lookupEl, $elPromise, vals, 
   return $elPromise
 }))
 DECLARATIONS.push(new RuleDeclaration('x-throw', ($, $lookupEl, $elPromise, vals, rule) => {
-  assert(vals.length <= 1, rule, $lookupEl)
+  assert.is(vals.length <= 1, rule, $lookupEl)
   // Do nothing when set to none;
   // TODO: verify that it is not the string "none" (also needed for format-number())
   if (vals[0][0] === 'none') {
@@ -65,14 +66,14 @@ DECLARATIONS.push(new RuleDeclaration('content', ($, $lookupEl, $elPromise, vals
   // (which can contain a mix of strings and jQuery elements and numbers)
   assert.equal(vals.length, 1)
 
-  assert($elPromise instanceof Promise, astNode, $lookupEl)
+  assert.is($elPromise instanceof Promise, astNode, $lookupEl)
   return $elPromise.then(($el) => {
     $el.contents().remove() // remove so the text nodes are removed as well
     // Vals could be string, or elements (from `move-here(...)` or `content()`)
     vals[0].forEach((val) => {
       // if (Array.isArray(val)) {
       // }
-      assert(!Array.isArray(val), astNode, $lookupEl)
+      assert.is(!Array.isArray(val), astNode, $lookupEl)
       // HACK ish way to add sourcemap
       if (typeof val === 'string' || typeof val === 'number') {
         const textNode = $el[0].ownerDocument.createTextNode(val)
@@ -96,7 +97,7 @@ DECLARATIONS.push(new RuleDeclaration('class-remove', ($, $lookupEl, $elPromise,
     return $elPromise
   }
 
-  assert($elPromise instanceof Promise, astNode, $lookupEl)
+  assert.is($elPromise instanceof Promise, astNode, $lookupEl)
   return $elPromise.then(($el) => {
     if (vals[0][0] === '*') {
       assert.equal(vals.length, 1, astNode, $lookupEl)
@@ -113,7 +114,7 @@ DECLARATIONS.push(new RuleDeclaration('class-remove', ($, $lookupEl, $elPromise,
   })
 }))
 DECLARATIONS.push(new RuleDeclaration('class-add', ($, $lookupEl, $elPromise, vals, astNode) => {
-  assert(vals.length >= 1, astNode, $lookupEl)
+  assert.is(vals.length >= 1, astNode, $lookupEl)
   // Do nothing when set to none;
   // TODO: verify that it is not the string "none" (also needed for format-number())
   if (vals[0][0] === 'none') {
@@ -122,10 +123,10 @@ DECLARATIONS.push(new RuleDeclaration('class-add', ($, $lookupEl, $elPromise, va
     return $elPromise
   }
 
-  assert($elPromise instanceof Promise, astNode, $lookupEl)
+  assert.is($elPromise instanceof Promise, astNode, $lookupEl)
   return $elPromise.then(($el) => {
     vals.forEach((val) => {
-      assert($el.length >= 1, astNode, $lookupEl)
+      assert.is($el.length >= 1, astNode, $lookupEl)
       const classNames = val.join(' ')
       $el.addClass(classNames) // use space so people can write `class-add: 'foo' 'bar'`
       attachToAttribute($el, 'class', astNode)
@@ -136,7 +137,7 @@ DECLARATIONS.push(new RuleDeclaration('class-add', ($, $lookupEl, $elPromise, va
 
 DECLARATIONS.push(new RuleDeclaration('attrs-remove', ($, $lookupEl, $elPromise, vals, astNode) => {
   // attrs-remove: attr1Name, attr2Name ...
-  assert(vals.length >= 1, astNode, $lookupEl)
+  assert.is(vals.length >= 1, astNode, $lookupEl)
   // Do nothing when set to none;
   // TODO: verify that it is not the string "none" (also needed for format-number())
   if (vals[0][0] === 'none') {
@@ -144,7 +145,7 @@ DECLARATIONS.push(new RuleDeclaration('attrs-remove', ($, $lookupEl, $elPromise,
     assert.equal(vals[0].length, 1, astNode, $lookupEl)
     return $elPromise
   }
-  assert($elPromise instanceof Promise, astNode, $lookupEl)
+  assert.is($elPromise instanceof Promise, astNode, $lookupEl)
   return $elPromise.then(($el) => {
     if (vals[0][0] === '*') {
       assert.equal(vals.length, 1, astNode, $lookupEl)
@@ -164,7 +165,7 @@ DECLARATIONS.push(new RuleDeclaration('attrs-remove', ($, $lookupEl, $elPromise,
 }))
 DECLARATIONS.push(new RuleDeclaration('attrs-add', ($, $lookupEl, $elPromise, vals, astNode) => {
   // attrs-add: attr1Name attr1Value attr1AdditionalValue , attr2Name ...
-  // assert(vals.length >= 1, astNode, $lookupEl)
+  // assert.is(vals.length >= 1, astNode, $lookupEl)
   if (vals.length < 1) {
     throwError(`Missing value to attrs-add. the format should be "attrs-add: attr1Name attr2Value attr1AdditionalValue , attr2Name ..."`, astNode, $lookupEl)
   }
@@ -176,10 +177,10 @@ DECLARATIONS.push(new RuleDeclaration('attrs-add', ($, $lookupEl, $elPromise, va
     return $elPromise
   }
 
-  assert($elPromise instanceof Promise, astNode, $lookupEl, `Whoops this is not a promise`)
+  assert.is($elPromise instanceof Promise, astNode, $lookupEl, `Whoops this is not a promise`)
   return $elPromise.then(($el) => {
     vals.forEach((val) => {
-      // assert(val.length >= 2, astNode, $lookupEl)
+      // assert.is(val.length >= 2, astNode, $lookupEl)
       if (val.length < 2) {
         throwError(`Missing attribute value to attrs-add. the format should be "attrs-add: attr1Name attr2Value attr1AdditionalValue , attr2Name ..."`, astNode, $lookupEl)
       }
@@ -193,7 +194,7 @@ DECLARATIONS.push(new RuleDeclaration('attrs-add', ($, $lookupEl, $elPromise, va
   })
 }))
 DECLARATIONS.push(new RuleDeclaration('display', ($, $lookupEl, $elPromise, vals, astNode) => {
-  assert(vals.length === 1, astNode, $lookupEl)
+  assert.is(vals.length === 1, astNode, $lookupEl)
   // Do nothing when set to default;
   // TODO: verify that it is not the string "none" (also needed for format-number())
   if (vals[0][0] !== 'none') {
@@ -203,7 +204,7 @@ DECLARATIONS.push(new RuleDeclaration('display', ($, $lookupEl, $elPromise, vals
   }
   assert.equal(vals[0].length, 1, astNode, $lookupEl)
 
-  assert($elPromise instanceof Promise, astNode, $lookupEl)
+  assert.is($elPromise instanceof Promise, astNode, $lookupEl)
   return $elPromise.then(($el) => {
     assert.equal($el.length, 1, astNode, $lookupEl) // Just check for now, could be lifted later
 
@@ -220,7 +221,7 @@ DECLARATIONS.push(new RuleDeclaration('display', ($, $lookupEl, $elPromise, vals
 // FIXME: tag-name-set MUST be the last rule evaluated becuase it changes the $els set.
 // So until evaluateRule can return a new set of els this needs to be the last rule that is evaluated
 DECLARATIONS.push(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise, vals, astNode) => {
-  assert(vals.length === 1, astNode, $lookupEl)
+  assert.is(vals.length === 1, astNode, $lookupEl)
   // Do nothing when set to default;
   // TODO: verify that it is not the string "none" (also needed for format-number())
   if (vals[0][0] === 'none') {
@@ -256,7 +257,7 @@ DECLARATIONS.push(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise,
       return $(tags);
   }
 
-  assert($elPromise instanceof Promise, astNode, $lookupEl)
+  assert.is($elPromise instanceof Promise, astNode, $lookupEl)
   return $elPromise.then(($el) => {
     assert.equal($el.length, 1, astNode, $lookupEl) // Just check for now, could be lifted later
     // TODO: This needs to somehow percolate to children
