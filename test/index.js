@@ -75,6 +75,7 @@ function coverageDataToLcov(htmlOutputPath, coverageData) {
 
 
 function buildTest(cssFilename, htmlFilename) {
+  const argv = {noprogress: true}
   const cssPath = `test/${cssFilename}`
   const htmlPath = `test/${htmlFilename}`
   test(`Generates ${cssPath}`, (t) => {
@@ -94,14 +95,16 @@ function buildTest(cssFilename, htmlFilename) {
     // Record all warnings/errors/bugs into an output file for diffing
     const actualStdout = []
     function packetHandler(packet, htmlSourceLookupMap) {
-      const message = renderPacket(packet, htmlSourceLookupMap)
-      actualStdout.push(message)
-      if (WRITE_TEST_RESULTS === 'true') {
-        console.log(message)
+      const message = renderPacket(packet, htmlSourceLookupMap, argv)
+      if (message) {
+        actualStdout.push(message)
+        if (WRITE_TEST_RESULTS === 'true') {
+          console.log(message)
+        }
       }
     }
 
-    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, {} /*argv*/, packetHandler).then(({html: actualOutput, sourceMap, coverageData, __coverage__}) => {
+    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, argv, packetHandler).then(({html: actualOutput, sourceMap, coverageData, __coverage__}) => {
       if (fs.existsSync(htmlOutputPath)) {
         const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
 
@@ -142,6 +145,7 @@ function buildTest(cssFilename, htmlFilename) {
 }
 
 function buildErrorTests() {
+  const argv = {noprogress: true}
   const cssPath = `test/errors/${ERROR_TEST_FILENAME}.css`
   const errorRules = fs.readFileSync(cssPath).toString().split('\n')
   const htmlPath = cssPath.replace('.css', '.in.xhtml')
@@ -169,22 +173,24 @@ function buildErrorTests() {
     }
 
 
-    test(`Errors while trying to evaluate "${cssContents}" (see _errors.css)`, (t) => {
+    test(`Errors while trying to evaluate "${cssContents}" (see _errors.css:${lineNumber + 1})`, (t) => {
       t.plan(2) // 2 assertions
 
       // Record all warnings/errors/bugs into an output file for diffing
       const actualStdout = []
       function packetHandler(packet, htmlSourceLookupMap) {
-        const message = renderPacket(packet, htmlSourceLookupMap)
-        actualStdout.push(message)
-        if (WRITE_TEST_RESULTS === 'true') {
-          console.log(message)
+        const message = renderPacket(packet, htmlSourceLookupMap, argv)
+        if (message) { // could've been a progress bar. in which case do not show anything
+          actualStdout.push(message)
+          if (WRITE_TEST_RESULTS === 'true') {
+            console.log(message)
+          }
         }
       }
 
-      return convertNodeJS(cssContentsWithPadding, htmlContents, cssPath, htmlPath, htmlOutputPath, {} /*argv*/, packetHandler)
+      return convertNodeJS(cssContentsWithPadding, htmlContents, cssPath, htmlPath, htmlOutputPath, argv, packetHandler)
       .then(() => {
-        t.fail(`Expected to fail but succeeded. See _errors.css:${lineNumber+1}`)
+        t.fail(`Expected to fail but succeeded. See _errors.css:${lineNumber + 1}`)
       })
       .catch((e) => {
         // TODO: Test if the Error is useful for the end user or if it is just an assertion error

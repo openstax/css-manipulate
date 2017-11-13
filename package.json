@@ -2,7 +2,8 @@
   "name": "css-plus",
   "version": "0.5.0",
   "bin": {
-    "css-plus": "./bin/css-plus"
+    "css-plus": "./bin/css-plus",
+    "css-plus-debug": "./bin/css-plus-debug"
   },
   "scripts": {
     "prerebuild-tests": "./script/compile-css",
@@ -31,7 +32,7 @@
     "lodash": "^4.17.4",
     "mkdirp": "^0.5.1",
     "node-sass": "^4.6.0",
-    "progress": "^1.1.8",
+    "progress": "^2.0.0",
     "puppeteer": "^0.12.0",
     "sax": "^1.2.4",
     "snazzy": "^7.0.0",

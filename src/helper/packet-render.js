@@ -1,12 +1,14 @@
 const chalk = require('chalk')
+const ProgressBar = require('progress')
 
 const sourceColor = chalk.dim
 const errorColor = chalk.red.bold
 const warnColor = chalk.yellow.bold
 const logColor = chalk.blue.bold
 
+let currentProgressBar
 
-function renderPacket(json, htmlSourceLookupMap) {
+function renderPacket(json, htmlSourceLookupMap, argv) {
   const {type} = json
   const output = []
   if (type === 'LINT') {
@@ -84,9 +86,62 @@ function renderPacket(json, htmlSourceLookupMap) {
     })
     output.push('\\----------------------------------------------------')
 
+  } else if (type === 'PROGRESS_START') {
+    if (argv.noprogress) {
+      return null
+    }
+    if (currentProgressBar) {
+      throw new Error('BUG: starting a progress bar when another one is already running')
+    }
+    if (json.details.type === 'MATCHING') {
+      currentProgressBar = new ProgressBar(`${chalk.bold('Matching')} :percent ${sourceColor(':etas')} ${chalk.green("':selector'")}`, { // ${sourceColor(':sourceLocation')}
+        renderThrottle: 200,
+        total: json.details.total
+      })
+    } else if (json.details.type === 'CONVERTING') {
+      currentProgressBar = new ProgressBar(`${chalk.bold('Converting')} :percent ${sourceColor(':etas')} [${chalk.green(':bar')}] #:current`, { // ${sourceColor(':sourceLocation')}
+        renderThrottle: 50,
+        complete: '=',
+        incomplete: ' ',
+        width: 40,
+        total: json.details.total
+      })
+    } else {
+      throw new Error('BUG: new progress bar type')
+    }
+    return null // return falsy so we do not console.log('')
+  } else if (type === 'PROGRESS_TICK') {
+    if (argv.noprogress) {
+      return null
+    }
+    if (json.details.type === 'MATCHING') {
+      const loc = json.details.sourceLocation
+      // selectors can be long. if they are over 80 characters then split them up with ellipses
+      let selector = json.details.selector
+      let width = process.stdout.columns - 22 // 22 is enough text to say "Matching 100% 60.0s "
+      if (selector.length > width) {
+        selector = `${selector.substring(0, (width - 5) / 2)} ... ${selector.substring(selector.length - (width - 5) / 2)}`
+      }
+      currentProgressBar.tick({selector: selector, sourceLocation: `${loc.source}:${loc.start.line}:${loc.start.column}`})
+    } else if (json.details.type === 'CONVERTING') {
+      currentProgressBar.tick(json.details.ticks)
+    } else {
+      throw new Error('BUG: new progress bar type')
+    }
+    return null // return falsy so we do not console.log('')
+  } else if (type === 'PROGRESS_END') {
+    if (argv.noprogress) {
+      return null
+    }
+    if (currentProgressBar.complete) {
+      currentProgressBar = null
+    } else {
+      throw new Error('BUG: progress bar ended prematurely')
+    }
+    return null // return falsy so we do not console.log('')
   } else {
     // unknown packet type
-    output.push(jsonStr)
+    output.push(`UNKNOW_PACKET_TYPE: ${JSON.stringify(json)}`)
   }
   return output.join('\n')
 }

@@ -6,6 +6,18 @@ try ./script/compile-css
 try npm run-script ci
 
 
+temp_file=$(mktemp)
+
+do_progress_quiet "Checking that command line displays help" \
+  ./bin/css-plus --help
+
+do_progress_quiet "Sanity-checking command line" \
+  ./bin/css-plus --css ./test/motivation/all.css --html ./test/motivation/_input.xhtml --output "${temp_file}"
+
+try rm "${temp_file}" "${temp_file}.map" # delete the file afterwards
+
+
+
 if [[ ${CI} != "true" ]]; then
   do_progress_quiet "Generating Javascript Coverage report at ./coverage/index.html" \
     "$(npm bin)/nyc" report --reporter=html

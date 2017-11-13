@@ -6,7 +6,7 @@ const serializer = require('./serializer')
 const DECLARATIONS = require('./declarations')
 const FUNCTIONS = require('./functions')
 const {PSEUDO_ELEMENTS, PSEUDO_CLASSES} = require('./selectors')
-const {init: errorInit, throwBug, throwError, showWarning, showError, showLog, sendElementCount} = require('./helper/packet-builder')
+const {init: errorInit, throwBug, throwError, showWarning, showError, showLog, sendElementCount, sendProgressStart, sendProgressTick, sendProgressEnd} = require('./helper/packet-builder')
 
 const constructSelector = require('./helper/construct-selector')
 
@@ -17,6 +17,11 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
   errorInit(consol, htmlSourceLookup, htmlSourcePath, options)
 
   const engine = new Engine(document, $, options)
+
+  // Add Progress listeners so we can send packets back to the node process
+  engine.on('PROGRESS_START', (data) => sendProgressStart(data))
+  engine.on('PROGRESS_TICK', (data) => sendProgressTick(data))
+  engine.on('PROGRESS_END', (data) => sendProgressEnd(data))
 
   engine.setCSSContents(cssContents, cssSourcePath)
 

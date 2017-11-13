@@ -22,6 +22,10 @@ const argv = require('yargs')
   type: 'boolean',
   describe: 'Show warnings/errors with the location in the CSS file, not the original SASS/LESS file'
 })
+.option('noprogress', {
+  type: 'boolean',
+  describe: 'Do not show the progress bars'
+})
 .option('verbose', {
   type: 'boolean',
   describe: 'Enable verbose logging'

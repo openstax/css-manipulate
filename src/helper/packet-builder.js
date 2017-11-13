@@ -162,4 +162,26 @@ function sendElementCount(count) {
 }
 
 
-module.exports = {init, throwError, throwBug, showWarning, showError, showBug, showLog, showDebuggerData, sendElementCount}
+function sendProgressStart(details) {
+  _console.info(JSON.stringify({
+    type: 'PROGRESS_START',
+    details
+  }))
+}
+
+function sendProgressTick(details) {
+  _console.info(JSON.stringify({
+    type: 'PROGRESS_TICK',
+    details
+  }))
+}
+
+function sendProgressEnd(details) {
+  _console.info(JSON.stringify({
+    type: 'PROGRESS_END',
+    details
+  }))
+}
+
+
+module.exports = {init, throwError, throwBug, showWarning, showError, showBug, showLog, showDebuggerData, sendElementCount, sendProgressStart, sendProgressTick, sendProgressEnd}
