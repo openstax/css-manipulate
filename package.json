@@ -12,7 +12,7 @@
     "preci": "ADD_COVERAGE=true webpack --config ./webpack.config.js",
     "ci": "nyc --reporter html --reporter text --reporter json ava ./test/index.js",
     "pretest": "npm run-script dist",
-    "test": "ava ./test/index.js",
+    "test": "ava --concurrency=2 ./test/index.js",
     "lint": "eslint src/**/*.js",
     "debugger": "NODE_ENV=debugger inspect node_modules/ava/profile.js test/index.js",
     "dist": "webpack --config ./webpack.config.js",
