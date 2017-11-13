@@ -13,6 +13,7 @@ const UNIT_FILES_TO_TEST = [
   './example/exercise-numbering',
   './example/exercise-numbering-advanced',
   './example/glossary',
+  './unit/vanilla',
   './unit/before-after',
   './unit/selectors',
   './unit/simple-selectors',
@@ -123,6 +124,7 @@ function buildTest(cssFilename, htmlFilename) {
         // If the file does not exist yet then write it out to disk
         fs.writeFileSync(htmlOutputPath, actualOutput)
         if (WRITE_TEST_RESULTS === 'true') {
+          t.is(true, true) // just so ava counts that 1 assertion was made
           t.pass()
         }
       }

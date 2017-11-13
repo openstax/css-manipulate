@@ -1,0 +1,13 @@
+.example {
+  border-color: #E0CB52;
+  background: #FCFAEE;
+  padding: .5em;
+  border-left-width: .5em;
+  border-left-style: solid;
+}
+
+.example::before {
+  tag-name-set: 'h2';
+  content: 'Example';
+  font-weight: bold;
+}
