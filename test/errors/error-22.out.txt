@@ -1,0 +1,1 @@
+  [2mtest/errors/_errors.css:22:18[22m [31m[1mBUG[22m[39m Assertion failed. Expected 0 but got 2 ([2mtest/errors/_errors.in.xhtml:2:7[22m)

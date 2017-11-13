@@ -263,6 +263,7 @@ run `./script/test-debug` to start up a debugger and run the tests.
 To test the commandline:
 
 - `$(npm bin)/inspect ./bin/css-plus ${CSS_PATH} ${HTML_PATH} ${OUTPUT_HTML_PATH}`
+- `$(npm bin)/inspect ./bin/css-plus-debug ${CSS_PATH} ${HTML_PATH} ${OUTPUT_HTML_PATH}` starts up the debugger (using `node --inspect-brk`)
 
 To pause when evaluating an element, add `data-debugger="true"` to the element.
 

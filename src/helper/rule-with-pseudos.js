@@ -1,10 +1,10 @@
-const assert = require('assert')
-const {throwError, throwBug} = require('./error')
+const assert = require('./assert')
+const {throwError, throwBug} = require('./packet-builder')
 
 // Parses a rule and caches the pseudoelements at the end of it for lookup later
 module.exports = class RuleWithPseudos {
   constructor(rule, allPseudoElementNames) {
-    assert(allPseudoElementNames)
+    assert.is(allPseudoElementNames)
     this._rule = rule
     const pseudoElements = rule.selector.children.toArray().filter((selector) => 'PseudoElement' === selector.type)
     // [ {name: 'after', firstArg: {value: '1'}} ]
@@ -29,7 +29,7 @@ module.exports = class RuleWithPseudos {
         if (args[0].type === 'Raw') {
           const rawArgs = args[0].value.split(',')
           // just verify that more than 2 args are not supported yet
-          assert(rawArgs.length <= 2)
+          assert.is(rawArgs.length <= 2)
           firstArg = {type: 'HackRaw', value: rawArgs[0].trim(), loc: args[0].loc}
           if (rawArgs[1]) {
             secondArg = {type: 'HackRaw', value: rawArgs[1].trim(), loc: args[0].loc}

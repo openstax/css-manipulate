@@ -2,4 +2,6 @@
 cd "$(dirname "$0")/.." || exit 111
 source ./script/bootstrap || exit 111
 
-npm test
+npm test || exit 111
+
+_say "${c_green}To see Code coverage${c_none} run ./script/ci instead"

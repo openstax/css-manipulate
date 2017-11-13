@@ -1,0 +1,6 @@
+#!/usr/bin/env node --inspect-brk
+
+// Start devtools
+process.env['NODE_ENV'] = process.env['NODE_ENV'] || 'debugger'
+
+require('../src/main')

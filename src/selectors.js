@@ -1,6 +1,6 @@
-const assert = require('assert')
+const assert = require('./helper/assert')
 const PseudoElementEvaluator = require('./helper/pseudo-element')
-const {showLog, showWarning, throwError, throwBug} = require('./helper/error')
+const {showLog, showWarning, throwError, throwBug} = require('./helper/packet-builder')
 
 const PSEUDO_ELEMENTS = []
 const PSEUDO_CLASSES = []
@@ -30,7 +30,7 @@ class PseudoClassFilter {
 
 
 function attachToEls($els, locationInfo) {
-  assert(locationInfo)
+  assert.is(locationInfo)
   $els.each((i, node) => {
     node.__cssLocation = locationInfo
   })
@@ -42,11 +42,11 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('after',  ($, $lookupEl, $contex
 PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('before', ($, $lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.prepend($newEl); return $newEl }), $newLookupEl: $lookupEl}] })) // TODO: These are evaluated in reverse order
 PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('outside', ($, $lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { /*HACK*/ const $temp = $contextEl.wrap($newEl).parent();                  attachToEls($temp, $newEl[0].__cssLocation); return $temp }), $newLookupEl: $lookupEl}] }))
 PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('inside', ($, $lookupEl, $contextElPromise, $newEl, secondArg) =>  { return [{$newElPromise: $contextElPromise.then(($contextEl) => { /*HACK*/ const $temp = $contextEl.wrapInner($newEl).find(':first-child'); attachToEls($temp, $newEl[0].__cssLocation); return $temp }) , $newLookupEl: $lookupEl}] })) // Gotta get the first-child because those are the $newEl
-PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $lookupEl, $contextElPromise, $newEl, secondArg) => {
+PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $lookupEl, $contextElPromise, $newEl, secondArg, firstArg) => {
   const locationInfo = $newEl[0].__cssLocation // HACK . Should get the ast node directly
 
-  assert(secondArg) // it is required for for-each
-  assert.equal(secondArg.type, 'HackRaw')
+  assert.is(secondArg, firstArg, $lookupEl, 'Argument missing. It is required for ::for-each-descendant') // it is required for for-each
+  assert.equal(secondArg.type, 'HackRaw', secondArg, $lookupEl, 'Wrong type')
   // Strip off the quotes in secondArg.value
   const selector = secondArg.value.substring(1, secondArg.value.length - 1)
   const $newLookupEls = $lookupEl.find(selector)
@@ -78,12 +78,12 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $look
 PSEUDO_CLASSES.push(new PseudoClassFilter('target', ($, $el, args, astNode) => {
   assert.equal(args.length, 1)
   assert.equal(args[0].length, 1)
-  assert(args[0][0].indexOf(',') >= 1) // ensure that there is a comma
+  assert.is(args[0][0].indexOf(',') >= 1) // ensure that there is a comma
   const firstComma = args[0][0].indexOf(',')
   const attributeName = args[0][0].substring(0, firstComma)
   const matchSelector = args[0][0].substring(firstComma + 1).trim()
 
-  assert($el.length === 1) // for now, assume only 1 element
+  assert.is($el.length === 1) // for now, assume only 1 element
   assert.equal(matchSelector[0], "'")
   assert.equal(matchSelector[matchSelector.length - 1], "'")
   // TODO: Check that _all_ els match, not just one

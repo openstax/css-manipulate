@@ -1,5 +1,5 @@
-const assert = require('assert')
-const {showLog, showWarning, throwError} = require('./helper/error')
+const assert = require('./helper/assert')
+const {showLog, showWarning, throwError} = require('./helper/packet-builder')
 
 const {IS_STRICT_MODE} = process.env
 const FUNCTIONS = []
@@ -61,16 +61,16 @@ FUNCTIONS.push(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, evalu
 } ))
 FUNCTIONS.push(new FunctionEvaluator('add', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
   const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
-  assert.equal(vals.length, 2)
-  assert.equal(vals[0].length, 1)
-  assert.equal(vals[1].length, 1)
+  assert.equal(vals.length, 2, astNode, $currentEl, 'Missing argument')
+  assert.equal(vals[0].length, 1, astNode, $currentEl, 'First argument must have 1 value')
+  assert.equal(vals[1].length, 1, astNode, $currentEl, 'Second argument must have 1 value')
   const val1 = Number.parseInt(vals[0][0])
   const val2 = Number.parseInt(vals[1][0])
   if (Number.isNaN(val1)) {
-    throwError(`First argument must be an integer but it was '${vals[0]}'`)
+    throwError(`First argument must be an integer but it was '${vals[0]}'`, astNode, $currentEl)
   }
   if (Number.isNaN(val2)) {
-    throwError(`Second argument must be an integer but it was '${vals[1]}'`)
+    throwError(`Second argument must be an integer but it was '${vals[1]}'`, astNode, $currentEl)
   }
   return val1 + val2
 } ))
@@ -86,7 +86,7 @@ FUNCTIONS.push(new FunctionEvaluator('x-tag-name', ($, {$contextEl}, $currentEl,
 FUNCTIONS.push(new FunctionEvaluator('text-contents', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
   const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
   // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
-  assert($contextEl.length, 1)
+  assert.is($contextEl.length, 1)
   const ret = $contextEl[0].textContent // HACK! $contextEl.contents() (need to clone these if this is the case; and remove id's)
   if (ret == null) {
     if (IS_STRICT_MODE) {
@@ -139,7 +139,7 @@ FUNCTIONS.push(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, 
 FUNCTIONS.push(new FunctionEvaluator('count-of-type', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
   const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
   assert.equal(vals.length, 1)
-  assert(Array.isArray(vals[0]))
+  assert.is(Array.isArray(vals[0]))
   const selector = vals[0].join(' ')  // vals[0] = ['li'] (notice vals is a 2-Dimensional array. If each FunctionEvaluator had a .join() method then this function could be simpler and more intuitive to add more features)
   assert.equal(typeof selector, 'string')
 
@@ -172,7 +172,7 @@ FUNCTIONS.push(new FunctionEvaluator('count-of-type', ($, {$contextEl}, $current
 FUNCTIONS.push(new FunctionEvaluator('count-all-of-type', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
   const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
   assert.equal(vals.length, 1)
-  assert(Array.isArray(vals[0]))
+  assert.is(Array.isArray(vals[0]))
   const selector = vals[0].join(' ')  // vals[0] = ['li'] (notice vals is a 2-Dimensional array. If each FunctionEvaluator had a .join() method then this function could be simpler and more intuitive to add more features)
   assert.equal(typeof selector, 'string')
 
@@ -192,7 +192,7 @@ FUNCTIONS.push(new FunctionEvaluator('parent-context',
     // The argument to this `-context` function needs to be fully-evaluated, hence this
     // assertion below: (TODO: Change this in the future to not require full-evaluation)
     assert.equal(vals[0].length, 1)
-    assert(vals[0][0])
+    assert.is(vals[0][0])
     return vals[0][0]
 }))
 FUNCTIONS.push(new FunctionEvaluator('target-context',
@@ -204,7 +204,7 @@ FUNCTIONS.push(new FunctionEvaluator('target-context',
     // TODO: Verify that this memoizing actually saves time
 
     if ('#' !== selector[0]) {
-      throwError(`Only selectors starting with "#" are supported for now`, args[0], $currentEl)
+      throwError(`Only selectors starting with "#" are supported for now`, argExprs[0], $currentEl)
     }
 
     const $targetEl = memoize($contextEl[0], '_target', selector, () => {
@@ -235,7 +235,7 @@ FUNCTIONS.push(new FunctionEvaluator('target-context',
     // The argument to this `-context` function needs to be fully-evaluated, hence this
     // assertion below: (TODO: Change this in the future to not require full-evaluation)
     assert.equal(vals[0].length, 1)
-    assert(vals[0][0] !== null)
+    assert.is(vals[0][0] !== null)
     return vals[0][0]
 }))
 FUNCTIONS.push(new FunctionEvaluator('ancestor-context',
@@ -245,7 +245,7 @@ FUNCTIONS.push(new FunctionEvaluator('ancestor-context',
 
     const $closestAncestor = $contextEl.closest(selector)
     if ($closestAncestor.length !== 1) {
-      throwError('Could not find ancestor-context', astNode, $currentEl)
+      throwError(`Could not find ancestor-context. Selector was "${selector}"`, astNode, $currentEl)
     }
     // If we are looking up an id then look up against the whole document
     $contextEl = $closestAncestor
@@ -259,7 +259,7 @@ FUNCTIONS.push(new FunctionEvaluator('ancestor-context',
     // The argument to this `-context` function needs to be fully-evaluated, hence this
     // assertion below: (TODO: Change this in the future to not require full-evaluation)
     assert.equal(vals[0].length, 1)
-    assert(vals[0][0] !== null) // TODO: Move this assertion test to the enginelier
+    assert.is(vals[0][0] !== null) // TODO: Move this assertion test to the enginelier
     return vals[0][0]
   }))
 FUNCTIONS.push(new FunctionEvaluator('descendant-context',
@@ -285,7 +285,7 @@ FUNCTIONS.push(new FunctionEvaluator('descendant-context',
     // The argument to this `-context` function needs to be fully-evaluated, hence this
     // assertion below: (TODO: Change this in the future to not require full-evaluation)
     assert.equal(vals[0].length, 1)
-    assert(vals[0][0] !== null) // TODO: Move this assertion test to the enginelier
+    assert.is(vals[0][0] !== null) // TODO: Move this assertion test to the enginelier
     return vals[0][0]
   }))
 FUNCTIONS.push(new FunctionEvaluator('next-sibling-context',
@@ -306,7 +306,7 @@ FUNCTIONS.push(new FunctionEvaluator('next-sibling-context',
     // The argument to this `-context` function needs to be fully-evaluated, hence this
     // assertion below: (TODO: Change this in the future to not require full-evaluation)
     assert.equal(vals[0].length, 1)
-    assert(vals[0][0] !== null) // TODO: Move this assertion test to the enginelier
+    assert.is(vals[0][0] !== null) // TODO: Move this assertion test to the enginelier
     return vals[0][0]
   }))
 

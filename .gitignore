@@ -1,9 +1,12 @@
 /.sass-cache/
 /.nyc_output/
 /coverage/
+/coverage-css-and-html/
+
 /npm-debug.log*
 
 /dist/browser.js
+/dist/browser.js.map
 
 /test/apphysics.css
 /test/apphysics.css.skip
@@ -19,3 +22,5 @@
 
 /test/*/*.out.html.map
 /test/*/*.out.html.lcov
+/test/*/*.out.xhtml.map
+/test/*/*.out.xhtml.lcov

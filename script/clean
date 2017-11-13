@@ -2,8 +2,11 @@
 cd "$(dirname "$0")/.." || exit 111
 
 dirs_to_remove=(
+  dist
   node_modules
+  .nyc_output
   coverage
+  coverage-css-and-html
   vendor
 )
 

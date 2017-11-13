@@ -3,7 +3,7 @@ cd "$(dirname "$0")/.." || exit 111
 source ./script/bootstrap || exit 111
 
 do_progress_quiet "Compiling motivation example" \
-  "$(npm bin)/node-sass" test/motivation/all.scss test/motivation/all.css
+  "$(npm bin)/node-sass" --source-map true test/motivation/all.scss test/motivation/all.css
 
 for filename in $(ls ./test/*/*.less); do
   filename="${filename%.*}" # strip off the extension

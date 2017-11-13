@@ -1,11 +1,13 @@
-const assert = require('assert')
+const EventEmitter = require('events')
 const csstree = require('css-tree')
-const ProgressBar = require('progress')
+const assert = require('./helper/assert')
+// const ProgressBar = require('progress')
 const chalk = require('chalk')
 const jqueryXmlns = require('./helper/jquery.xmlns')
 const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
-const {throwError, throwBug, showWarning, cssSnippetToString, htmlLocation} = require('./helper/error')
+const {throwError, throwBug, showWarning, showDebuggerData} = require('./helper/packet-builder')
+const ExplicitlyThrownError = require('./x-throw-error')
 
 const sourceColor = chalk.dim
 
@@ -54,7 +56,7 @@ function splitOnCommas(args) {
         ret[index].push(arg)
         break
       default:
-        throwError('BUG: Unsupported value type ' + arg.type, arg)
+        throwBug(`Unsupported value type "${arg.type}"`, arg)
     }
   })
   // If we didn't add anything then this must be 0-arguments
@@ -66,8 +68,9 @@ function splitOnCommas(args) {
 }
 
 
-module.exports = class Applier {
+module.exports = class Applier extends EventEmitter {
   constructor(document, $, options) {
+    super()
     // Add the jquery.xmlns plugin so we can select on attributes like epub:type
     // But only add it when the CSS file has @namespace in it. Otherwise, it just adds to execution time
     // jqueryXmlns(document, $)
@@ -187,7 +190,8 @@ module.exports = class Applier {
     // Cache matched nodes because selectors are duplicated in the CSS
     const selectorCache = {}
 
-    const bar = new ProgressBar(`${chalk.bold('Matching')} :percent ${sourceColor(this._options.debug ? ':elapsed' : ':etas')} ${chalk.green("':selector'")} ${sourceColor(':sourceLocation')}`, { total: total})
+    // const bar = new ProgressBar(`${chalk.bold('Matching')} :percent ${sourceColor(this._options.debug ? ':elapsed' : ':etas')} ${chalk.green("':selector'")} ${sourceColor(':sourceLocation')}`, { total: total})
+    this.emit('PROGRESS_START', {type: 'MATCHING', total: total})
 
     // This code is not css-ish because it does not walk the DOM
     ast.children.each((rule) => {
@@ -199,17 +203,13 @@ module.exports = class Applier {
       rule.selector.children.each((selector) => {
         assert.equal(selector.type, 'Selector')
         const browserSelector = this.toBrowserSelector(selector)
-        bar.tick({selector: browserSelector, sourceLocation: this._options.verbose ? cssSnippetToString(selector) : ' '})
+
+        // bar.tick({selector: browserSelector, sourceLocation: this._options.verbose ? cssSnippetToString(selector) : ' '})
+        this.emit('PROGRESS_TICK', {type: 'MATCHING', selector: browserSelector, sourceLocation: selector.loc})
 
         selectorCache[browserSelector] = selectorCache[browserSelector] || this._$(browserSelector)
         let $matchedNodes = selectorCache[browserSelector]
         selector.__COVERAGE_COUNT = $matchedNodes.length
-
-        // TODO: remove me when we have code coverage
-        if (this._options.debug) {
-          console.log(` Matched ${$matchedNodes.length}`);
-          // bar.interrupt(`Matched ${$matchedNodes.length}`);
-        }
 
         $matchedNodes = this._filterByPseudoClassName($matchedNodes, selector, -1/*depth*/)
 
@@ -221,13 +221,16 @@ module.exports = class Applier {
         })
       })
     })
+    this.emit('PROGRESS_END', {type: 'MATCHING'})
 
     // TODO: Does this actually clear up memory?
     // Clear up some memory by removing all the memoizedQueries that jsdom added for caching:
     // This is a little hacky but it works
-    walkDOMElementsInOrder(this._document.documentElement, (el) => {
-      el[Object.getOwnPropertySymbols(el)[0]]._clearMemoizedQueries()
-    })
+    // walkDOMElementsInOrder(this._document.documentElement, (el) => {
+    //   if (el[Object.getOwnPropertySymbols(el)[0]]) {
+    //     el[Object.getOwnPropertySymbols(el)[0]]._clearMemoizedQueries()
+    //   }
+    // })
   }
 
   _isPseudoElementSelectorElement(selectorElement) {
@@ -308,7 +311,7 @@ module.exports = class Applier {
   }
 
   _evaluateVals(context, $currentEl, $elPromise, vals) {
-    assert($elPromise instanceof Promise)
+    assert.is($elPromise instanceof Promise)
     return vals.map((argTmp) => {
       return argTmp.map((arg) => {
         switch (arg.type) {
@@ -341,7 +344,7 @@ module.exports = class Applier {
           case 'Function':
             const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0]
             if (!theFunction) {
-              throwBug(`Unsupported function named ${arg.name}`, arg)
+              throwError(`Unsupported function named ${arg.name}`, arg)
             }
             const mutationPromise = Promise.resolve('HACK_FOR_NOW')
             const fnReturnVal = theFunction.evaluateFunction(this._$, context, $currentEl, this._evaluateVals.bind(this), splitOnCommas(arg.children.toArray()), mutationPromise, arg /*AST node*/)
@@ -396,7 +399,7 @@ module.exports = class Applier {
         declarations.slice(0, declarations.length - 1).forEach((decl) => {
           const {value} = decl
           // BUG: Somehow the same selector can be matched twice for an element . This occurs with the `:not(:has(...))` ones
-          showWarning(`Skipping because this was overridden by ${sourceColor(cssSnippetToString(declarations[declarations.length - 1].value))}`, value, $currentEl)
+          showWarning(`Skipping because this was overridden by `, value, $currentEl, /*additional CSS snippet*/declarations[declarations.length - 1].value)
           decl.astNode.__COVERAGE_COUNT = decl.astNode.__COVERAGE_COUNT || 0
         })
 
@@ -409,7 +412,11 @@ module.exports = class Applier {
           try {
             return ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $elPromise, vals, value)
           } catch (e) {
-            throwBug(`Problem while evaluating rule "${ruleDeclarationPlugin.getRuleName()}:". Message was "${e.message}"`, value, $currentEl, e)
+            if (e instanceof ExplicitlyThrownError) {
+              throw e
+            } else {
+              throwBug(`Problem while evaluating rule "${ruleDeclarationPlugin.getRuleName()}:". Message was "${e.message}"`, value, $currentEl, e)
+            }
           }
         } else {
           return Promise.resolve('NO_RULES_TO_EVALUATE')
@@ -420,51 +427,12 @@ module.exports = class Applier {
     })
 
     if ($debuggingEl.attr('data-debugger')) {
-      this.printDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations, $debuggingEl)
+      showDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations, $debuggingEl, this.toBrowserSelector.bind(this))
     }
 
     return Promise.all(promises)
   }
 
-  printDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations, $debuggingEl) {
-    console.log('')
-    console.log('/----------------------------------------------------')
-    console.log(`| Debugging data for ${sourceColor(`<<${htmlLocation($debuggingEl[0])}>>`)}`)
-    if ($currentEl[0] !== $debuggingEl[0]) {
-      console.log(`| Current Context is ${sourceColor(`<<${htmlLocation($currentEl[0])}>>`)}`)
-    }
-    console.log('| Matched Selectors:')
-    debugMatchedRules.forEach((matchedRule) => {
-      const {rule, selector} = matchedRule.getRule()
-      console.log(`|   ${sourceColor(cssSnippetToString(rule))}\t\t${chalk.green(this.toBrowserSelector(selector, true /*includePseudoElements*/))} {...}`)
-    })
-    console.log('| Applied Declarations:')
-    debugAppliedDeclarations.forEach(({declaration, vals}) => {
-      // vals is a 2-dimensional array
-      const v = vals.map((val) => {
-        return val.map((v2) => {
-          if (typeof v2 === 'string') {
-            if (v2.length >= 1) {
-              return chalk.yellow(`"${v2}"`)
-            } else {
-              return '' // skip empty strings just for readability
-            }
-          } else if (typeof v2 === 'number') {
-            return chalk.blue(v2)
-          } else if (v2.jquery) {
-            return v2.toArray().map((el) => {
-              return sourceColor(`<<${htmlLocation(el)}>>`)
-            }).join(', ')
-          } else {
-            debugger
-            return v2
-          }
-        }).join(' ')
-      }).join(',')
-      console.log(`|   ${sourceColor(cssSnippetToString(declaration.astNode))}\t\t${declaration.astNode.property}: ${v};`)
-    })
-    console.log('\\----------------------------------------------------')
-  }
 
   toBrowserSelector(selector, includePseudoElements) {
     assert.equal(selector.type, 'Selector')
@@ -553,7 +521,7 @@ module.exports = class Applier {
             }
           // keep these
           case 'not-has': // This was added because SASS has a bug and silently drops `:not(:has(foo))`. A more-hacky way would be to write `:not(:not(SASS_HACK):has(foo))`
-            assert(sel.children)
+            assert.is(sel.children)
             const children = sel.children.map((child) => {
               assert.equal(child.type, 'Raw')
               return child.value
@@ -573,7 +541,7 @@ module.exports = class Applier {
             }
 
           default:
-            throwError(`UNKNOWN_PSEUDOCLASS: ${sel.name}`, sel)
+            throwError(`Unsupported Pseudoclass ":${sel.name}"`, sel)
         }
 
       case 'PseudoElement':
@@ -605,7 +573,7 @@ module.exports = class Applier {
             }
 
           default:
-            throwError(`UNKNOWN_PSEUDOELEMENT:${sel.name}(${sel.type})`, sel)
+            throwError(`Unsupported Pseudoelement "::${sel.name}(${sel.type})"`, sel)
         }
       default:
         console.log(sel);
@@ -620,17 +588,25 @@ module.exports = class Applier {
     })
 
 
-    const bar = new ProgressBar(`${chalk.bold('Converting')} :percent ${sourceColor(this._options.debug ? ':elapsed' : ':etas')} [${chalk.green(':bar')}] #:current ${sourceColor(':sourceLocation')}`, {
-      renderThrottle: 200,
-      complete: '=',
-      incomplete: ' ',
-      width: 40,
-      total: total
-    })
+    // const bar = new ProgressBar(`${chalk.bold('Converting')} :percent ${sourceColor(this._options.debug ? ':elapsed' : ':etas')} [${chalk.green(':bar')}] #:current ${sourceColor(':sourceLocation')}`, {
+    //   renderThrottle: 200,
+    //   complete: '=',
+    //   incomplete: ' ',
+    //   width: 40,
+    //   total: total
+    // })
+    this.emit('PROGRESS_START', {type: 'CONVERTING', total: total})
+
+    let ticks = 0
     const allPromises = []
     walkDOMElementsInOrder(this._document.documentElement, (el) => {
       // Do not bother showing the source location for elements that did not match anything
-      bar.tick({ sourceLocation: (el.MATCHED_RULES && this._options.verbose) ? htmlLocation(el) : '' })
+      // bar.tick({ sourceLocation: (el.MATCHED_RULES && this._options.verbose) ? htmlLocation(el) : '' })
+      ticks += 1
+      if (ticks >= total / 1000) {
+        this.emit('PROGRESS_TICK', {type: 'CONVERTING', ticks: ticks})
+        ticks = 0
+      }
 
       const matches = el.MATCHED_RULES || []
       el.MATCHED_RULES = null
@@ -640,7 +616,11 @@ module.exports = class Applier {
         allPromises.push(promise)
       }
     })
-    // assert(allPromises.length > 0)
+    // assert.is(allPromises.length > 0)
+    if (ticks > 0) {
+      this.emit('PROGRESS_TICK', {type: 'CONVERTING', ticks: ticks})
+    }
+    this.emit('PROGRESS_END', {type: 'CONVERTING'})
     return allPromises
   }
 

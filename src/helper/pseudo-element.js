@@ -1,5 +1,5 @@
-const assert = require('assert')
-const {throwError, throwBug} = require('./error')
+const assert = require('./assert')
+const {throwError, throwBug} = require('./packet-builder')
 
 // Every pseudoelement results in 1 (or more) elements being created.
 // The order in which they are created matters.
@@ -74,28 +74,28 @@ module.exports = class PseudoElementEvaluator {
   }
 
   nodeCreator($, reducedSelectors, $lookupEl, $contextElPromise, depth) {
-    assert($contextElPromise instanceof Promise)
+    assert.is($contextElPromise instanceof Promise)
     return reducedSelectors.map((selectors) => {
       // Some pseudoelement selectors have an additional arg (like ::for-each)
       // HACK: Just use the 2nd arg of the first-found pseudo-selector. Eventually, loop over all selectors, find the unique 2ndargs, and run this._creator on them
-      const {secondArg} = selectors[0].getPseudoAt(depth)
+      const {firstArg, secondArg} = selectors[0].getPseudoAt(depth)
       const $newEl = $('<div>')
       // Attach the CSS location info for serializing later
       $newEl[0].__cssLocation = selectors[0].getPseudoAt(depth).astNode
 
       $newEl.attr('data-pseudo', `${this._pseudoName}(${getIndex(selectors[0], depth)})`)
       attachToAttribute($newEl, 'data-pseudo', $newEl[0].__cssLocation)
-      const ret = this._creator($, $lookupEl, $contextElPromise, $newEl, secondArg)
+      const ret = this._creator($, $lookupEl, $contextElPromise, $newEl, secondArg, firstArg)
 
       // validation
       if (!Array.isArray(ret)) {
         throwBug(`node creator returned a non-array while evaluating ${this._pseudoName}`, selectors[0].getRule().rule)
       }
-      assert(Array.isArray(ret))
+      assert.is(Array.isArray(ret))
       ret.forEach((item) => {
-        assert(item.$newElPromise)
-        assert(item.$newElPromise instanceof Promise)
-        assert(item.$newLookupEl)
+        assert.is(item.$newElPromise)
+        assert.is(item.$newElPromise instanceof Promise)
+        assert.is(item.$newLookupEl)
       })
       return ret
       // return $newEl

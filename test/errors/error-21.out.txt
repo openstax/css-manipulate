@@ -1,0 +1,1 @@
+  [2mtest/errors/_errors.css:21:33[22m [31m[1mERROR[22m[39m Only selectors starting with "#" are supported for now ([2mtest/errors/_errors.in.xhtml:2:7[22m)
