@@ -7,7 +7,7 @@
   "scripts": {
     "prerebuild-tests": "./script/compile-css",
     "prestart": "./script/compile-css",
-    "rebuild-tests": "WRITE_TEST_RESULTS=true ava ./test/index.js",
+    "rebuild-tests": "WRITE_TEST_RESULTS=true ava --concurrency=2 ./test/index.js",
     "start": "ava --watch --source '**/*.{js}' --source 'test/*.{css,in.html}' ./test/index.js",
     "preci": "ADD_COVERAGE=true webpack --config ./webpack.config.js",
     "ci": "nyc --reporter html --reporter text --reporter json ava ./test/index.js",

@@ -6,8 +6,9 @@ const warnColor = chalk.yellow.bold
 const logColor = chalk.blue.bold
 
 
-function renderPacket(htmlSourceLookupMap, json) {
+function renderPacket(json, htmlSourceLookupMap) {
   const {type} = json
+  const output = []
   if (type === 'LINT') {
     let {severity, message, css_file_info, html_file_info, additional_css_file_info} = json
     let color;
@@ -25,16 +26,16 @@ function renderPacket(htmlSourceLookupMap, json) {
     }
     if (!css_file_info) {
       if (html_file_info) {
-        console.log(`${color(severity)} ${message} (${sourceColor(fileDetailsToString(htmlSourceLookupMap, html_file_info))})`)
+        output.push(`${color(severity)} ${message} (${sourceColor(fileDetailsToString(htmlSourceLookupMap, html_file_info))})`)
       } else {
-        console.log(`${color(severity)} ${message}`)
+        output.push(`${color(severity)} ${message}`)
       }
     } else {
       let cssInfo = fileDetailsToString(htmlSourceLookupMap, css_file_info)
       if (html_file_info) {
-        console.log(`  ${sourceColor(cssInfo)} ${color(severity)} ${message} (${sourceColor(fileDetailsToString(htmlSourceLookupMap, html_file_info))})`)
+        output.push(`  ${sourceColor(cssInfo)} ${color(severity)} ${message} (${sourceColor(fileDetailsToString(htmlSourceLookupMap, html_file_info))})`)
       } else {
-        console.log(`  ${sourceColor(cssInfo)} ${color(severity)} ${message}`)
+        output.push(`  ${sourceColor(cssInfo)} ${color(severity)} ${message}`)
       }
     }
 
@@ -43,17 +44,17 @@ function renderPacket(htmlSourceLookupMap, json) {
     // }
   } else if (type === 'DEBUG_ELEMEMT') {
     const {html_file_info, context_html_file_info, selectors, declarations} = json
-    console.log('')
-    console.log('/----------------------------------------------------')
-    console.log(`| Debugging data for ${sourceColor(`<<${fileDetailsToString(htmlSourceLookupMap, html_file_info)}>>`)}`)
+    output.push('')
+    output.push('/----------------------------------------------------')
+    output.push(`| Debugging data for ${sourceColor(`<<${fileDetailsToString(htmlSourceLookupMap, html_file_info)}>>`)}`)
     if (context_html_file_info) {
-      console.log(`| Current Context is ${sourceColor(`<<${fileDetailsToString(htmlSourceLookupMap, context_html_file_info)}>>`)}`)
+      output.push(`| Current Context is ${sourceColor(`<<${fileDetailsToString(htmlSourceLookupMap, context_html_file_info)}>>`)}`)
     }
-    console.log('| Matched Selectors:')
+    output.push('| Matched Selectors:')
     selectors.forEach(({css_file_info, browser_selector}) => {
-      console.log(`|   ${sourceColor(fileDetailsToString(htmlSourceLookupMap, css_file_info))}\t\t${chalk.green(browser_selector)} {...}`)
+      output.push(`|   ${sourceColor(fileDetailsToString(htmlSourceLookupMap, css_file_info))}\t\t${chalk.green(browser_selector)} {...}`)
     })
-    console.log('| Applied Declarations:')
+    output.push('| Applied Declarations:')
     declarations.forEach(({css_file_info, name, value}) => {
       value_string =
                   // vals is a 2-dimensional array
@@ -79,14 +80,15 @@ function renderPacket(htmlSourceLookupMap, json) {
                     }).join(' ')
                   }).join(',')
 
-      console.log(`|   ${sourceColor(fileDetailsToString(htmlSourceLookupMap, css_file_info))}\t\t${name}: ${value_string};`)
+      output.push(`|   ${sourceColor(fileDetailsToString(htmlSourceLookupMap, css_file_info))}\t\t${name}: ${value_string};`)
     })
-    console.log('\\----------------------------------------------------')
+    output.push('\\----------------------------------------------------')
 
   } else {
     // unknown packet type
-    console.log(jsonStr)
+    output.push(jsonStr)
   }
+  return output.join('\n')
 }
 
 function fileDetailsToString(htmlSourceLookupMap, htmlDetails) {

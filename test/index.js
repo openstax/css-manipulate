@@ -5,6 +5,7 @@ const jquery = require('jquery')
 const diff = require('fast-diff')
 const {convertNodeJS} = require('../src/helper/node')
 const {SPECIFICITY_COMPARATOR} = require('../src/helper/specificity')
+const renderPacket = require('../src/helper/packet-render')
 
 const {WRITE_TEST_RESULTS} = process.env
 
@@ -77,15 +78,30 @@ function buildTest(cssFilename, htmlFilename) {
   const cssPath = `test/${cssFilename}`
   const htmlPath = `test/${htmlFilename}`
   test(`Generates ${cssPath}`, (t) => {
-    t.plan(1) // 1 assertion
+    t.plan(2) // 2 assertions
     const htmlOutputPath = cssPath.replace('.css', '.out.xhtml')
     const htmlOutputSourceMapPath = `${htmlOutputPath}.map`
     const htmlOutputCoveragePath = `${htmlOutputPath}.lcov`
+    const stdoutPath = `${cssPath.replace('.css', '.out.xhtml')}.txt`
     const htmlOutputSourceMapFilename = path.basename(htmlOutputSourceMapPath)
     const cssContents = fs.readFileSync(cssPath, 'utf8')
     const htmlContents = fs.readFileSync(htmlPath, 'utf8')
+    let expectedStdoutContents
+    if (WRITE_TEST_RESULTS !== 'true' && fs.existsSync(stdoutPath)) {
+      expectedStdoutContents = fs.readFileSync(stdoutPath, 'utf8')
+    }
 
-    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, {} /*argv*/).then(({html: actualOutput, sourceMap, coverageData, __coverage__}) => {
+    // Record all warnings/errors/bugs into an output file for diffing
+    const actualStdout = []
+    function packetHandler(packet, htmlSourceLookupMap) {
+      const message = renderPacket(packet, htmlSourceLookupMap)
+      actualStdout.push(message)
+      if (WRITE_TEST_RESULTS === 'true') {
+        console.log(message)
+      }
+    }
+
+    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, {} /*argv*/, packetHandler).then(({html: actualOutput, sourceMap, coverageData, __coverage__}) => {
       if (fs.existsSync(htmlOutputPath)) {
         const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
 
@@ -94,9 +110,12 @@ function buildTest(cssFilename, htmlFilename) {
 
         if (WRITE_TEST_RESULTS === 'true') {
           fs.writeFileSync(htmlOutputPath, actualOutput)
+          fs.writeFileSync(stdoutPath, actualStdout.join('\n'))
+          t.is(true, true) // just so ava counts that 1 assertion was made
           t.is(true, true) // just so ava counts that 1 assertion was made
         } else {
           t.is(actualOutput.trim(), expectedOutput.trim())
+          t.is(actualStdout.join('\n').trim(), expectedStdoutContents.trim())
         }
       } else {
         // If the file does not exist yet then write it out to disk
@@ -123,7 +142,7 @@ function buildTest(cssFilename, htmlFilename) {
 }
 
 function buildErrorTests() {
-  const cssPath = `test/${ERROR_TEST_FILENAME}.css`
+  const cssPath = `test/errors/${ERROR_TEST_FILENAME}.css`
   const errorRules = fs.readFileSync(cssPath).toString().split('\n')
   const htmlPath = cssPath.replace('.css', '.in.xhtml')
   const htmlOutputPath = cssPath.replace('.css', '.out.xhtml')
@@ -143,33 +162,48 @@ function buildErrorTests() {
     }
     cssContentsWithPadding += cssContents
 
-    test(`Errors while trying to evaluate "${cssContents}" (see _errors.css)`, (t) => {
-      t.plan(1) // 1 assertion
+    const stdoutPath = `test/errors/error-${lineNumber}.out.txt`
+    let expectedStdoutContents
+    if (WRITE_TEST_RESULTS !== 'true' && fs.existsSync(stdoutPath)) {
+      expectedStdoutContents = fs.readFileSync(stdoutPath, 'utf8')
+    }
 
-      try {
-        return convertNodeJS(cssContentsWithPadding, htmlContents, cssPath, htmlPath, htmlOutputPath, {} /*argv*/)
-        .then(() => {
-          t.fail(`Expected to fail but succeeded. See _errors.css:${lineNumber+1}`)
-        })
-        .catch((e) => {
-          // TODO: Test if the Error is useful for the end user or if it is just an assertion error
-          // If the error occurred while manipulating the DOM it will show up here (in a Promise rejection)
-          if (e instanceof TypeError) {
-            // checking for path.relative was causing an TypeError which caused this test to not fail
-            t.fail(e)
-          } else {
-            t.pass(e)
-          }
-        })
-      } catch (e) {
-        // If the error was spotted before manipulating the DOM then it will show up here
+
+    test(`Errors while trying to evaluate "${cssContents}" (see _errors.css)`, (t) => {
+      t.plan(2) // 2 assertions
+
+      // Record all warnings/errors/bugs into an output file for diffing
+      const actualStdout = []
+      function packetHandler(packet, htmlSourceLookupMap) {
+        const message = renderPacket(packet, htmlSourceLookupMap)
+        actualStdout.push(message)
+        if (WRITE_TEST_RESULTS === 'true') {
+          console.log(message)
+        }
+      }
+
+      return convertNodeJS(cssContentsWithPadding, htmlContents, cssPath, htmlPath, htmlOutputPath, {} /*argv*/, packetHandler)
+      .then(() => {
+        t.fail(`Expected to fail but succeeded. See _errors.css:${lineNumber+1}`)
+      })
+      .catch((e) => {
+        // TODO: Test if the Error is useful for the end user or if it is just an assertion error
+        // If the error occurred while manipulating the DOM it will show up here (in a Promise rejection)
         if (e instanceof TypeError) {
           // checking for path.relative was causing an TypeError which caused this test to not fail
           t.fail(e)
         } else {
+
+          if (WRITE_TEST_RESULTS === 'true') {
+            fs.writeFileSync(stdoutPath, actualStdout.join('\n'))
+            t.is(true, true) // just so ava counts that 1 assertion was made
+          } else {
+            t.is(actualStdout.join('\n').trim(), expectedStdoutContents.trim())
+          }
+
           t.pass(e)
         }
-      }
+      })
     })
 
   })

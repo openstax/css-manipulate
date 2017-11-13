@@ -1,0 +1,2 @@
+  [2mtest/./unit/target.css:1:3[22m [33m[1mWARN[22m[39m Could not find target element with id=non-existant target ([2mtest/./unit/target.in.xhtml:12:4[22m)
+  [2mtest/./unit/target.css:1:3[22m [33m[1mWARN[22m[39m Could not find attribute named 'href' on this element ([2mtest/./unit/target.in.xhtml:13:4[22m)

@@ -22,7 +22,7 @@ function toRelative(outputPath, inputPath, contextPath='') {
 let browserPromise = null // assigned on 1st attempt to convert
 
 let hasBeenWarned = false
-async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, options) {
+async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, options, packetHandler) {
   const htmlSourcePathRelativeToSourceMapFile = toRelative(htmlOutputPath, htmlPath)
   const cssPathRelativeToSourceMapFile = toRelative(htmlOutputPath, cssPath)
   const cssPathRelativeToOutputHtmlPath = path.relative(path.dirname(htmlOutputPath), cssPath)
@@ -199,7 +199,11 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
       if (json.type === 'ELEMENT_COUNT') {
         // assert.equal(saxCount, json.count, `Element count from SAX (to find line/column info) and Chrome (that does the tranform) mismatch. Expected ${saxCount} but got ${json.count}`)
       } else {
-        renderPacket(htmlSourceLookupMap, json)
+        if (packetHandler) {
+          packetHandler(json, htmlSourceLookupMap)
+        } else {
+          console.log(renderPacket(json, htmlSourceLookupMap))
+        }
       }
 
     } else {
