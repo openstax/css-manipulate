@@ -12,9 +12,6 @@ const {showWarning} = require('./packet-builder')
 const renderPacket = require('./packet-render')
 const constructSelector = require('./construct-selector')
 
-const BROWSER_DIST_PATH = require.resolve('../../dist/browser')
-const BROWSER_JS = fs.readFileSync(BROWSER_DIST_PATH)
-
 function toRelative(outputPath, inputPath, contextPath='') {
   return path.relative(path.dirname(path.join(process.cwd(), outputPath)), path.join(process.cwd(), contextPath, inputPath))
 }
@@ -217,10 +214,29 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
   if (options.verbose) {
     console.log('Opened HTML in Chrome')
   }
-  // await page.goto(`file://${path.join(process.cwd(), htmlPath)}`, {waitUntil: 'networkidle'})
   // Inject jQuery and the JS bundle
-  await page.evaluate(`(function () { ${fs.readFileSync(require.resolve('jquery'))} })()`)
-  await page.evaluate(`(function () { ${BROWSER_JS}; window.CssPlus = CssPlus; })()`)
+  // Don't use page.addScriptTag because it keeps the <script> in the DOM.
+  // We could probably remove the tag before serializing though.
+  //
+  await page.evaluate(`(function () {
+    if (!document.querySelector('head')) {
+      const head = document.createElement('head')
+      const firstChild = document.documentElement.firstChild
+      if (firstChild) {
+        document.documentElement.insertBefore(head, firstChild)
+      } else {
+        document.appendChild(head)
+      }
+    }
+  })()`)
+  await page.addScriptTag({path: require.resolve('jquery')})
+  await page.addScriptTag({path: require.resolve('../../dist/browser')})
+  await page.evaluate(`(function () {
+    document.querySelectorAll('script').forEach((el) => el.remove())
+  })()`)
+  // await page.evaluate(`(function () { ${fs.readFileSync(require.resolve('jquery'))} })()`)
+  // await page.evaluate(`(function () { ${fs.readFileSync(require.resolve('../../dist/browser'))} })()`)
+
   await page.evaluate(`(function () { window.__HTML_SOURCE_LOOKUP = ${JSON.stringify(htmlSourceLookupMap)}; })()`)
   await page.evaluate(`(function () { window.__CSS_SOURCE_MAP_JSON = ${JSON.stringify(cssSourceMapJson)}; })()`)
   function escaped(str) {
