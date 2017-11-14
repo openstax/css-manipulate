@@ -243,7 +243,7 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
   await page.evaluate(`(function () { window.__HTML_SOURCE_LOOKUP = ${JSON.stringify(htmlSourceLookupMap)}; })()`)
   await page.evaluate(`(function () { window.__CSS_SOURCE_MAP_JSON = ${JSON.stringify(cssSourceMapJson)}; })()`)
   function escaped(str) {
-    return str.toString().replace(/`/g, '\\`')
+    return str.toString().replace(/\\/g, '\\\\').replace(/`/g, '\\`')
   }
 
 

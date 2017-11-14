@@ -55,6 +55,13 @@ function splitOnCommas(args) {
       case 'Function':
         ret[index].push(arg)
         break
+      case 'Hash': // for things like `color: #ccc;`
+      case 'Dimension': // for things like `.5em`
+        ret[index].push(arg)
+        break
+      case 'Number':
+        ret[index].push(arg)
+        break
       default:
         throwBug(`Unsupported value type "${arg.type}"`, arg)
     }
@@ -129,7 +136,20 @@ module.exports = class Applier extends EventEmitter {
   }
 
   prepare(rewriteSourceMapsFn) {
-    const ast = csstree.parse(this._cssContents.toString(), {positions: true, filename: this._cssSourcePath})
+    let ast
+    try {
+      ast = csstree.parse(this._cssContents.toString(), {positions: true, filename: this._cssSourcePath})
+    } catch (err) {
+      // Formatted to "look like" an AST node. Just for error-reporting
+      const cssSnippet = {
+        loc: {
+          source: this._cssSourcePath,
+          start: {line: err.line, column: err.column}
+        }
+      }
+      debugger
+      throwError(`Problem parsing CSS. ${err.message}`, cssSnippet, null, err)
+    }
     this._ast = ast
 
     if (rewriteSourceMapsFn) {
@@ -352,8 +372,14 @@ module.exports = class Applier extends EventEmitter {
               throwBug(`CSS function should return a string or number. Found ${typeof fnReturnVal} while evaluating ${theFunction.getFunctionName()}.`, arg, $currentEl)
             }
             return fnReturnVal // Should not matter if this is context or newContext
+          case 'Hash':
+            return `#${arg.value}`
+          case 'Dimension':
+            return `${arg.value}${arg.unit}`
+          case 'Number':
+            return arg.value
           default:
-            throwError('BUG: Unsupported value type ' + arg.type, arg)
+            throwBug('Unsupported evaluated value type ' + arg.type, arg)
         }
 
       })
@@ -376,6 +402,8 @@ module.exports = class Applier extends EventEmitter {
           const {type, important, property, value} = declaration
 
           if (!this._isRuleDeclarationName(property)) {
+            const x = this._evaluateVals({$contextEl: $currentEl}, $currentEl, Promise.resolve('DO_NOT_USE_ME_FOR_ANYTHING'), splitOnCommas(value.children.toArray()))
+            const declarationValue = x.map((v) => v.join(' ')).join(',')
             showWarning(`Skipping because I do not understand the rule ${property}, maybe a typo?`, value, $currentEl)
             declaration.__COVERAGE_COUNT = declaration.__COVERAGE_COUNT || 0 // count that it was not covered
             return
@@ -481,8 +509,11 @@ module.exports = class Applier extends EventEmitter {
         let val
         if (value) {
           switch (value.type) {
-            case 'String':
+            case 'String': // `[data-type="foo"]`
               val = value.value
+              break
+            case 'Identifier':  // `[data-type=foo]`
+              val = value.name
               break
             default:
               console.log(sel)
@@ -530,9 +561,14 @@ module.exports = class Applier extends EventEmitter {
           case 'has':
           case 'last-child':
           case 'not':
+          case 'first-child': // Just vanilla CSS, not tested yet
+          case 'first-of-type':
+          case 'last-of-type':
+          case 'only-of-type':
+          case 'only-child':
             if (sel.children) {
               const children = sel.children.map((child) => {
-                assert.equal(child.type, 'SelectorList')
+                assert.is(child.type, 'SelectorList', child)
                 return child.children.map((child) => this.toBrowserSelector(child, includePseudoElements)).join(', ')
               })
               return `:${sel.name}(${children})`
@@ -540,6 +576,31 @@ module.exports = class Applier extends EventEmitter {
               return `:${sel.name}`
             }
 
+          // from https://github.com/jquery/sizzle/wiki
+          case 'nth-child':
+          case 'nth-of-type': // Just vanilla CSS, not tested yet
+          case 'nth-last-of-type':
+            const nthChildren = sel.children.map((child) => {
+              assert.equal(child.type, 'Nth', child)
+              switch (child.nth.type) {
+                case 'An+B':
+                  const {a, b} = child.nth
+                  if (a && b) {
+                    return `${a}n+${b}`
+                  } else if (a) {
+                    return `${a}n`
+                  } else if (b) {
+                    return b
+                  } else {
+                    throwBug(`Unsupported An+B syntax`, child)
+                  }
+                case 'Identifier':
+                  return child.nth.name
+                default:
+                  throwBug(`Unsupported nth syntax`, child)
+              }
+            })
+            return `:${sel.name}(${nthChildren.join(', ')})` // not sure if adding the comma is correct
           default:
             throwError(`Unsupported Pseudoclass ":${sel.name}"`, sel)
         }
@@ -572,8 +633,13 @@ module.exports = class Applier extends EventEmitter {
               return ''
             }
 
+          case 'footnote-marker':
+          case 'footnote-call':
+          case 'marker':
+            // TODO: This should somehow be ignored (not returned) and marked for the vanilla CSS file
+            return ''
           default:
-            throwError(`Unsupported Pseudoelement "::${sel.name}(${sel.type})"`, sel)
+            throwBug(`Unsupported Pseudoelement "::${sel.name}(${sel.type})"`, sel)
         }
       default:
         console.log(sel);
