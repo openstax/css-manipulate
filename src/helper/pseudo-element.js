@@ -79,7 +79,7 @@ module.exports = class PseudoElementEvaluator {
       // Some pseudoelement selectors have an additional arg (like ::for-each)
       // HACK: Just use the 2nd arg of the first-found pseudo-selector. Eventually, loop over all selectors, find the unique 2ndargs, and run this._creator on them
       const {firstArg, secondArg} = selectors[0].getPseudoAt(depth)
-      const $newEl = $('<div>')
+      const $newEl = $('<span>')
       // Attach the CSS location info for serializing later
       $newEl[0].__cssLocation = selectors[0].getPseudoAt(depth).astNode
 
