@@ -8,7 +8,7 @@ const logColor = chalk.blue.bold
 
 let currentProgressBar
 
-function renderPacket(json, htmlSourceLookupMap, argv) {
+function renderPacket(json, htmlSourceLookupMap, argv, justRenderToConsole) {
   const {type} = json
   const output = []
   if (type === 'LINT') {
@@ -143,7 +143,16 @@ function renderPacket(json, htmlSourceLookupMap, argv) {
     // unknown packet type
     output.push(`UNKNOW_PACKET_TYPE: ${JSON.stringify(json)}`)
   }
-  return output.join('\n')
+
+  if (justRenderToConsole) {
+    if (currentProgressBar) {
+      currentProgressBar.interrupt(output.join('\n'))
+    } else {
+      console.log(output.join('\n'))
+    }
+  } else {
+    return output.join('\n')
+  }
 }
 
 function fileDetailsToString(htmlSourceLookupMap, htmlDetails) {

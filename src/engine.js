@@ -58,9 +58,8 @@ function splitOnCommas(args) {
         break
       case 'Hash': // for things like `color: #ccc;`
       case 'Dimension': // for things like `.5em`
-        ret[index].push(arg)
-        break
       case 'Number':
+      case 'Percentage':
         ret[index].push(arg)
         break
       default:
@@ -382,6 +381,8 @@ module.exports = class Applier extends EventEmitter {
             return `${arg.value}${arg.unit}`
           case 'Number':
             return arg.value
+          case 'Percentage':
+            return `${arg.value}%`
           default:
             throwBug('Unsupported evaluated value type ' + arg.type, arg)
         }
@@ -398,16 +399,18 @@ module.exports = class Applier extends EventEmitter {
   }
 
   addVanillaRule(property, valueStr) {
-    let autogenClassName = this._unprocessedRulesAndClassNames[`${property}: ${valueStr}`]
-    if (!autogenClassName) {
-      autogenClassName = this._newClassName()
+    let autogenClass = this._unprocessedRulesAndClassNames[`${property}: ${valueStr}`]
+    if (autogenClass) {
+      return autogenClass.className
+    } else {
+      const autogenClassName = this._newClassName()
       this._unprocessedRulesAndClassNames[`${property}: ${valueStr}`] = {
         className: autogenClassName,
         property: property,
         value: valueStr
       }
+      return autogenClassName
     }
-    return autogenClassName
   }
 
   getVanillaRules() {
@@ -415,6 +418,11 @@ module.exports = class Applier extends EventEmitter {
   }
 
   _evaluateRules(depth, rules, $currentEl, $elPromise, $debuggingEl) {
+
+    if ($debuggingEl.attr('data-debugger')) {
+      debugger
+    }
+
     // Pull out all the declarations for this rule, and then later sort by specificity.
     // The structure is {'content': [ {specificity: [1,0,1], isImportant: false}, ... ]}
     const declarationsMap = {}
@@ -428,7 +436,9 @@ module.exports = class Applier extends EventEmitter {
           const {type, important, property, value} = declaration
 
           if (!this._isRuleDeclarationName(property)) {
-            showWarning(`Skipping because I do not understand the rule ${property}, maybe a typo?`, value, $currentEl)
+            if (this._options.verbose) {
+              showWarning(`Skipping because I do not understand the rule '${property}'. Maybe a typo?`, value, $currentEl)
+            }
             declaration.__COVERAGE_COUNT = declaration.__COVERAGE_COUNT || 0 // count that it was not covered
           }
           declarationsMap[property] = declarationsMap[property] || []
@@ -487,9 +497,6 @@ module.exports = class Applier extends EventEmitter {
     // Any remaining declarations will be output in the CSS file but we need to add a class to the elements
     if (Object.keys(declarationsMap).length !== 0) {
       promises.push(Promise.all(Object.entries(declarationsMap).map(([property, declarations]) => {
-
-        const declaration = declarations[declarations.length - 1] // pick the last one (TODO: Verify that it wasn't !important)
-
         // Copy/pasta'd from class-add
         const vanillaDeclarationPlugin = VanillaDeclarationFactory(this, property)
         return doStuff(vanillaDeclarationPlugin, declarations)

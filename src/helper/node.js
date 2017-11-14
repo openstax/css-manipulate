@@ -199,10 +199,7 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
         if (packetHandler) {
           packetHandler(json, htmlSourceLookupMap)
         } else {
-          const message = renderPacket(json, htmlSourceLookupMap, options)
-          if (message) {
-            console.log(message)
-          }
+          renderPacket(json, htmlSourceLookupMap, options, true/*justRenderToConsole*/)
         }
       }
 

@@ -299,6 +299,7 @@ To pause when evaluating an element, add `data-debugger="true"` to the element.
 - [x] Show colorful error messages
 - [x] Show colorful warnings
 - [x] Support attributes with a namespace (like `<div epub:type="glossary">` in [EPUB3 epub:type](http://www.idpf.org/epub/30/spec/epub30-contentdocs.html#sec-xhtml-content-type-attribute) )
+- [ ] Support the original selectivity for vanilla declarations (having `padding: 0; padding-top: 1em;` is different than `padding-top: 1em; padding: 0;`)
 
 
 [kanban-image]: https://img.shields.io/github/issues/philschatz/css-plus.svg?label=kanban%20board%20%28gh-board%29

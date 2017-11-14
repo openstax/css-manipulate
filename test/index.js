@@ -13,7 +13,6 @@ const UNIT_FILES_TO_TEST = [
   './example/exercise-numbering',
   './example/exercise-numbering-advanced',
   './example/glossary',
-  './unit/vanilla',
   './unit/before-after',
   './unit/selectors',
   './unit/simple-selectors',
@@ -34,6 +33,8 @@ const UNIT_FILES_TO_TEST = [
   './unit/display-none',
   './unit/has',
   './unit/namespace-attributes',
+  './unit/vanilla',
+  './unit/sandbox',
 ]
 
 const MOTIVATION_INPUT_HTML_PATH = `./motivation/_input.xhtml`
@@ -228,56 +229,56 @@ UNIT_FILES_TO_TEST.forEach((filename) => buildTest(`${filename}.css`, `${filenam
 MOTIVATION_FILES_TO_TEST.forEach((filename) => buildTest(`${filename}.css`, MOTIVATION_INPUT_HTML_PATH))
 buildErrorTests()
 
-//
-// let correct
-// let items
-//
-// correct = {specificity: [1,0,0]}
-// items = [
-//   {specificity: [1,0,0]},
-//   correct,
-// ]
-// specificityTest(`Specificity prefers the last item`, correct, items)
-//
-//
-// correct = {specificity: [1,0,0], isImportant: true}
-// items = [
-//   correct,
-//   {specificity: [1,0,0]},
-// ]
-// specificityTest(`Specificity prefers the important item`, correct, items)
-//
-// correct = {specificity: [1,0,0]}
-// items = [
-//   correct,
-//   {specificity: [0,1,0]},
-// ]
-// specificityTest(`Specificity prefers the id selector`, correct, items)
-//
-// correct = {specificity: [0,2,0]}
-// items = [
-//   correct,
-//   {specificity: [0,1,0]},
-// ]
-// specificityTest(`Specificity prefers the higher middle arg`, correct, items)
-//
-// correct = {specificity: [0,0,2]}
-// items = [
-//   correct,
-//   {specificity: [0,0,1]},
-// ]
-// specificityTest(`Specificity prefers the higher last arg`, correct, items)
-//
-// correct = {specificity: [1,0,0]}
-// items = [
-//   correct,
-//   {specificity: [0,9,0]},
-// ]
-// specificityTest(`Specificity prefers the first arg`, correct, items)
-//
-// correct = {specificity: [0,1,0]}
-// items = [
-//   correct,
-//   {specificity: [0,0,9]},
-// ]
-// specificityTest(`Specificity prefers the middle arg`, correct, items)
+
+let correct
+let items
+
+correct = {specificity: [1,0,0]}
+items = [
+  {specificity: [1,0,0]},
+  correct,
+]
+specificityTest(`Specificity prefers the last item`, correct, items)
+
+
+correct = {specificity: [1,0,0], isImportant: true}
+items = [
+  correct,
+  {specificity: [1,0,0]},
+]
+specificityTest(`Specificity prefers the important item`, correct, items)
+
+correct = {specificity: [1,0,0]}
+items = [
+  correct,
+  {specificity: [0,1,0]},
+]
+specificityTest(`Specificity prefers the id selector`, correct, items)
+
+correct = {specificity: [0,2,0]}
+items = [
+  correct,
+  {specificity: [0,1,0]},
+]
+specificityTest(`Specificity prefers the higher middle arg`, correct, items)
+
+correct = {specificity: [0,0,2]}
+items = [
+  correct,
+  {specificity: [0,0,1]},
+]
+specificityTest(`Specificity prefers the higher last arg`, correct, items)
+
+correct = {specificity: [1,0,0]}
+items = [
+  correct,
+  {specificity: [0,9,0]},
+]
+specificityTest(`Specificity prefers the first arg`, correct, items)
+
+correct = {specificity: [0,1,0]}
+items = [
+  correct,
+  {specificity: [0,0,9]},
+]
+specificityTest(`Specificity prefers the middle arg`, correct, items)

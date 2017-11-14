@@ -273,7 +273,6 @@ DECLARATIONS.push(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise,
 // It generates a new className and adds it to the element
 function VanillaDeclarationFactory(engine, property) {
   return new RuleDeclaration(property, ($, $lookupEl, $elPromise, vals, astNode) => {
-    debugger
     assert.is(vals.length >= 1, astNode, $lookupEl)
     assert.is($elPromise instanceof Promise, astNode, $lookupEl)
 
@@ -283,11 +282,10 @@ function VanillaDeclarationFactory(engine, property) {
 
 
     return $elPromise.then(($el) => {
-      vals.forEach((val) => {
-        assert.is($el.length >= 1, astNode, $lookupEl)
-        $el.addClass(autogenClassName)
-        attachToAttribute($el, 'class', astNode)
-      })
+      assert.is($el.length >= 1, astNode, $lookupEl)
+      // console.log(`setting-autogenClassName ${$el.length} ${$el.attr('id')} [${$el.attr('class')}] ${autogenClassName}`);
+      $el.addClass(autogenClassName)
+      attachToAttribute($el, 'class', astNode)
       return $el
     })
   })

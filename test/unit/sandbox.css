@@ -1,0 +1,44 @@
+/* Taken from a book. The vanilla styles were not copying over */
+html, body {
+    font-size: 12px;
+}
+body {
+    font-size: 8.2pt;
+    font-family: 'Noto Sans', sans-serif, STIXGeneral, STIXSizeOneSym, STIXSize1;
+}
+html, body {
+    font-size: 12px;
+}
+body {
+    font-size: 12px;
+    text-align: justify;
+}
+.book > .toc ul,
+.book > .toc li {
+    list-style-type: none; /*unmatched*/
+    padding-left: 0em;
+    margin-left: 1em;
+}
+ol, ul {
+    margin-bottom: 0;
+}
+ol, ul {
+    margin-top: 0px;
+}
+ol, ul {
+  margin-left: 20pt; /*unmatched*/
+}
+.book > .toc ul,
+.book > .toc li {
+  list-style-type: none;
+  padding-left: 0em;
+  margin-left: 1em;
+}
+
+.book > .toc .toc-chapter > ul {
+    margin-left: 46px;
+    border-left: 2px solid #0f0;
+    border-left: 4px solid #F4F4F4;
+    margin-left: 48px;
+    padding-left: 9.23076923px;
+}

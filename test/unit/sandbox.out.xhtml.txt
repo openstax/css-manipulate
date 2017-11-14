@@ -1,0 +1,25 @@
+  [2mtest/./unit/sandbox.css:3:16[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/./unit/sandbox.css:10:16[22m ([2mtest/./unit/sandbox.in.xhtml:1:7[22m)
+
+/----------------------------------------------------
+| Debugging data for [2m<<test/./unit/sandbox.in.xhtml:5:7>>[22m
+| Matched Selectors:
+|   [2mtest/./unit/sandbox.css:22:2[22m		[32mul[39m {...}
+|   [2mtest/./unit/sandbox.css:25:2[22m		[32mul[39m {...}
+|   [2mtest/./unit/sandbox.css:28:2[22m		[32mul[39m {...}
+| Applied Declarations:
+|   [2mtest/./unit/sandbox.css:23:6[22m		margin-bottom: [33m"0"[39m;
+|   [2mtest/./unit/sandbox.css:26:6[22m		margin-top: [33m"0px"[39m;
+|   [2mtest/./unit/sandbox.css:29:4[22m		margin-left: [33m"20pt"[39m;
+\----------------------------------------------------
+
+/----------------------------------------------------
+| Debugging data for [2m<<test/./unit/sandbox.in.xhtml:7:7>>[22m
+| Matched Selectors:
+|   [2mtest/./unit/sandbox.css:22:2[22m		[32mul[39m {...}
+|   [2mtest/./unit/sandbox.css:25:2[22m		[32mul[39m {...}
+|   [2mtest/./unit/sandbox.css:28:2[22m		[32mul[39m {...}
+| Applied Declarations:
+|   [2mtest/./unit/sandbox.css:23:6[22m		margin-bottom: [33m"0"[39m;
+|   [2mtest/./unit/sandbox.css:26:6[22m		margin-top: [33m"0px"[39m;
+|   [2mtest/./unit/sandbox.css:29:4[22m		margin-left: [33m"20pt"[39m;
+\----------------------------------------------------
