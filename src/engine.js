@@ -559,6 +559,7 @@ module.exports = class Applier extends EventEmitter {
         }
         let val
         if (value) {
+          assert.is(sel.matcher, sel, null, 'AttributeSelector is missing an operator/matcher')
           switch (value.type) {
             case 'String': // `[data-type="foo"]`
               val = value.value
@@ -570,7 +571,7 @@ module.exports = class Applier extends EventEmitter {
               console.log(JSON.stringify(sel))
               throwBug(`Unmatched valueType=${value.type}`, value)
           }
-          return `[${nam}${sel.operator}${val}]`
+          return `[${nam}${sel.matcher}${val}]`
         } else {
           return `[${nam}]`
         }
