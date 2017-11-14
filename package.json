@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "chalk": "^2.3.0",
-    "css-tree": "1.0.0-alpha20",
+    "css-tree": "1.0.0-alpha22",
     "escape-html": "^1.0.3",
     "jquery": "^3.1.1",
     "mkdirp": "^0.5.1",
