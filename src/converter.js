@@ -3,7 +3,7 @@ const csstree = require('css-tree')
 const {SourceMapConsumer} = require('source-map')
 const Engine = require('./engine')
 const serializer = require('./serializer')
-const DECLARATIONS = require('./declarations')
+const {DECLARATIONS} = require('./declarations')
 const FUNCTIONS = require('./functions')
 const {PSEUDO_ELEMENTS, PSEUDO_CLASSES} = require('./selectors')
 const {init: errorInit, throwBug, throwError, showWarning, showError, showLog, sendElementCount, sendProgressStart, sendProgressTick, sendProgressEnd} = require('./helper/packet-builder')
@@ -165,6 +165,6 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
   // - assign the contents of a DOM node
 
   return allElementsDoneProcessingPromise.then(() => {
-    return serializer(engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, sourceMapPath, document, $)
+    return serializer(engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, sourceMapPath, engine.getVanillaRules())
   })
 }

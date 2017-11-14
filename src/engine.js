@@ -8,6 +8,7 @@ const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
 const {throwError, throwBug, showWarning, showDebuggerData} = require('./helper/packet-builder')
 const ExplicitlyThrownError = require('./x-throw-error')
+const {VanillaDeclarationFactory} = require('./declarations')
 
 const sourceColor = chalk.dim
 
@@ -95,6 +96,9 @@ module.exports = class Applier extends EventEmitter {
     this._document = document
     this._$ = $
     this._options = options || {}
+
+    this._autogenClassNameCounter = 0
+    this._unprocessedRulesAndClassNames = {}
   }
 
   // getWindow() { return this._document.defaultView }
@@ -388,6 +392,28 @@ module.exports = class Applier extends EventEmitter {
 
   }
 
+  _newClassName() {
+    this._autogenClassNameCounter += 1
+    return `-css-plus-autogen-${this._autogenClassNameCounter}`
+  }
+
+  addVanillaRule(property, valueStr) {
+    let autogenClassName = this._unprocessedRulesAndClassNames[`${property}: ${valueStr}`]
+    if (!autogenClassName) {
+      autogenClassName = this._newClassName()
+      this._unprocessedRulesAndClassNames[`${property}: ${valueStr}`] = {
+        className: autogenClassName,
+        property: property,
+        value: valueStr
+      }
+    }
+    return autogenClassName
+  }
+
+  getVanillaRules() {
+    return Object.values(this._unprocessedRulesAndClassNames)
+  }
+
   _evaluateRules(depth, rules, $currentEl, $elPromise, $debuggingEl) {
     // Pull out all the declarations for this rule, and then later sort by specificity.
     // The structure is {'content': [ {specificity: [1,0,1], isImportant: false}, ... ]}
@@ -402,11 +428,8 @@ module.exports = class Applier extends EventEmitter {
           const {type, important, property, value} = declaration
 
           if (!this._isRuleDeclarationName(property)) {
-            const x = this._evaluateVals({$contextEl: $currentEl}, $currentEl, Promise.resolve('DO_NOT_USE_ME_FOR_ANYTHING'), splitOnCommas(value.children.toArray()))
-            const declarationValue = x.map((v) => v.join(' ')).join(',')
             showWarning(`Skipping because I do not understand the rule ${property}, maybe a typo?`, value, $currentEl)
             declaration.__COVERAGE_COUNT = declaration.__COVERAGE_COUNT || 0 // count that it was not covered
-            return
           }
           declarationsMap[property] = declarationsMap[property] || []
           declarationsMap[property].push({value, specificity: getSpecificity(matchedRule.getMatchedSelector(), depth), isImportant: important, selector: matchedRule.getMatchedSelector(), astNode: declaration})
@@ -414,11 +437,7 @@ module.exports = class Applier extends EventEmitter {
       }
     })
 
-    // now that all the declarations are sorted by selectivity (and filtered so they only occur once)
-    // apply the declarations
-    const debugAppliedDeclarations = []
-    const promises = this._ruleDeclarationPlugins.map((ruleDeclarationPlugin) => {
-      let declarations = declarationsMap[ruleDeclarationPlugin.getRuleName()]
+    const doStuff = (ruleDeclarationPlugin, declarations) => {
       if (declarations) {
         declarations = declarations.sort(SPECIFICITY_COMPARATOR)
         // use the last declaration because that's how CSS works; the last rule (all-other-things-equal) wins
@@ -452,7 +471,30 @@ module.exports = class Applier extends EventEmitter {
       } else {
         return Promise.resolve('NO_DECLARATIONS_TO_EVALUATE')
       }
+    }
+
+    // now that all the declarations are sorted by selectivity (and filtered so they only occur once)
+    // apply the declarations
+    const debugAppliedDeclarations = []
+    const ruleDeclarationsByName = {}
+    const promises = this._ruleDeclarationPlugins.map((ruleDeclarationPlugin) => {
+      let declarations = declarationsMap[ruleDeclarationPlugin.getRuleName()]
+      // remove it when it is processed. Anything remaining will be output to CSS
+      delete declarationsMap[ruleDeclarationPlugin.getRuleName()]
+      return doStuff(ruleDeclarationPlugin, declarations)
     })
+
+    // Any remaining declarations will be output in the CSS file but we need to add a class to the elements
+    if (Object.keys(declarationsMap).length !== 0) {
+      promises.push(Promise.all(Object.entries(declarationsMap).map(([property, declarations]) => {
+
+        const declaration = declarations[declarations.length - 1] // pick the last one (TODO: Verify that it wasn't !important)
+
+        // Copy/pasta'd from class-add
+        const vanillaDeclarationPlugin = VanillaDeclarationFactory(this, property)
+        return doStuff(vanillaDeclarationPlugin, declarations)
+      })))
+    }
 
     if ($debuggingEl.attr('data-debugger')) {
       showDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations, $debuggingEl, this.toBrowserSelector.bind(this))

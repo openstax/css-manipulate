@@ -18,7 +18,7 @@ function walkDOMNodesInOrder(el, startFn, endFn) {
 const SELF_CLOSING_TAGS = ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr']
 
 // We use a custom serializer so sourcemaps can be generated (we know the output line and columns for things)
-module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, htmlSourceMapPath) => {
+module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, htmlSourceMapPath, vanillaRules) => {
 
   const coverageData = {}
   const documentElement = engine.getRoot()
@@ -217,5 +217,5 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, 
     }
   })
 
-  return {html: htmlSnippets.join(''), sourceMap: map.toString(), coverageData: coverageData}
+  return {html: htmlSnippets.join(''), sourceMap: map.toString(), coverageData: coverageData, vanillaRules}
 }
