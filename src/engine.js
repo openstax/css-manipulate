@@ -163,17 +163,19 @@ module.exports = class Applier extends EventEmitter {
     // Walking the DOM and calling el.matches(sel) for every selector is inefficient. (causes crash after 7min for big textbook)
     // document.querySelectorAll(sel) is MUCH faster.
     // So, annotate the DOM first with all the matches and then walk the DOM
-
+    assert.equal(ast.type, 'StyleSheet', ast, null)
     let total = 0
     ast.children.each((rule) => {
       // if not a rule then return
       if (rule.type === 'Atrule') {
         switch (rule.name) {
           case 'namespace':
-            const args = rule.expression.children.toArray()
+            assert.is(rule.prelude, rule, null)
+            assert.equal(rule.prelude.type, 'AtrulePrelude', rule.prelude, null)
+            const args = rule.prelude.children.toArray()
             assert.equal(args.length, 3)
-            assert.equal(args[0].type, 'Identifier')
-            assert.equal(args[1].type, 'WhiteSpace')
+            assert.equal(args[0].type, 'Identifier', args[0])
+            assert.equal(args[1].type, 'WhiteSpace', args[1])
 
             const nsPrefix = args[0].name
             let ns
