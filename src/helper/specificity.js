@@ -14,20 +14,21 @@ module.exports = {
     selector.children.toArray().forEach((selectorItem) => {
       const {type} = selectorItem
       switch (type) {
-        case 'Id':
+        case 'IdSelector':
           idCount += 1
           break
-        case 'PseudoElement':
-        case 'Type': // element
+        case 'PseudoElementSelector':
+        case 'TypeSelector': // element
           elementNamesAndPseudoElementsCount += 1
           break
-        case 'Attribute':
-        case 'Class':
-        case 'PseudoClass': // could also be a pseudoelement (if it starts with "X")
+        case 'AttributeSelector':
+        case 'ClassSelector':
+        case 'PseudoClassSelector': // could also be a pseudoelement (if it starts with "X")
           attributesAndPseudoClassesCount += 1
           break
         case 'Universal':
         case 'Combinator':
+        case 'WhiteSpace':
           // TODO: Verify that these do not count
           break
         default:

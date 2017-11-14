@@ -1371,9 +1371,9 @@ crypto-random-string@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/crypto-random-string/-/crypto-random-string-1.0.0.tgz#a230f64f568310e1498009940790ec99545bca7e"
 
-css-tree@1.0.0-alpha14:
-  version "1.0.0-alpha14"
-  resolved "https://registry.yarnpkg.com/css-tree/-/css-tree-1.0.0-alpha14.tgz#513941c6763161c7c63d054452a02c296011811e"
+css-tree@1.0.0-alpha15:
+  version "1.0.0-alpha15"
+  resolved "https://registry.yarnpkg.com/css-tree/-/css-tree-1.0.0-alpha15.tgz#60fb5d06bb5bc003bd92a6fe7f313cb87aef8cd2"
   dependencies:
     source-map "^0.5.3"
 

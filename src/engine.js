@@ -51,12 +51,12 @@ function splitOnCommas(args) {
         break
       case 'String':
       case 'Identifier':
-      case 'Space':
+      case 'WhiteSpace':
       case 'Raw':
       case 'Function':
         ret[index].push(arg)
         break
-      case 'Hash': // for things like `color: #ccc;`
+      case 'HexColor': // for things like `color: #ccc;`
       case 'Dimension': // for things like `.5em`
       case 'Number':
       case 'Percentage':
@@ -173,7 +173,7 @@ module.exports = class Applier extends EventEmitter {
             const args = rule.expression.children.toArray()
             assert.equal(args.length, 3)
             assert.equal(args[0].type, 'Identifier')
-            assert.equal(args[1].type, 'Space')
+            assert.equal(args[1].type, 'WhiteSpace')
 
             const nsPrefix = args[0].name
             let ns
@@ -257,14 +257,14 @@ module.exports = class Applier extends EventEmitter {
   }
 
   _isPseudoElementSelectorElement(selectorElement) {
-    if(selectorElement.type !== 'PseudoElement') {
+    if(selectorElement.type !== 'PseudoElementSelector') {
       return false
     }
     return !! this._pseudoElementPluginByName[selectorElement.name]
   }
 
   _isPseudoClassSelectorElement(selectorElement) {
-    if(selectorElement.type !== 'PseudoClass') {
+    if(selectorElement.type !== 'PseudoClassSelector') {
       return false
     }
     return !! this._pseudoClassPluginByName[selectorElement.name]
@@ -279,9 +279,9 @@ module.exports = class Applier extends EventEmitter {
     const browserSelectorElements = []
     const pseudoClassElements = []
     selector.children.toArray().forEach((selectorElement) => {
-      if (selectorElement.type === 'PseudoElement') {
+      if (selectorElement.type === 'PseudoElementSelector') {
         depth += 1
-      } else if (selectorElement.type === 'PseudoClass') {
+      } else if (selectorElement.type === 'PseudoClassSelector') {
         if (startDepth === depth) {
           if (this._isPseudoClassSelectorElement(selectorElement)) {
             pseudoClassElements.push(selectorElement)
@@ -343,7 +343,7 @@ module.exports = class Applier extends EventEmitter {
             return arg.value.substring(1, arg.value.length - 1)
           case 'Identifier':
             return arg.name
-          case 'Space':
+          case 'WhiteSpace':
             return ''
           case 'Operator': // comma TODO: Group items based on this operator
             throwBug('All of these commas should have been parsed out by now', arg)
@@ -375,7 +375,7 @@ module.exports = class Applier extends EventEmitter {
               throwBug(`CSS function should return a string or number. Found ${typeof fnReturnVal} while evaluating ${theFunction.getFunctionName()}.`, arg, $currentEl)
             }
             return fnReturnVal // Should not matter if this is context or newContext
-          case 'Hash':
+          case 'HexColor':
             return `#${arg.value}`
           case 'Dimension':
             return `${arg.value}${arg.unit}`
@@ -531,19 +531,21 @@ module.exports = class Applier extends EventEmitter {
     switch (sel.type) {
       case 'Universal':
         return sel.name
-      case 'Type':
+      case 'TypeSelector':
         return sel.name
-      case 'Id':
+      case 'IdSelector':
         return `#${sel.name}`
-      case 'Class':
+      case 'ClassSelector':
         return `.${sel.name}`
+      case 'WhiteSpace':
+        return sel.value
       case 'Combinator':
         if (sel.name === ' ') {
           return ' '
         } else {
           return ` ${sel.name} `
         }
-      case 'Attribute':
+      case 'AttributeSelector':
         const name = sel.name
         const value = sel.value
         let nam
@@ -552,7 +554,7 @@ module.exports = class Applier extends EventEmitter {
             nam = name.name
             break
           default:
-            console.log(sel)
+            console.log(JSON.stringify(sel))
             throwBug(`Unmatched nameType=${name.type}`, name)
         }
         let val
@@ -565,7 +567,7 @@ module.exports = class Applier extends EventEmitter {
               val = value.name
               break
             default:
-              console.log(sel)
+              console.log(JSON.stringify(sel))
               throwBug(`Unmatched valueType=${value.type}`, value)
           }
           return `[${nam}${sel.operator}${val}]`
@@ -573,7 +575,7 @@ module.exports = class Applier extends EventEmitter {
           return `[${nam}]`
         }
 
-      case 'PseudoClass':
+      case 'PseudoClassSelector':
         // Discard some but not all. For example: keep `:not(...)` but discard `:pass(1)`
         switch (sel.name) {
           // discard these
@@ -632,7 +634,7 @@ module.exports = class Applier extends EventEmitter {
             const nthChildren = sel.children.map((child) => {
               assert.equal(child.type, 'Nth', child)
               switch (child.nth.type) {
-                case 'An+B':
+                case 'AnPlusB':
                   const {a, b} = child.nth
                   if (a && b) {
                     return `${a}n+${b}`
@@ -654,7 +656,7 @@ module.exports = class Applier extends EventEmitter {
             throwError(`Unsupported Pseudoclass ":${sel.name}"`, sel)
         }
 
-      case 'PseudoElement':
+      case 'PseudoElementSelector':
         // Discard some of these because sizzle/browser does no recognize them anyway (::outside or :after(3))
         switch (sel.name) {
           // Discard these
@@ -688,11 +690,11 @@ module.exports = class Applier extends EventEmitter {
             // TODO: This should somehow be ignored (not returned) and marked for the vanilla CSS file
             return ''
           default:
-            throwBug(`Unsupported Pseudoelement "::${sel.name}(${sel.type})"`, sel)
+            throwBug(`Unsupported Pseudoelement "::${sel.name}"`, sel)
         }
       default:
-        console.log(sel);
-        throwBug(`Unsupported ${sel.name}(${sel.type})`, sel)
+        console.log(JSON.stringify(sel))
+        throwBug(`Unsupported Selector type=${sel.type} name=${sel.name}`, sel)
     }
   }
 
