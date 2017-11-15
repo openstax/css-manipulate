@@ -206,7 +206,9 @@ module.exports = class Applier extends EventEmitter {
         return
       }
       assert.equal(rule.type, 'Rule')
-      rule.selector.children.each((selector) => {
+      assert.is(rule.prelude, rule, null)
+      assert.equal(rule.prelude.type, 'SelectorList')
+      rule.prelude.children.each((selector) => {
         assert.equal(selector.type, 'Selector')
         total += 1
       })
@@ -225,7 +227,7 @@ module.exports = class Applier extends EventEmitter {
         return
       }
       assert.equal(rule.type, 'Rule')
-      rule.selector.children.each((selector) => {
+      rule.prelude.children.each((selector) => {
         assert.equal(selector.type, 'Selector')
         const browserSelector = this.toBrowserSelector(selector)
 
