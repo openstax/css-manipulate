@@ -8,9 +8,9 @@
 [![greenkeeper][greenkeeper-image]][greenkeeper-url]
 
 
-# Why use CSS do transform the DOM?
+# Why use CSS to transform the DOM?
 
-Book authors need a way to style their book for a PDF and ePUB. They also need a way to number and move elements around, like solutions in the back of the book. 
+Book authors need a way to style their book for a PDF and ePUB. Sometimes they need additional elements to properly style. They also need a way to number and move elements around, like solutions in the back of the book. 
 
 Rather than letting them write JavaScript and execute arbitrary code, authors can describe both the styling and the movement of elements in the same file.
 
