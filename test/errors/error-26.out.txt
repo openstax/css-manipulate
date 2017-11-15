@@ -1,1 +1,0 @@
-  [2mtest/errors/_errors.css:26:17[22m [31m[1mERROR[22m[39m Problem parsing CSS. Colon is expected

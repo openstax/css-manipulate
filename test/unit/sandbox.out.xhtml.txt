@@ -1,4 +1,4 @@
-  [2mtest/./unit/sandbox.css:3:16[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/./unit/sandbox.css:10:16[22m ([2mtest/./unit/sandbox.in.xhtml:1:7[22m)
+  [2mtest/./unit/sandbox.css:3:17[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/./unit/sandbox.css:10:17[22m ([2mtest/./unit/sandbox.in.xhtml:1:7[22m)
 
 /----------------------------------------------------
 | Debugging data for [2m<<test/./unit/sandbox.in.xhtml:5:7>>[22m
