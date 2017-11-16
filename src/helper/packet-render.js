@@ -45,7 +45,7 @@ function renderPacket(json, htmlSourceLookupMap, argv, justRenderToConsole) {
     //   throw new Error(message)
     // }
   } else if (type === 'DEBUG_ELEMEMT') {
-    const {html_file_info, context_html_file_info, selectors, declarations} = json
+    const {html_file_info, context_html_file_info, selectors, declarations, skipped_declarations} = json
     output.push('')
     output.push('/----------------------------------------------------')
     output.push(`| Debugging data for ${sourceColor(`<<${fileDetailsToString(htmlSourceLookupMap, html_file_info)}>>`)}`)
@@ -84,6 +84,13 @@ function renderPacket(json, htmlSourceLookupMap, argv, justRenderToConsole) {
 
       output.push(`|   ${sourceColor(fileDetailsToString(htmlSourceLookupMap, css_file_info))}\t\t${name}: ${value_string};`)
     })
+    if (skipped_declarations.length > 0) {
+      output.push('| Skipped Declarations:')
+      skipped_declarations.forEach(({css_file_info, name, unevaluated_vals}) => {
+        output.push(`|   ${sourceColor(fileDetailsToString(htmlSourceLookupMap, css_file_info))}\t\t${name}: ${sourceColor(unevaluated_vals.join(''))};`)
+      })
+    }
+
     output.push('\\----------------------------------------------------')
 
   } else if (type === 'PROGRESS_START') {

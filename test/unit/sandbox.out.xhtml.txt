@@ -1,25 +1,20 @@
-  [2mtest/./unit/sandbox.css:3:17[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/./unit/sandbox.css:10:17[22m ([2mtest/./unit/sandbox.in.xhtml:1:7[22m)
+  [2mtest/unit/sandbox.less:11:5[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/sandbox.less:3:5[22m ([2mtest/./unit/sandbox.in.xhtml:16:6[22m)
 
 /----------------------------------------------------
-| Debugging data for [2m<<test/./unit/sandbox.in.xhtml:5:7>>[22m
+| Debugging data for [2m<<test/./unit/sandbox.in.xhtml:16:6>>[22m
 | Matched Selectors:
-|   [2mtest/./unit/sandbox.css:22:2[22m		[32mul[39m {...}
-|   [2mtest/./unit/sandbox.css:25:2[22m		[32mul[39m {...}
-|   [2mtest/./unit/sandbox.css:28:2[22m		[32mul[39m {...}
+|   [2mtest/unit/sandbox.less:2:3[22m		[32m#id123::before[39m {...}
+|   [2mtest/unit/sandbox.less:8:3[22m		[32m.foo::before[39m {...}
 | Applied Declarations:
-|   [2mtest/./unit/sandbox.css:23:6[22m		margin-bottom: [33m"0"[39m;
-|   [2mtest/./unit/sandbox.css:26:6[22m		margin-top: [33m"0px"[39m;
-|   [2mtest/./unit/sandbox.css:29:4[22m		margin-left: [33m"20pt"[39m;
+|   [2mtest/unit/sandbox.less:9:5[22m		content: [33m"Hello"[39m;
+|   [2mtest/unit/sandbox.less:3:5[22m		border-color: [33m"green"[39m;
+|   [2mtest/unit/sandbox.less:10:5[22m		border: [33m"1px"[39m  [33m"solid"[39m  [33m"blue"[39m;
+| Skipped Declarations:
+|   [2mtest/unit/sandbox.less:11:5[22m		border-color: [2myellow[22m;
 \----------------------------------------------------
 
 /----------------------------------------------------
-| Debugging data for [2m<<test/./unit/sandbox.in.xhtml:7:7>>[22m
+| Debugging data for [2m<<test/./unit/sandbox.in.xhtml:16:6>>[22m
 | Matched Selectors:
-|   [2mtest/./unit/sandbox.css:22:2[22m		[32mul[39m {...}
-|   [2mtest/./unit/sandbox.css:25:2[22m		[32mul[39m {...}
-|   [2mtest/./unit/sandbox.css:28:2[22m		[32mul[39m {...}
 | Applied Declarations:
-|   [2mtest/./unit/sandbox.css:23:6[22m		margin-bottom: [33m"0"[39m;
-|   [2mtest/./unit/sandbox.css:26:6[22m		margin-top: [33m"0px"[39m;
-|   [2mtest/./unit/sandbox.css:29:4[22m		margin-left: [33m"20pt"[39m;
 \----------------------------------------------------

@@ -397,6 +397,48 @@ module.exports = class Applier extends EventEmitter {
 
   }
 
+
+  _simpleConvertValueToString(arg) {
+    switch (arg.type) {
+      case 'String':
+        return arg.value
+      case 'Identifier':
+        return arg.name
+      case 'WhiteSpace':
+        return arg.value
+      case 'Operator': // comma TODO: Group items based on this operator
+        return arg.value
+      case 'Raw': // The value of this is something like `href, '.foo'`
+        // // Make it Look like multitple args
+        // const rawArgs = arg.value.split(', ')
+        // // I'm not really sure about this if test
+        // if (rawArgs.length > 1) {
+        //   rawArgs.forEach((rawArg) => {
+        //     ret[index].push(rawArg)
+        //     index += 1
+        //     ret[index] = [] // FIXME: This leaves a trailing empty Array.
+        //   })
+        // } else {
+        //   ret[index].push(rawArg)
+        // }
+
+        // Too complex to parse because commas can occur inside selector strings so punt
+        return arg.value
+      case 'Function':
+        return `${arg.name}(${arg.children.map((fnArg) => this._simpleConvertValueToString(fnArg)).join(', ')})`
+      case 'HexColor':
+        return `#${arg.value}`
+      case 'Dimension':
+        return `${arg.value}${arg.unit}`
+      case 'Number':
+        return arg.value
+      case 'Percentage':
+        return `${arg.value}%`
+      default:
+        throwBug('Unsupported unevaluated value type ' + arg.type, arg)
+    }
+  }
+
   _newClassName() {
     this._autogenClassNameCounter += 1
     return `-css-plus-autogen-${this._autogenClassNameCounter}`
@@ -431,6 +473,10 @@ module.exports = class Applier extends EventEmitter {
     // The structure is {'content': [ {specificity: [1,0,1], isImportant: false}, ... ]}
     const declarationsMap = {}
     const debugMatchedRules = []
+    const debugAppliedDeclarations = []
+    const debugSkippedDeclarations = []
+    const ruleDeclarationsByName = {}
+
     // TODO: Decide if rule declarations should be evaluated before or after nested pseudoselectors
     rules.forEach((matchedRule) => {
       // Only evaluate rules that do not have additional pseudoselectors (more depth available)
@@ -457,11 +503,14 @@ module.exports = class Applier extends EventEmitter {
         // use the last declaration because that's how CSS works; the last rule (all-other-things-equal) wins
         const {value, specificity, isImportant, selector, declaration} = declarations[declarations.length - 1]
         // Log that other rules were skipped because they were overridden
-        declarations.slice(0, declarations.length - 1).forEach((decl) => {
-          const {value} = decl
+        declarations.slice(0, declarations.length - 1).forEach((declaration) => {
+          const {value} = declaration
           // BUG: Somehow the same selector can be matched twice for an element . This occurs with the `:not(:has(...))` ones
           showWarning(`Skipping because this was overridden by `, value, $currentEl, /*additional CSS snippet*/declarations[declarations.length - 1].value)
-          decl.astNode.__COVERAGE_COUNT = decl.astNode.__COVERAGE_COUNT || 0
+          declaration.astNode.__COVERAGE_COUNT |= 0
+
+          const unevaluatedVals = value.children.map((val) => this._simpleConvertValueToString(val))
+          debugSkippedDeclarations.push({declaration, unevaluatedVals})
         })
 
         if (value) {
@@ -489,8 +538,6 @@ module.exports = class Applier extends EventEmitter {
 
     // now that all the declarations are sorted by selectivity (and filtered so they only occur once)
     // apply the declarations
-    const debugAppliedDeclarations = []
-    const ruleDeclarationsByName = {}
     const promises = this._ruleDeclarationPlugins.map((ruleDeclarationPlugin) => {
       let declarations = declarationsMap[ruleDeclarationPlugin.getRuleName()]
       // remove it when it is processed. Anything remaining will be output to CSS
@@ -508,7 +555,7 @@ module.exports = class Applier extends EventEmitter {
     }
 
     if ($debuggingEl.attr('data-debugger')) {
-      showDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations, $debuggingEl, this.toBrowserSelector.bind(this))
+      showDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations, debugSkippedDeclarations, $debuggingEl, this.toBrowserSelector.bind(this))
     }
 
     return Promise.all(promises)

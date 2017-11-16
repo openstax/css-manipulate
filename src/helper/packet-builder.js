@@ -114,7 +114,7 @@ function showLog(message, cssSnippet, $el) {
 }
 
 
-function showDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations, $debuggingEl, toBrowserSelector) {
+function showDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations, debugSkippedDeclarations, $debuggingEl, toBrowserSelector) {
   _console.info(JSON.stringify({
     type: 'DEBUG_ELEMEMT',
     html_file_info: htmlLocation($debuggingEl[0]),
@@ -148,6 +148,13 @@ function showDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclaration
                 }
               })
             })
+      }
+    }),
+    skipped_declarations: debugSkippedDeclarations.map(({declaration, unevaluatedVals}) => {
+      return {
+        css_file_info: cssSnippetToJson(declaration.astNode),
+        name: declaration.astNode.property,
+        unevaluated_vals: unevaluatedVals
       }
     })
   }))

@@ -179,7 +179,7 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
   if (!browserPromise) {
     const devtools = process.env['NODE_ENV'] == 'debugger'
     const headless = devtools ? false : !options.debug
-    browserPromise = puppeteer.launch({headless: headless, devtools: devtools})
+    browserPromise = puppeteer.launch({headless: headless, devtools: devtools, timeout: 60000})
   }
   const browser = await browserPromise
   const page = await browser.newPage()

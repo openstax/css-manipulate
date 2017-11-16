@@ -1,11 +1,19 @@
-<html xmlns="http://www.w3.org/1999/xhtml" class="-css-plus-autogen-1"><head></head>
-<body class="-css-plus-autogen-1 -css-plus-autogen-2 -css-plus-autogen-3">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
 
-<div class="book">
-  <ul id="id123" class="toc -css-plus-autogen-4 -css-plus-autogen-5 -css-plus-autogen-6" data-debugger="true">
-  </ul>
-  <ul id="id234" class="toc -css-plus-autogen-4 -css-plus-autogen-5 -css-plus-autogen-6" data-debugger="true">
-  </ul>
+<!-- Cool! Chrome correctly parses the sourceMappingURL when in a style tag
+&lt;style&gt;#id123::before {
+  border-color: green;
+}
+.foo::before {
+  content: &quot;Hello&quot;;
+  border: 1px solid blue;
+  border-color: yellow;
+}
+/*# sourceMappingURL=sandbox.css.map */&lt;/style&gt; -->
+</head>
+<body>
+
+<div id="id123" class="bar foo" data-debugger="true"><span data-pseudo="before(1)" class="-css-plus-autogen-1 -css-plus-autogen-2">Hello</span>
 </div>
 
 </body>
