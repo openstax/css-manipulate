@@ -528,11 +528,6 @@ module.exports = class Applier extends EventEmitter {
     // Any remaining declarations will be output in the CSS file but we need to add a class to the elements
     if (Object.keys(declarationsMap).length !== 0) {
 
-      // promises.push(Promise.all(Object.entries(declarationsMap).map(([property, declarations]) => {
-      //   // Copy/pasta'd from class-add
-      //   const vanillaDeclarationPlugin = VanillaDeclarationFactory(this, property)
-      //   return doStuff(vanillaDeclarationPlugin, declarations)
-      // })))
       const autogenClassName = this._addVanillaRule(declarationsMap)
 
       Object.values(declarationsMap).forEach((declarations) => {
@@ -542,11 +537,14 @@ module.exports = class Applier extends EventEmitter {
         })
       })
 
-      promises.push($elPromise.then(($el) => {
-        // console.log(`setting-autogenClassName ${$el.length} ${$el.attr('id')} [${$el.attr('class')}] ${autogenClassName}`);
-        $el.addClass(autogenClassName)
-        return $el
-      }))
+
+      // Don't do it in the Promise because the whole browser crashes when that happens
+      $debuggingEl.addClass(autogenClassName)
+      // promises.push($elPromise.then(($el) => {
+      //   // console.log(`setting-autogenClassName ${$el.length} ${$el.attr('id')} [${$el.attr('class')}] ${autogenClassName}`);
+      //   $el.addClass(autogenClassName)
+      //   return $el
+      // }))
     }
 
     if ($debuggingEl.attr('data-debugger')) {
