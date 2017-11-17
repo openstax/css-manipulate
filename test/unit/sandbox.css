@@ -1,5 +1,11 @@
-#id123::before {
+div.foo::before {
   border-color: green;
+}
+#special-snowflake {
+  background-color: blue;
+}
+#special-snowflake::before {
+  border: 1px solid blue;
 }
 .foo::before {
   content: "Hello";

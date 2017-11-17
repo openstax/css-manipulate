@@ -1,0 +1,7 @@
+#!/bin/bash
+cd "$(dirname "$0")/.." || exit 111
+source ./script/bootstrap || exit 111
+
+[[ $1 ]] || die "An argument must be passed in. It is a regular expression of a title to match"
+
+try ./script/test -- --match $@

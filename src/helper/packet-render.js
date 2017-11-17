@@ -54,7 +54,7 @@ function renderPacket(json, htmlSourceLookupMap, argv, justRenderToConsole) {
     }
     output.push('| Matched Selectors:')
     selectors.forEach(({css_file_info, browser_selector}) => {
-      output.push(`|   ${sourceColor(fileDetailsToString(htmlSourceLookupMap, css_file_info))}\t\t${chalk.green(browser_selector)} {...}`)
+      output.push(`|   ${sourceColor(fileDetailsToString(htmlSourceLookupMap, css_file_info))}\t\t${warnColor(browser_selector)} {...}`)
     })
     output.push('| Applied Declarations:')
     declarations.forEach(({css_file_info, name, value}) => {

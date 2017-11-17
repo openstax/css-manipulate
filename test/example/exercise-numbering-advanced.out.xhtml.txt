@@ -3,8 +3,8 @@
 /----------------------------------------------------
 | Debugging data for [2m<<test/./example/exercise-numbering-advanced.in.xhtml:16:17>>[22m
 | Matched Selectors:
-|   [2mtest/example/exercise-numbering-advanced.less:7:3[22m		[32mexercise::before[39m {...}
-|   [2mtest/example/exercise-numbering-advanced.less:22:5[22m		[32mexercise.conceptual::before[39m {...}
+|   [2mtest/example/exercise-numbering-advanced.less:7:3[22m		[33m[1mexercise::before[22m[39m {...}
+|   [2mtest/example/exercise-numbering-advanced.less:22:5[22m		[33m[1mexercise.conceptual::before[22m[39m {...}
 | Applied Declarations:
 |   [2mtest/example/exercise-numbering-advanced.less:23:7[22m		content: [36m4[39m  [33m". "[39m;
 |   [2mtest/example/exercise-numbering-advanced.less:8:5[22m		tag-name-set: [33m"strong"[39m;

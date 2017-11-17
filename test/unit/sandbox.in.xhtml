@@ -1,7 +1,6 @@
 <html xmlns="http://www.w3.org/1999/xhtml"><head>
-
-<!-- Cool! Chrome correctly parses the sourceMappingURL when in a style tag
-<style>#id123::before {
+<!--
+<style>div.foo::before {
   border-color: green;
 }
 .foo::before {
@@ -10,11 +9,13 @@
   border-color: yellow;
 }
 /*# sourceMappingURL=sandbox.css.map */</style> -->
+<link rel="stylesheet" href="./sandbox.css"/>
 </head>
 <body>
 
-<div id="id123" class="bar foo" data-debugger="true">
-</div>
+<div class="foo"></div>
+<div class="foo" id="special-snowflake"></div>
+<div class="foo"></div>
 
 </body>
 </html>

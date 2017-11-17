@@ -8,7 +8,7 @@ const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
 const {throwError, throwBug, showWarning, showDebuggerData} = require('./helper/packet-builder')
 const ExplicitlyThrownError = require('./x-throw-error')
-const {VanillaDeclarationFactory} = require('./declarations')
+const {simpleConvertValueToString} = require('./helper/ast-tools')
 
 const sourceColor = chalk.dim
 
@@ -397,65 +397,45 @@ module.exports = class Applier extends EventEmitter {
 
   }
 
-
-  _simpleConvertValueToString(arg) {
-    switch (arg.type) {
-      case 'String':
-        return arg.value
-      case 'Identifier':
-        return arg.name
-      case 'WhiteSpace':
-        return arg.value
-      case 'Operator': // comma TODO: Group items based on this operator
-        return arg.value
-      case 'Raw': // The value of this is something like `href, '.foo'`
-        // // Make it Look like multitple args
-        // const rawArgs = arg.value.split(', ')
-        // // I'm not really sure about this if test
-        // if (rawArgs.length > 1) {
-        //   rawArgs.forEach((rawArg) => {
-        //     ret[index].push(rawArg)
-        //     index += 1
-        //     ret[index] = [] // FIXME: This leaves a trailing empty Array.
-        //   })
-        // } else {
-        //   ret[index].push(rawArg)
-        // }
-
-        // Too complex to parse because commas can occur inside selector strings so punt
-        return arg.value
-      case 'Function':
-        return `${arg.name}(${arg.children.map((fnArg) => this._simpleConvertValueToString(fnArg)).join(', ')})`
-      case 'HexColor':
-        return `#${arg.value}`
-      case 'Dimension':
-        return `${arg.value}${arg.unit}`
-      case 'Number':
-        return arg.value
-      case 'Percentage':
-        return `${arg.value}%`
-      default:
-        throwBug('Unsupported unevaluated value type ' + arg.type, arg)
-    }
-  }
-
   _newClassName() {
     this._autogenClassNameCounter += 1
     return `-css-plus-autogen-${this._autogenClassNameCounter}`
   }
 
-  addVanillaRule(property, valueStr) {
-    let autogenClass = this._unprocessedRulesAndClassNames[`${property}: ${valueStr}`]
-    if (autogenClass) {
-      return autogenClass.className
-    } else {
-      const autogenClassName = this._newClassName()
-      this._unprocessedRulesAndClassNames[`${property}: ${valueStr}`] = {
-        className: autogenClassName,
-        property: property,
-        value: valueStr
+  _addVanillaRule(declarationsMap) {
+    // lazy hash. Just use the JSON
+    let toHash = []
+    Object.values(declarationsMap).forEach((declarations) => {
+      declarations.forEach((declaration) => {
+        toHash.push(declaration)
+      })
+    })
+    toHash = toHash.sort(SPECIFICITY_COMPARATOR)
+    toHash = toHash.map(({astNode}) => {
+      // Create a new object so the __COVERAGE_COUNT is not included. And the source line.
+      return {
+        _property: astNode.property,
+        _value: astNode.value
       }
-      return autogenClassName
+    })
+    const hash = JSON.stringify(toHash)
+
+
+    if (this._unprocessedRulesAndClassNames[hash]) {
+      return this._unprocessedRulesAndClassNames[hash].className
+    } else {
+      const className = this._newClassName()
+
+      let declarations = []
+      Object.values(declarationsMap).forEach((decls) => {
+        decls.forEach((declaration) => {
+          declarations.push(declaration)
+        })
+      })
+      declarations = declarations.sort(SPECIFICITY_COMPARATOR)
+
+      this._unprocessedRulesAndClassNames[hash] = {className, declarations}
+      return className
     }
   }
 
@@ -478,7 +458,7 @@ module.exports = class Applier extends EventEmitter {
     const ruleDeclarationsByName = {}
 
     // TODO: Decide if rule declarations should be evaluated before or after nested pseudoselectors
-    rules.forEach((matchedRule) => {
+    rules.forEach((matchedRule, index) => {
       // Only evaluate rules that do not have additional pseudoselectors (more depth available)
       if (matchedRule.getDepth() - 1 === depth) {
         debugMatchedRules.push(matchedRule)
@@ -492,7 +472,7 @@ module.exports = class Applier extends EventEmitter {
             declaration.__COVERAGE_COUNT = declaration.__COVERAGE_COUNT || 0 // count that it was not covered
           }
           declarationsMap[property] = declarationsMap[property] || []
-          declarationsMap[property].push({value, specificity: getSpecificity(matchedRule.getMatchedSelector(), depth), isImportant: important, selector: matchedRule.getMatchedSelector(), astNode: declaration})
+          declarationsMap[property].push({value, specificity: getSpecificity(matchedRule.getMatchedSelector(), depth, index), isImportant: important, selector: matchedRule.getMatchedSelector(), astNode: declaration})
         })
       }
     })
@@ -509,7 +489,7 @@ module.exports = class Applier extends EventEmitter {
           showWarning(`Skipping because this was overridden by `, value, $currentEl, /*additional CSS snippet*/declarations[declarations.length - 1].value)
           declaration.astNode.__COVERAGE_COUNT |= 0
 
-          const unevaluatedVals = value.children.map((val) => this._simpleConvertValueToString(val))
+          const unevaluatedVals = value.children.map((val) => simpleConvertValueToString(val))
           debugSkippedDeclarations.push({declaration, unevaluatedVals})
         })
 
@@ -547,11 +527,26 @@ module.exports = class Applier extends EventEmitter {
 
     // Any remaining declarations will be output in the CSS file but we need to add a class to the elements
     if (Object.keys(declarationsMap).length !== 0) {
-      promises.push(Promise.all(Object.entries(declarationsMap).map(([property, declarations]) => {
-        // Copy/pasta'd from class-add
-        const vanillaDeclarationPlugin = VanillaDeclarationFactory(this, property)
-        return doStuff(vanillaDeclarationPlugin, declarations)
-      })))
+
+      // promises.push(Promise.all(Object.entries(declarationsMap).map(([property, declarations]) => {
+      //   // Copy/pasta'd from class-add
+      //   const vanillaDeclarationPlugin = VanillaDeclarationFactory(this, property)
+      //   return doStuff(vanillaDeclarationPlugin, declarations)
+      // })))
+      const autogenClassName = this._addVanillaRule(declarationsMap)
+
+      Object.values(declarationsMap).forEach((declarations) => {
+        declarations.forEach((declaration) => {
+          declaration.astNode.__COVERAGE_COUNT = declaration.astNode.__COVERAGE_COUNT || 0
+          declaration.astNode.__COVERAGE_COUNT += 1
+        })
+      })
+
+      promises.push($elPromise.then(($el) => {
+        // console.log(`setting-autogenClassName ${$el.length} ${$el.attr('id')} [${$el.attr('class')}] ${autogenClassName}`);
+        $el.addClass(autogenClassName)
+        return $el
+      }))
     }
 
     if ($debuggingEl.attr('data-debugger')) {
