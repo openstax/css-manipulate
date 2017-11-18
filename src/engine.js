@@ -11,6 +11,18 @@ const ExplicitlyThrownError = require('./x-throw-error')
 const {simpleConvertValueToString} = require('./helper/ast-tools')
 
 const sourceColor = chalk.dim
+let HACK_COUNTER_A = 0
+let HACK_COUNTER_B = 0
+
+const Promise_all = (promises, defaultRet = null) => {
+  // remove any nulls
+  const real = promises.filter(p => p)
+  if (real.length > 0) {
+    return Promise.all(real)
+  } else {
+    return defaultRet
+  }
+}
 
 // It is expensive to call $el.find() and friends. Since the DOM does not change, just remember what was returned
 // This occurs frequently for making counters
@@ -139,10 +151,7 @@ module.exports = class Applier extends EventEmitter {
   }
 
   prepare(rewriteSourceMapsFn) {
-    let ast
-    try {
-      ast = csstree.parse(this._cssContents.toString(), {positions: true, filename: this._cssSourcePath})
-    } catch (err) {
+    let ast = csstree.parse(this._cssContents.toString(), {positions: true, filename: this._cssSourcePath, onParseError: (err) => {
       // Formatted to "look like" an AST node. Just for error-reporting
       const cssSnippet = {
         loc: {
@@ -150,9 +159,8 @@ module.exports = class Applier extends EventEmitter {
           start: {line: err.line, column: err.column}
         }
       }
-      debugger
       throwError(`Problem parsing CSS. ${err.message}`, cssSnippet, null, err)
-    }
+    }})
     this._ast = ast
 
     if (rewriteSourceMapsFn) {
@@ -434,6 +442,12 @@ module.exports = class Applier extends EventEmitter {
       })
       declarations = declarations.sort(SPECIFICITY_COMPARATOR)
 
+      // declarations.forEach(({astNode}) => {
+      //   if (astNode.type === 'Raw') {
+      //     throwError('CSS Syntax Error', astNode)
+      //   }
+      // })
+
       this._unprocessedRulesAndClassNames[hash] = {className, declarations}
       return className
     }
@@ -509,10 +523,10 @@ module.exports = class Applier extends EventEmitter {
             }
           }
         } else {
-          return Promise.resolve('NO_RULES_TO_EVALUATE')
+          return null // Nothing to do so no Promise
         }
       } else {
-        return Promise.resolve('NO_DECLARATIONS_TO_EVALUATE')
+        return null // Nothing to do so no Promise
       }
     }
 
@@ -537,21 +551,17 @@ module.exports = class Applier extends EventEmitter {
         })
       })
 
-
-      // Don't do it in the Promise because the whole browser crashes when that happens
-      $debuggingEl.addClass(autogenClassName)
-      // promises.push($elPromise.then(($el) => {
-      //   // console.log(`setting-autogenClassName ${$el.length} ${$el.attr('id')} [${$el.attr('class')}] ${autogenClassName}`);
-      //   $el.addClass(autogenClassName)
-      //   return $el
-      // }))
+      promises.push($elPromise.then(($el) => {
+        $el.addClass(autogenClassName)
+        return $el
+      }))
     }
 
     if ($debuggingEl.attr('data-debugger')) {
       showDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations, debugSkippedDeclarations, $debuggingEl, this.toBrowserSelector.bind(this))
     }
 
-    return Promise.all(promises)
+    return Promise_all(promises)
   }
 
 
@@ -782,7 +792,7 @@ module.exports = class Applier extends EventEmitter {
     if (ticks > 0) {
       this.emit('PROGRESS_TICK', {type: 'CONVERTING', ticks: ticks})
     }
-    this.emit('PROGRESS_END', {type: 'CONVERTING'})
+    this.emit('PROGRESS_END', {type: 'CONVERTING', promise_count: allPromises.length})
     return allPromises
   }
 
@@ -821,8 +831,7 @@ module.exports = class Applier extends EventEmitter {
             return
           }
 
-
-          return Promise.all(this._pseudoElementPlugins.map((pseudoElementPlugin) => {
+          return Promise_all(this._pseudoElementPlugins.map((pseudoElementPlugin) => {
             const pseudoElementName = pseudoElementPlugin.getPseudoElementName()
 
             const matchedRulesAtDepth = rulesAtDepth.filter((rule) => {
@@ -857,32 +866,30 @@ module.exports = class Applier extends EventEmitter {
                   return matchedRuleWithPseudo.hasDepth(depth)
                 })
                 if (rulesAtDepth.length == 0) {
-                  return Promise.all([]) // skip the evaluation
+                  return null // skip the evaluation
                 }
 
-                return Promise.all([
+                return Promise_all([
                   this._evaluateRules(depth, reducedRules[index], $newLookupEl, $newElPromise, $debuggingEl),
                   recursePseudoElements(depth + 1, reducedRules[index], $newLookupEl, $newElPromise)
                 ])
 
               })
-              allPromises.push(Promise.all(promises))
-
+              allPromises.push(Promise_all(promises))
             }
-            return Promise.all(allPromises)
+            return Promise_all(allPromises)
 
-          }) ) // Promise.all
-
+          }))
         }
         // Start the evaluation
         const $elPromise = Promise.resolve($el)
-        return Promise.all([
+        return Promise_all([
           recursePseudoElements(0, rulesWithPseudos, $el, $elPromise),
           this._evaluateRules(-1 /*depth*/, rulesWithPseudos, $el, $elPromise, $el)
         ])
       }
 
     })
-    return Promise.all(allElementPromises)
+    return Promise_all(allElementPromises, Promise.resolve('Nothing to process'))
   }
 }

@@ -19,7 +19,6 @@ const SELF_CLOSING_TAGS = ['area', 'base', 'br', 'col', 'command', 'embed', 'hr'
 
 // We use a custom serializer so sourcemaps can be generated (we know the output line and columns for things)
 module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, htmlSourceMapPath, vanillaRules) => {
-
   const coverageData = {}
   const documentElement = engine.getRoot()
 

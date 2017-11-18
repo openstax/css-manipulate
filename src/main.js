@@ -2,6 +2,8 @@ const fs = require('fs')
 const path = require('path')
 const {convertNodeJS, finish} = require('./helper/node')
 const {simpleConvertValueToString} = require('./helper/ast-tools')
+const {throwError} = require('./helper/packet-builder')
+
 const argv = require('yargs')
 .strict(true)
 .option('css', {
@@ -83,8 +85,11 @@ convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, argv
     const vanillaCss = vanillaRules.map(({className, declarations}) => {
       return `.${className} {
 ${declarations.map(({selector, astNode}) => {
-        const {important, property, value} = astNode
-        return `  ${property}: ${value.children.map((value) => simpleConvertValueToString(value)).join(' ')}${important ? ' !important' : ''};`
+        const {type, important, property, value} = astNode
+        valueStr = value.children.map((value) => {
+          return simpleConvertValueToString(value)
+        }).join(' ')
+        return `  ${property}: ${valueStr}${important ? ' !important' : ''};`
       }).join('\n')}
 }`
     }).join('\n')
