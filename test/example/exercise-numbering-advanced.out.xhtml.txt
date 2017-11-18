@@ -9,7 +9,7 @@
 |   [2mtest/example/exercise-numbering-advanced.less:23:7[22m		content: [36m4[39m  [33m". "[39m;
 |   [2mtest/example/exercise-numbering-advanced.less:8:5[22m		tag-name-set: [33m"strong"[39m;
 | Skipped Declarations:
-|   [2mtest/example/exercise-numbering-advanced.less:9:5[22m		content: [2mancestor-context('chapter', ,, count-of-type('exercise:not(.homework, .conceptual)')) '. '[22m;
+|   [2mtest/example/exercise-numbering-advanced.less:9:5[22m		content: [2mancestor-context('chapter',count-of-type('exercise:not(.homework, .conceptual)')) '. '[22m;
 \----------------------------------------------------
 
 /----------------------------------------------------

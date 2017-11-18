@@ -1,7 +1,7 @@
 /* TODO: Log each error message text for diffing later */
 ::explode { content: "invalid pseudo-element"; }
 :expode { content: "invalid pseudo-class"; }
-body { content: invalid-function(); }
+/*body { content: invalid-function(); } This is now valid because we output the unprocessed functions to CSS*/
 /*body::after(non-numeric-arg) { content: "bug"; }*/
 body { attrs-add: 'data-with-no-value'; }
 /*::after(non-numeric-arg) { content: "bug"; }*/
@@ -23,4 +23,4 @@ body { content: add(); }
 body { content: add('not a number1'); }
 body { content: add(234, 'not a number2'); }
 body { content: add('not a number3', 345); }
-body { content 'kittens'; } /* CSS Parsing Error. Missing colon */
+body { content 'missing-colon'; } /* CSS Parsing Error. Missing colon */

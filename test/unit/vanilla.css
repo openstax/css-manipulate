@@ -2,6 +2,10 @@
  * Backticks should be parseable: ``
  */
 
+.body::after {
+  content: url('some-icon-with-quote-in-name".png');
+}
+
 .example {
   border-color: #E0CB52;
   background: #FCFAEE;

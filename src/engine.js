@@ -8,6 +8,7 @@ const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
 const {throwError, throwBug, showWarning, showDebuggerData} = require('./helper/packet-builder')
 const ExplicitlyThrownError = require('./x-throw-error')
+const UnsupportedFunctionError = require ('./x-unsupported-function-error')
 const {simpleConvertValueToString} = require('./helper/ast-tools')
 
 const sourceColor = chalk.dim
@@ -72,6 +73,7 @@ function splitOnCommas(args) {
       case 'Dimension': // for things like `.5em`
       case 'Number':
       case 'Percentage':
+      case 'Url':
         ret[index].push(arg)
         break
       default:
@@ -379,7 +381,7 @@ module.exports = class Applier extends EventEmitter {
           case 'Function':
             const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0]
             if (!theFunction) {
-              throwError(`Unsupported function named ${arg.name}`, arg)
+              throw new UnsupportedFunctionError(`Unsupported function named ${arg.name}`, arg, $currentEl)
             }
             const mutationPromise = Promise.resolve('HACK_FOR_NOW')
             const fnReturnVal = theFunction.evaluateFunction(this._$, context, $currentEl, this._evaluateVals.bind(this), splitOnCommas(arg.children.toArray()), mutationPromise, arg /*AST node*/)
@@ -395,6 +397,9 @@ module.exports = class Applier extends EventEmitter {
             return arg.value
           case 'Percentage':
             return `${arg.value}%`
+          case 'Url':
+            // Throw an exception here so that the `content: url("foo.png")` is not evaluated.
+            throw new UnsupportedFunctionError(`Unsupported function named URL`, arg, $currentEl)
           default:
             throwBug('Unsupported evaluated value type ' + arg.type, arg)
         }
@@ -511,7 +516,20 @@ module.exports = class Applier extends EventEmitter {
           const declaration = declarations[declarations.length - 1]
           declaration.astNode.__COVERAGE_COUNT = declaration.astNode.__COVERAGE_COUNT || 0
           declaration.astNode.__COVERAGE_COUNT += 1
-          const vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, $elPromise, splitOnCommas(value.children.toArray()))
+
+          let vals
+          try {
+            vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, $elPromise, splitOnCommas(value.children.toArray()))
+
+          } catch (err) {
+            if (err instanceof UnsupportedFunctionError) {
+                return err
+            } else {
+              // Error was already logged so just throw it
+              // throwError(err.message, value, $currentEl, err)
+              throw err
+            }
+          }
           debugAppliedDeclarations.push({declaration, vals})
           try {
             return ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $elPromise, vals, value)
@@ -534,9 +552,16 @@ module.exports = class Applier extends EventEmitter {
     // apply the declarations
     const promises = this._ruleDeclarationPlugins.map((ruleDeclarationPlugin) => {
       let declarations = declarationsMap[ruleDeclarationPlugin.getRuleName()]
-      // remove it when it is processed. Anything remaining will be output to CSS
-      delete declarationsMap[ruleDeclarationPlugin.getRuleName()]
-      return doStuff(ruleDeclarationPlugin, declarations)
+      const ret = doStuff(ruleDeclarationPlugin, declarations)
+      if (ret instanceof UnsupportedFunctionError) {
+        // use the || clause when the function is `url("foo.png")`
+        showWarning(`Skipped declaration containing unsupported function "${ret.astNode.name || ret.astNode.type}(...)"`, ret.astNode, ret.$el)
+        return null
+      } else {
+        // remove it when it is processed. Anything remaining will be output to CSS
+        delete declarationsMap[ruleDeclarationPlugin.getRuleName()]
+      }
+      return ret
     })
 
     // Any remaining declarations will be output in the CSS file but we need to add a class to the elements
