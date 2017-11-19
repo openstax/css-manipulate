@@ -139,6 +139,11 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
       hasRecursed = true
       rewriteSourceMapsFn(astNode.selector)
     }
+    // astNode.type == "Rule"
+    if (astNode.prelude) {
+      hasRecursed = true
+      rewriteSourceMapsFn(astNode.prelude)
+    }
     // astNode.type == "Declaration"
     if (astNode.value) {
       hasRecursed = true

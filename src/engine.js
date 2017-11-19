@@ -415,51 +415,89 @@ module.exports = class Applier extends EventEmitter {
     return `-css-plus-autogen-${this._autogenClassNameCounter}`
   }
 
-  _addVanillaRule(declarationsMap) {
-    // lazy hash. Just use the JSON
-    let toHash = []
-    Object.values(declarationsMap).forEach((declarations) => {
-      declarations.forEach((declaration) => {
-        toHash.push(declaration)
+  _addVanillaRules(declarationsMap) {
+    let declarations = []
+    const autogenClassNames = []
+    Object.values(declarationsMap).forEach((decls) => {
+      decls.forEach((declaration) => {
+        declarations.push(declaration)
       })
     })
-    toHash = toHash.sort(SPECIFICITY_COMPARATOR)
-    toHash = toHash.map(({astNode}) => {
-      // Create a new object so the __COVERAGE_COUNT is not included. And the source line.
-      return {
-        _property: astNode.property,
-        _value: astNode.value
+    declarations = declarations.sort(SPECIFICITY_COMPARATOR)
+    declarations.forEach((declaration) => {
+      const {selector, astNode} = declaration
+      const hash = `${csstree.translate(selector)} {{ ${csstree.translate(astNode)} }}`
+
+      if (this._unprocessedRulesAndClassNames[hash]) {
+        autogenClassNames.push(this._unprocessedRulesAndClassNames[hash].className)
+      } else {
+        const className = this._newClassName()
+        this._unprocessedRulesAndClassNames[hash] = {
+          className,
+          declaration
+        }
+        autogenClassNames.push(className)
       }
     })
-    const hash = JSON.stringify(toHash)
-
-
-    if (this._unprocessedRulesAndClassNames[hash]) {
-      return this._unprocessedRulesAndClassNames[hash].className
-    } else {
-      const className = this._newClassName()
-
-      let declarations = []
-      Object.values(declarationsMap).forEach((decls) => {
-        decls.forEach((declaration) => {
-          declarations.push(declaration)
-        })
-      })
-      declarations = declarations.sort(SPECIFICITY_COMPARATOR)
-
-      // declarations.forEach(({astNode}) => {
-      //   if (astNode.type === 'Raw') {
-      //     throwError('CSS Syntax Error', astNode)
-      //   }
-      // })
-
-      this._unprocessedRulesAndClassNames[hash] = {className, declarations}
-      return className
-    }
+    return autogenClassNames.join(' ')
   }
 
   getVanillaRules() {
-    return Object.values(this._unprocessedRulesAndClassNames)
+    const stylesheetAst = csstree.fromPlainObject({
+      type: 'StyleSheet',
+      loc: {
+        source: 'blammo.css',
+        start: {
+          // offset: 1,
+          line: 1,
+          column: 1
+        },
+        end: {
+          // offset: 213,
+          line: 1,
+          column: 212
+        }
+      },
+      children: Object.values(this._unprocessedRulesAndClassNames).map(({className, declaration: {selector, astNode}}) => {
+        debugger
+        return {
+          type: 'Rule',
+          loc: astNode.loc,
+          prelude: {
+            type: 'SelectorList',
+            loc: null,
+            children: [{
+              type: 'Selector',
+              loc: {
+                source: selector.loc.source,
+                start: {
+                  line: selector.loc.start.line,
+                  column: selector.loc.start.column + 1,
+                }
+              },
+              children: [{
+                type: 'ClassSelector',
+                loc: {
+                  source: selector.loc.source,
+                  start: {
+                    line: selector.loc.start.line,
+                    column: selector.loc.start.column + 1,
+                  }
+                },
+                name: className
+              }]
+            }]
+          },
+          block: {
+            type: 'Block',
+            loc: astNode.loc,
+            children: [astNode]
+          }
+        }
+      })
+    })
+    debugger
+    return stylesheetAst
   }
 
   _evaluateRules(depth, rules, $currentEl, $elPromise, $debuggingEl) {
@@ -567,7 +605,7 @@ module.exports = class Applier extends EventEmitter {
     // Any remaining declarations will be output in the CSS file but we need to add a class to the elements
     if (Object.keys(declarationsMap).length !== 0) {
 
-      const autogenClassName = this._addVanillaRule(declarationsMap)
+      const autogenClassNames = this._addVanillaRules(declarationsMap)
 
       Object.values(declarationsMap).forEach((declarations) => {
         declarations.forEach((declaration) => {
@@ -577,7 +615,7 @@ module.exports = class Applier extends EventEmitter {
       })
 
       promises.push($elPromise.then(($el) => {
-        $el.addClass(autogenClassName)
+        $el.addClass(autogenClassNames)
         return $el
       }))
     }
