@@ -193,7 +193,7 @@ DECLARATIONS.push(new RuleDeclaration('attrs-add', ($, $lookupEl, $elPromise, va
     return $el
   })
 }))
-DECLARATIONS.push(new RuleDeclaration('display', ($, $lookupEl, $elPromise, vals, astNode) => {
+DECLARATIONS.push(new RuleDeclaration('x-display', ($, $lookupEl, $elPromise, vals, astNode) => {
   assert.is(vals.length === 1, astNode, $lookupEl)
   // Do nothing when set to default;
   // TODO: verify that it is not the string "none" (also needed for format-number())
@@ -269,4 +269,4 @@ DECLARATIONS.push(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise,
   })
 }))
 
-module.exports = DECLARATIONS
+module.exports = {DECLARATIONS}

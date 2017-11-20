@@ -1,1 +1,1 @@
-  [2mtest/errors/_errors.css:6:19[22m [31m[1mERROR[22m[39m Missing attribute value to attrs-add. the format should be "attrs-add: attr1Name attr2Value attr1AdditionalValue , attr2Name ..." ([2mtest/errors/_errors.in.xhtml:2:7[22m)
+  [2mtest/errors/_errors.css:6:20[22m [31m[1mERROR[22m[39m Missing attribute value to attrs-add. the format should be "attrs-add: attr1Name attr2Value attr1AdditionalValue , attr2Name ..." ([2mtest/errors/_errors.in.xhtml:2:7[22m)

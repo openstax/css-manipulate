@@ -1,5 +1,5 @@
 const assert = require('./helper/assert')
-const {showLog, showWarning, throwError} = require('./helper/packet-builder')
+const {showLog, showWarning, throwError, throwBug} = require('./helper/packet-builder')
 
 const {IS_STRICT_MODE} = process.env
 const FUNCTIONS = []
@@ -113,7 +113,7 @@ FUNCTIONS.push(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, 
       for (let index = 1; index < argExprs.length; index++) { // start at 1 because we already evaluated the 1st arg (what to move)
         assert.equal(argExprs[index].length, 3)
         assert.equal(argExprs[index][0].type, 'String')
-        assert.equal(argExprs[index][1].type, 'Space')
+        assert.equal(argExprs[index][1].type, 'WhiteSpace')
         // assert.equal(argExprs[index][2].type, 'Function')
         let selector = argExprs[index][0].value
         selector = selector.substring(1, selector.length - 1)

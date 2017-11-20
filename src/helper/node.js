@@ -1,14 +1,17 @@
-const puppeteer = require('puppeteer')
 const fs = require('fs')
 const path = require('path')
 const assert = require('assert')
+const puppeteer = require('puppeteer')
+const csstree = require('css-tree')
+const pify = require('pify')
+const {Magic, MAGIC_MIME_TYPE} = require('mmmagic')
 const mkdirp = require('mkdirp')
-// const jsdom = require('jsdom')
+const sax = require('sax')
 const jquery = require('jquery')
 const {SourceMapConsumer} = require('source-map')
 
 const converter = require('../converter')
-const {showWarning} = require('./packet-builder')
+const {showWarning, throwBug} = require('./packet-builder')
 const renderPacket = require('./packet-render')
 const constructSelector = require('./construct-selector')
 
@@ -20,6 +23,20 @@ let browserPromise = null // assigned on 1st attempt to convert
 
 let hasBeenWarned = false
 async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, options, packetHandler) {
+  // Ensure that the paths are absolute
+  cssPath = path.resolve(cssPath)
+  htmlPath = path.resolve(htmlPath)
+  htmlOutputPath = path.resolve(htmlOutputPath)
+
+  // Ensure that the cssContents and htmlContents are strings (not buffers)
+  if (typeof cssContents !== 'string') {
+    throwBug(`Expected cssContents to be a string but it was ${typeof cssContents}`)
+  }
+  if (typeof htmlContents !== 'string') {
+    throwBug(`Expected htmlContents to be a string but it was ${typeof htmlContents}`)
+  }
+
+
   const htmlSourcePathRelativeToSourceMapFile = toRelative(htmlOutputPath, htmlPath)
   const cssPathRelativeToSourceMapFile = toRelative(htmlOutputPath, cssPath)
   const cssPathRelativeToOutputHtmlPath = path.relative(path.dirname(htmlOutputPath), cssPath)
@@ -32,47 +49,7 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
 
 
   const selectorToLocationMap = {}
-  // Build up a mapping from selector to HTML line/column information so we can look it up when using the sourcemaps for messages or for the HTML output
-  // if (isXhtml) {
-  //   console.log('Setting to XML Parsing mode')
-  //   jsdomArgs = {contentType: 'application/xml', /*includeNodeLocations: true*/}
-  // } else {
-  //   jsdomArgs = {includeNodeLocations: true}
-  // }
-  // const dom = new jsdom.JSDOM(htmlContents, jsdomArgs)
-  // const {window} = dom
-  // const {document} = window
-  // // Traverse the document ()
-  // count = 0
-  // function walkDOMElementsInOrder(el, index, acc, fn) {
-  //   if ((el.tagName.toLowerCase() === 'span' || el.tagName.toLowerCase() === 'div') && el.childNodes.length === 0) {
-  //     console.log(`akjdhaksjhdaksjhd SKIPPING ${constructSelector(el)}`);
-  //     // skip counting because chrome removes it
-  //     // These elements are in the metadata and need to be fixed
-  //   } else if (el.getAttribute('data-type') === "cnx-archive-uri") {
-  //     console.log(`akjdhaksjhdaksjhd SKIPPING ${constructSelector(el)}`);
-  //   } else if (el.getAttribute('data-type') === "cnx-archive-shortid") {
-  //     console.log(`akjdhaksjhdaksjhd SKIPPING ${constructSelector(el)}`);
-  //   } else {
-  //     acc = fn(el, index, acc)
-  //     count += 1
-  //   }
-  //   if (el.firstElementChild) {
-  //     walkDOMElementsInOrder(el.firstElementChild, 1, acc, fn)
-  //   }
-  //   if (el.nextElementSibling) {
-  //     walkDOMElementsInOrder(el.nextElementSibling, index + 1, acc, fn)
-  //   }
-  // }
-  // walkDOMElementsInOrder(document.documentElement, 1, '', (el, index, acc) => {
-  //   const selector = constructSelector(el)
-  //   // selectorToLocationMap[selector] = dom.nodeLocation(el)
-  //   console.log(`jsdom: ${selector}`);
-  // })
-  // window.close()
-  // console.log('qiweuyqiuwye jsdomcount=' + count);
 
-  const sax = require('sax')
   const parser = sax.parser(true/*strict*/, {xmlns: true, position: true, lowercase: true})
 
   // Use the sax parser to get source line/column information from the XHTML document
@@ -160,13 +137,12 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
     const sourceMapURLPath = path.join(path.dirname(cssPath), cssSourceMappingURL)
     try {
       cssSourceMapJson = JSON.parse(fs.readFileSync(sourceMapURLPath).toString())
-      // TODO: Fix up all the paths to be relative to the output HTML file.
-      //        newStartPath = path.join(path.dirname(cssSourcePath), newStartPath)
       cssSourceMapJson.sources = cssSourceMapJson.sources.map((sourcePath) => {
+        // Keep the paths absolute
         return path.join(path.dirname(sourceMapURLPath), sourcePath)
       })
     } catch (e) {
-      showWarning(`sourceMappingURL was found in ${cssPath} but could not open the file ${sourceMapURLPath}`)
+      showWarning(`sourceMappingURL was found in ${path.relative(process.cwd(), cssPath)} but could not open the file ${sourceMapURLPath}`)
     }
   }
 
@@ -179,12 +155,12 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
   if (!browserPromise) {
     const devtools = process.env['NODE_ENV'] == 'debugger'
     const headless = devtools ? false : !options.debug
-    browserPromise = puppeteer.launch({headless: headless, devtools: devtools})
+    browserPromise = puppeteer.launch({headless: headless, devtools: devtools, timeout: 60000})
   }
   const browser = await browserPromise
   const page = await browser.newPage()
 
-  const url = `file://${path.resolve(htmlPath)}`
+  const url = `file://${htmlPath}`
 
   page.on('console', ({type, text}) => {
     if (type === 'warning') {
@@ -199,10 +175,7 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
         if (packetHandler) {
           packetHandler(json, htmlSourceLookupMap)
         } else {
-          const message = renderPacket(json, htmlSourceLookupMap, options)
-          if (message) {
-            console.log(message)
-          }
+          renderPacket(process.cwd(), json, htmlSourceLookupMap, options, true/*justRenderToConsole*/)
         }
       }
 
@@ -243,7 +216,7 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
   await page.evaluate(`(function () { window.__HTML_SOURCE_LOOKUP = ${JSON.stringify(htmlSourceLookupMap)}; })()`)
   await page.evaluate(`(function () { window.__CSS_SOURCE_MAP_JSON = ${JSON.stringify(cssSourceMapJson)}; })()`)
   function escaped(str) {
-    return str.toString().replace(/`/g, '\\`')
+    return str.toString().replace(/\\/g, '\\\\').replace(/`/g, '\\`')
   }
 
 
@@ -264,9 +237,75 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
   let ret
   let err
 
-  // CssPlus = (document, $, cssContents, cssSourcePath, htmlSourcePath, consol, htmlSourceLookup, htmlSourceFilename, sourceMapPath, rewriteSourceMapsFn, options)
+  const config = {
+    cssContents,
+    cssSourcePath: cssPath,
+    htmlSourcePath: htmlPath,
+    sourceMapPath: sourceMapFileName,
+    htmlOutputPath,
+    options
+  }
   try {
-    ret = await page.evaluate(`CssPlus(window.document, window.jQuery, \`${escaped(cssContents)}\`, \`${escaped(cssPath)}\`, \`${escaped(htmlPath)}\`, console, function() { return '???sourceLookup123'}, \`${escaped(htmlPath)}\`, \`${escaped(sourceMapFileName)}\`, null, ${JSON.stringify(options)})`)
+    let vanillaRules = await page.evaluate(`(function () {
+      window.__instance = new CssPlus()
+      return window.__instance.convertElements(window.document, window.jQuery, console, ${JSON.stringify(config)})
+    }) ()`)
+    // TODO: convert the vanillaRules to embed the images as data-URIs (based64 encoded)
+    // do extra serializing/deserializing so was can walk over the AST
+    vanillaRules = csstree.fromPlainObject(csstree.clone(vanillaRules))
+    const urls = []
+    csstree.walk(vanillaRules, (node) => {
+      if (node.type === 'Url') {
+        let relPath
+        switch (node.value.type) {
+          case 'String':
+            // unwrap the quotes
+            relPath = node.value.value.substring(1, node.value.value.length - 1)
+            break
+          case 'Raw':
+            relPath = node.value.value
+            // it should be ok below since we add quotes anyway so we do not need
+            // to change the type of this node
+            break
+          default:
+            throwBug(`Unsupported url argument type ${node.value.type}`)
+        }
+        const absPath = path.resolve(path.dirname(cssPath), relPath)
+        urls.push({node, absPath})
+      }
+    })
+
+    debugger
+    for (const urlPair of urls) {
+      // TODO: if it a real URL (`https://....`) then do not change anything
+      const {node, absPath} = urlPair
+
+      const magic = new Magic(MAGIC_MIME_TYPE)
+      const detect = pify(magic.detectFile.bind(magic))
+      const mimeType = await detect(absPath)
+      const buffer = fs.readFileSync(absPath)
+
+      let dataUri
+      // SVG is more efficient if it is just URI-Encoded (since it is not binary)
+      // Other image types should be base64-encoded
+      switch (mimeType) {
+        case 'text/html': // For some reason some SVG images are interpreted as text/html
+        case 'image/svg+xml':
+          dataUri = `data:image/svg+xml;charset%3Dutf-8,${encodeURIComponent(buffer.toString('utf8'))}`
+          break
+        // case 'image/png':
+        default:
+          dataUri = `data:${mimeType};base64,${buffer.toString('base64')}`
+      }
+      node.value.value = `"${dataUri}"`
+    }
+
+
+
+    vanillaRules = csstree.toPlainObject(vanillaRules)
+    ret = await page.evaluate(`(function () {
+      return window.__instance.serialize(${JSON.stringify(vanillaRules)})
+    }) ()`)
     await saveCoverage()
     await page.close()
   } catch (e) {

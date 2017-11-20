@@ -1,0 +1,2 @@
+  [2mtest/unit/vanilla.css:9:13[22m [33m[1mWARN[22m[39m Skipped declaration containing unsupported function "Url(...)" ([2mtest/unit/vanilla.in.xhtml:2:7[22m)
+  [2mtest/unit/vanilla.css:40:13[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/vanilla.css:40:13[22m ([2mtest/unit/vanilla.in.xhtml:8:6[22m)

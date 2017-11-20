@@ -33,7 +33,8 @@ const UNIT_FILES_TO_TEST = [
   './unit/display-none',
   './unit/has',
   './unit/namespace-attributes',
-
+  './unit/vanilla',
+  './unit/sandbox',
 ]
 
 const MOTIVATION_INPUT_HTML_PATH = `./motivation/_input.xhtml`
@@ -94,7 +95,7 @@ function buildTest(cssFilename, htmlFilename) {
     // Record all warnings/errors/bugs into an output file for diffing
     const actualStdout = []
     function packetHandler(packet, htmlSourceLookupMap) {
-      const message = renderPacket(packet, htmlSourceLookupMap, argv)
+      const message = renderPacket(process.cwd(), packet, htmlSourceLookupMap, argv)
       if (message) {
         actualStdout.push(message)
         if (WRITE_TEST_RESULTS === 'true') {
@@ -123,6 +124,7 @@ function buildTest(cssFilename, htmlFilename) {
         // If the file does not exist yet then write it out to disk
         fs.writeFileSync(htmlOutputPath, actualOutput)
         if (WRITE_TEST_RESULTS === 'true') {
+          t.is(true, true) // just so ava counts that 1 assertion was made
           t.pass()
         }
       }
@@ -146,10 +148,10 @@ function buildTest(cssFilename, htmlFilename) {
 function buildErrorTests() {
   const argv = {noprogress: true}
   const cssPath = `test/errors/${ERROR_TEST_FILENAME}.css`
-  const errorRules = fs.readFileSync(cssPath).toString().split('\n')
+  const errorRules = fs.readFileSync(cssPath, 'utf8').split('\n')
   const htmlPath = cssPath.replace('.css', '.in.xhtml')
   const htmlOutputPath = cssPath.replace('.css', '.out.xhtml')
-  const htmlContents = fs.readFileSync(htmlPath)
+  const htmlContents = fs.readFileSync(htmlPath, 'utf8')
 
   errorRules.forEach((cssContents, lineNumber) => {
     if (!cssContents || cssContents[0] === '/' && (cssContents[1] === '*' || cssContents[1] === '/')) {
@@ -178,7 +180,7 @@ function buildErrorTests() {
       // Record all warnings/errors/bugs into an output file for diffing
       const actualStdout = []
       function packetHandler(packet, htmlSourceLookupMap) {
-        const message = renderPacket(packet, htmlSourceLookupMap, argv)
+        const message = renderPacket(process.cwd(), packet, htmlSourceLookupMap, argv)
         if (message) { // could've been a progress bar. in which case do not show anything
           actualStdout.push(message)
           if (WRITE_TEST_RESULTS === 'true') {

@@ -8,8 +8,22 @@ const RuleWithPseudos = require('./helper/rule-with-pseudos')
 const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
 const {throwError, throwBug, showWarning, showDebuggerData} = require('./helper/packet-builder')
 const ExplicitlyThrownError = require('./x-throw-error')
+const UnsupportedFunctionError = require ('./x-unsupported-function-error')
+const {simpleConvertValueToString} = require('./helper/ast-tools')
 
 const sourceColor = chalk.dim
+let HACK_COUNTER_A = 0
+let HACK_COUNTER_B = 0
+
+const Promise_all = (promises, defaultRet = null) => {
+  // remove any nulls
+  const real = promises.filter(p => p)
+  if (real.length > 0) {
+    return Promise.all(real)
+  } else {
+    return defaultRet
+  }
+}
 
 // It is expensive to call $el.find() and friends. Since the DOM does not change, just remember what was returned
 // This occurs frequently for making counters
@@ -50,9 +64,16 @@ function splitOnCommas(args) {
         break
       case 'String':
       case 'Identifier':
-      case 'Space':
+      case 'WhiteSpace':
       case 'Raw':
       case 'Function':
+        ret[index].push(arg)
+        break
+      case 'HexColor': // for things like `color: #ccc;`
+      case 'Dimension': // for things like `.5em`
+      case 'Number':
+      case 'Percentage':
+      case 'Url':
         ret[index].push(arg)
         break
       default:
@@ -88,6 +109,9 @@ module.exports = class Applier extends EventEmitter {
     this._document = document
     this._$ = $
     this._options = options || {}
+
+    this._autogenClassNameCounter = 0
+    this._unprocessedRulesAndClassNames = {}
   }
 
   // getWindow() { return this._document.defaultView }
@@ -129,7 +153,16 @@ module.exports = class Applier extends EventEmitter {
   }
 
   prepare(rewriteSourceMapsFn) {
-    const ast = csstree.parse(this._cssContents.toString(), {positions: true, filename: this._cssSourcePath})
+    let ast = csstree.parse(this._cssContents.toString(), {positions: true, filename: this._cssSourcePath, onParseError: (err) => {
+      // Formatted to "look like" an AST node. Just for error-reporting
+      const cssSnippet = {
+        loc: {
+          source: this._cssSourcePath,
+          start: {line: err.line, column: err.column}
+        }
+      }
+      throwError(`Problem parsing CSS. ${err.message}`, cssSnippet, null, err)
+    }})
     this._ast = ast
 
     if (rewriteSourceMapsFn) {
@@ -140,17 +173,19 @@ module.exports = class Applier extends EventEmitter {
     // Walking the DOM and calling el.matches(sel) for every selector is inefficient. (causes crash after 7min for big textbook)
     // document.querySelectorAll(sel) is MUCH faster.
     // So, annotate the DOM first with all the matches and then walk the DOM
-
+    assert.equal(ast.type, 'StyleSheet', ast, null)
     let total = 0
     ast.children.each((rule) => {
       // if not a rule then return
       if (rule.type === 'Atrule') {
         switch (rule.name) {
           case 'namespace':
-            const args = rule.expression.children.toArray()
+            assert.is(rule.prelude, rule, null)
+            assert.equal(rule.prelude.type, 'AtrulePrelude', rule.prelude, null)
+            const args = rule.prelude.children.toArray()
             assert.equal(args.length, 3)
-            assert.equal(args[0].type, 'Identifier')
-            assert.equal(args[1].type, 'Space')
+            assert.equal(args[0].type, 'Identifier', args[0])
+            assert.equal(args[1].type, 'WhiteSpace', args[1])
 
             const nsPrefix = args[0].name
             let ns
@@ -175,13 +210,15 @@ module.exports = class Applier extends EventEmitter {
             this._$.xmlns[nsPrefix] = ns
             break
           default:
-            showWarning('Unrecognized at-rule. Skipping', rule)
+            showWarning('Unrecognized at-rule. Skipping. TODO: include it in the <style>', rule)
             return
         }
         return
       }
       assert.equal(rule.type, 'Rule')
-      rule.selector.children.each((selector) => {
+      assert.is(rule.prelude, rule, null)
+      assert.equal(rule.prelude.type, 'SelectorList')
+      rule.prelude.children.each((selector) => {
         assert.equal(selector.type, 'Selector')
         total += 1
       })
@@ -200,7 +237,7 @@ module.exports = class Applier extends EventEmitter {
         return
       }
       assert.equal(rule.type, 'Rule')
-      rule.selector.children.each((selector) => {
+      rule.prelude.children.each((selector) => {
         assert.equal(selector.type, 'Selector')
         const browserSelector = this.toBrowserSelector(selector)
 
@@ -234,14 +271,14 @@ module.exports = class Applier extends EventEmitter {
   }
 
   _isPseudoElementSelectorElement(selectorElement) {
-    if(selectorElement.type !== 'PseudoElement') {
+    if(selectorElement.type !== 'PseudoElementSelector') {
       return false
     }
     return !! this._pseudoElementPluginByName[selectorElement.name]
   }
 
   _isPseudoClassSelectorElement(selectorElement) {
-    if(selectorElement.type !== 'PseudoClass') {
+    if(selectorElement.type !== 'PseudoClassSelector') {
       return false
     }
     return !! this._pseudoClassPluginByName[selectorElement.name]
@@ -256,9 +293,9 @@ module.exports = class Applier extends EventEmitter {
     const browserSelectorElements = []
     const pseudoClassElements = []
     selector.children.toArray().forEach((selectorElement) => {
-      if (selectorElement.type === 'PseudoElement') {
+      if (selectorElement.type === 'PseudoElementSelector') {
         depth += 1
-      } else if (selectorElement.type === 'PseudoClass') {
+      } else if (selectorElement.type === 'PseudoClassSelector') {
         if (startDepth === depth) {
           if (this._isPseudoClassSelectorElement(selectorElement)) {
             pseudoClassElements.push(selectorElement)
@@ -320,7 +357,7 @@ module.exports = class Applier extends EventEmitter {
             return arg.value.substring(1, arg.value.length - 1)
           case 'Identifier':
             return arg.name
-          case 'Space':
+          case 'WhiteSpace':
             return ''
           case 'Operator': // comma TODO: Group items based on this operator
             throwBug('All of these commas should have been parsed out by now', arg)
@@ -344,7 +381,7 @@ module.exports = class Applier extends EventEmitter {
           case 'Function':
             const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0]
             if (!theFunction) {
-              throwError(`Unsupported function named ${arg.name}`, arg)
+              throw new UnsupportedFunctionError(`Unsupported function named ${arg.name}`, arg, $currentEl)
             }
             const mutationPromise = Promise.resolve('HACK_FOR_NOW')
             const fnReturnVal = theFunction.evaluateFunction(this._$, context, $currentEl, this._evaluateVals.bind(this), splitOnCommas(arg.children.toArray()), mutationPromise, arg /*AST node*/)
@@ -352,8 +389,19 @@ module.exports = class Applier extends EventEmitter {
               throwBug(`CSS function should return a string or number. Found ${typeof fnReturnVal} while evaluating ${theFunction.getFunctionName()}.`, arg, $currentEl)
             }
             return fnReturnVal // Should not matter if this is context or newContext
+          case 'HexColor':
+            return `#${arg.value}`
+          case 'Dimension':
+            return `${arg.value}${arg.unit}`
+          case 'Number':
+            return arg.value
+          case 'Percentage':
+            return `${arg.value}%`
+          case 'Url':
+            // Throw an exception here so that the `content: url("foo.png")` is not evaluated.
+            throw new UnsupportedFunctionError(`Unsupported function named URL`, arg, $currentEl)
           default:
-            throwError('BUG: Unsupported value type ' + arg.type, arg)
+            throwBug('Unsupported evaluated value type ' + arg.type, arg)
         }
 
       })
@@ -362,13 +410,98 @@ module.exports = class Applier extends EventEmitter {
 
   }
 
+  _newClassName() {
+    this._autogenClassNameCounter += 1
+    return `-css-plus-autogen-${this._autogenClassNameCounter}`
+  }
+
+  _addVanillaRules(declarationsMap) {
+    let declarations = []
+    const autogenClassNames = []
+    Object.values(declarationsMap).forEach((decls) => {
+      decls.forEach((declaration) => {
+        declarations.push(declaration)
+      })
+    })
+    declarations = declarations.sort(SPECIFICITY_COMPARATOR)
+    declarations.forEach((declaration) => {
+      const {selector, astNode} = declaration
+      const hash = `${csstree.translate(selector)} {{ ${csstree.translate(astNode)} }}`
+
+      if (this._unprocessedRulesAndClassNames[hash]) {
+        autogenClassNames.push(this._unprocessedRulesAndClassNames[hash].className)
+      } else {
+        const className = this._newClassName()
+        this._unprocessedRulesAndClassNames[hash] = {
+          className,
+          declaration
+        }
+        autogenClassNames.push(className)
+      }
+    })
+    return autogenClassNames.join(' ')
+  }
+
+  getVanillaRules() {
+    const stylesheetAst = csstree.fromPlainObject({
+      type: 'StyleSheet',
+      loc: null,
+      children: Object.values(this._unprocessedRulesAndClassNames).map(({className, declaration: {selector, astNode}}) => {
+        return {
+          type: 'Rule',
+          loc: astNode.loc,
+          prelude: {
+            type: 'SelectorList',
+            loc: null,
+            children: [{
+              type: 'Selector',
+              loc: {
+                source: selector.loc.source,
+                start: {
+                  line: selector.loc.start.line,
+                  column: selector.loc.start.column + 1,
+                }
+              },
+              children: [{
+                type: 'ClassSelector',
+                loc: {
+                  source: selector.loc.source,
+                  start: {
+                    line: selector.loc.start.line,
+                    column: selector.loc.start.column + 1,
+                  }
+                },
+                name: className
+              }]
+            }]
+          },
+          block: {
+            type: 'Block',
+            loc: astNode.loc,
+            children: [astNode]
+          }
+        }
+      })
+    })
+    return stylesheetAst
+  }
+
   _evaluateRules(depth, rules, $currentEl, $elPromise, $debuggingEl) {
+
+    if ($debuggingEl.attr('data-debugger')) {
+      debugger
+    }
+
     // Pull out all the declarations for this rule, and then later sort by specificity.
     // The structure is {'content': [ {specificity: [1,0,1], isImportant: false}, ... ]}
     const declarationsMap = {}
     const debugMatchedRules = []
+    const debugAppliedDeclarations = []
+    const debugSkippedDeclarations = []
+    const ruleDeclarationsByName = {}
+
     // TODO: Decide if rule declarations should be evaluated before or after nested pseudoselectors
-    rules.forEach((matchedRule) => {
+    rules.forEach((matchedRule, index) => {
       // Only evaluate rules that do not have additional pseudoselectors (more depth available)
       if (matchedRule.getDepth() - 1 === depth) {
         debugMatchedRules.push(matchedRule)
@@ -376,38 +509,51 @@ module.exports = class Applier extends EventEmitter {
           const {type, important, property, value} = declaration
 
           if (!this._isRuleDeclarationName(property)) {
-            showWarning(`Skipping because I do not understand the rule ${property}, maybe a typo?`, value, $currentEl)
+            if (this._options.verbose) {
+              showWarning(`Skipping because I do not understand the rule '${property}'. Maybe a typo?`, value, $currentEl)
+            }
             declaration.__COVERAGE_COUNT = declaration.__COVERAGE_COUNT || 0 // count that it was not covered
-            return
           }
           declarationsMap[property] = declarationsMap[property] || []
-          declarationsMap[property].push({value, specificity: getSpecificity(matchedRule.getMatchedSelector(), depth), isImportant: important, selector: matchedRule.getMatchedSelector(), astNode: declaration})
+          declarationsMap[property].push({value, specificity: getSpecificity(matchedRule.getMatchedSelector(), depth, index), isImportant: important, selector: matchedRule.getMatchedSelector(), astNode: declaration})
         })
       }
     })
 
-    // now that all the declarations are sorted by selectivity (and filtered so they only occur once)
-    // apply the declarations
-    const debugAppliedDeclarations = []
-    const promises = this._ruleDeclarationPlugins.map((ruleDeclarationPlugin) => {
-      let declarations = declarationsMap[ruleDeclarationPlugin.getRuleName()]
+    const doStuff = (ruleDeclarationPlugin, declarations) => {
       if (declarations) {
         declarations = declarations.sort(SPECIFICITY_COMPARATOR)
         // use the last declaration because that's how CSS works; the last rule (all-other-things-equal) wins
         const {value, specificity, isImportant, selector, declaration} = declarations[declarations.length - 1]
         // Log that other rules were skipped because they were overridden
-        declarations.slice(0, declarations.length - 1).forEach((decl) => {
-          const {value} = decl
+        declarations.slice(0, declarations.length - 1).forEach((declaration) => {
+          const {value} = declaration
           // BUG: Somehow the same selector can be matched twice for an element . This occurs with the `:not(:has(...))` ones
           showWarning(`Skipping because this was overridden by `, value, $currentEl, /*additional CSS snippet*/declarations[declarations.length - 1].value)
-          decl.astNode.__COVERAGE_COUNT = decl.astNode.__COVERAGE_COUNT || 0
+          declaration.astNode.__COVERAGE_COUNT |= 0
+
+          const unevaluatedVals = value.children.map((val) => simpleConvertValueToString(val))
+          debugSkippedDeclarations.push({declaration, unevaluatedVals})
         })
 
         if (value) {
           const declaration = declarations[declarations.length - 1]
           declaration.astNode.__COVERAGE_COUNT = declaration.astNode.__COVERAGE_COUNT || 0
           declaration.astNode.__COVERAGE_COUNT += 1
-          const vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, $elPromise, splitOnCommas(value.children.toArray()))
+
+          let vals
+          try {
+            vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, $elPromise, splitOnCommas(value.children.toArray()))
+
+          } catch (err) {
+            if (err instanceof UnsupportedFunctionError) {
+                return err
+            } else {
+              // Error was already logged so just throw it
+              // throwError(err.message, value, $currentEl, err)
+              throw err
+            }
+          }
           debugAppliedDeclarations.push({declaration, vals})
           try {
             return ruleDeclarationPlugin.evaluateRule(this._$, $currentEl, $elPromise, vals, value)
@@ -419,18 +565,52 @@ module.exports = class Applier extends EventEmitter {
             }
           }
         } else {
-          return Promise.resolve('NO_RULES_TO_EVALUATE')
+          return null // Nothing to do so no Promise
         }
       } else {
-        return Promise.resolve('NO_DECLARATIONS_TO_EVALUATE')
+        return null // Nothing to do so no Promise
       }
-    })
-
-    if ($debuggingEl.attr('data-debugger')) {
-      showDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations, $debuggingEl, this.toBrowserSelector.bind(this))
     }
 
-    return Promise.all(promises)
+    // now that all the declarations are sorted by selectivity (and filtered so they only occur once)
+    // apply the declarations
+    const promises = this._ruleDeclarationPlugins.map((ruleDeclarationPlugin) => {
+      let declarations = declarationsMap[ruleDeclarationPlugin.getRuleName()]
+      const ret = doStuff(ruleDeclarationPlugin, declarations)
+      if (ret instanceof UnsupportedFunctionError) {
+        // use the || clause when the function is `url("foo.png")`
+        showWarning(`Skipped declaration containing unsupported function "${ret.astNode.name || ret.astNode.type}(...)"`, ret.astNode, ret.$el)
+        return null
+      } else {
+        // remove it when it is processed. Anything remaining will be output to CSS
+        delete declarationsMap[ruleDeclarationPlugin.getRuleName()]
+      }
+      return ret
+    })
+
+    // Any remaining declarations will be output in the CSS file but we need to add a class to the elements
+    if (Object.keys(declarationsMap).length !== 0) {
+
+      const autogenClassNames = this._addVanillaRules(declarationsMap)
+
+      Object.values(declarationsMap).forEach((declarations) => {
+        declarations.forEach((declaration) => {
+          declaration.astNode.__COVERAGE_COUNT = declaration.astNode.__COVERAGE_COUNT || 0
+          declaration.astNode.__COVERAGE_COUNT += 1
+        })
+      })
+
+      promises.push($elPromise.then(($el) => {
+        $el.addClass(autogenClassNames)
+        return $el
+      }))
+    }
+
+    if ($debuggingEl.attr('data-debugger')) {
+      showDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations, debugSkippedDeclarations, $debuggingEl, this.toBrowserSelector.bind(this))
+    }
+
+    return Promise_all(promises)
   }
 
 
@@ -454,19 +634,21 @@ module.exports = class Applier extends EventEmitter {
     switch (sel.type) {
       case 'Universal':
         return sel.name
-      case 'Type':
+      case 'TypeSelector':
         return sel.name
-      case 'Id':
+      case 'IdSelector':
         return `#${sel.name}`
-      case 'Class':
+      case 'ClassSelector':
         return `.${sel.name}`
+      case 'WhiteSpace':
+        return sel.value
       case 'Combinator':
         if (sel.name === ' ') {
           return ' '
         } else {
           return ` ${sel.name} `
         }
-      case 'Attribute':
+      case 'AttributeSelector':
         const name = sel.name
         const value = sel.value
         let nam
@@ -475,25 +657,29 @@ module.exports = class Applier extends EventEmitter {
             nam = name.name
             break
           default:
-            console.log(sel)
+            console.log(JSON.stringify(sel))
             throwBug(`Unmatched nameType=${name.type}`, name)
         }
         let val
         if (value) {
+          assert.is(sel.matcher, sel, null, 'AttributeSelector is missing an operator/matcher')
           switch (value.type) {
-            case 'String':
+            case 'String': // `[data-type="foo"]`
               val = value.value
               break
+            case 'Identifier':  // `[data-type=foo]`
+              val = value.name
+              break
             default:
-              console.log(sel)
+              console.log(JSON.stringify(sel))
               throwBug(`Unmatched valueType=${value.type}`, value)
           }
-          return `[${nam}${sel.operator}${val}]`
+          return `[${nam}${sel.matcher}${val}]`
         } else {
           return `[${nam}]`
         }
 
-      case 'PseudoClass':
+      case 'PseudoClassSelector':
         // Discard some but not all. For example: keep `:not(...)` but discard `:pass(1)`
         switch (sel.name) {
           // discard these
@@ -530,9 +716,14 @@ module.exports = class Applier extends EventEmitter {
           case 'has':
           case 'last-child':
           case 'not':
+          case 'first-child': // Just vanilla CSS, not tested yet
+          case 'first-of-type':
+          case 'last-of-type':
+          case 'only-of-type':
+          case 'only-child':
             if (sel.children) {
               const children = sel.children.map((child) => {
-                assert.equal(child.type, 'SelectorList')
+                assert.is(child.type, 'SelectorList', child)
                 return child.children.map((child) => this.toBrowserSelector(child, includePseudoElements)).join(', ')
               })
               return `:${sel.name}(${children})`
@@ -540,11 +731,36 @@ module.exports = class Applier extends EventEmitter {
               return `:${sel.name}`
             }
 
+          // from https://github.com/jquery/sizzle/wiki
+          case 'nth-child':
+          case 'nth-of-type': // Just vanilla CSS, not tested yet
+          case 'nth-last-of-type':
+            const nthChildren = sel.children.map((child) => {
+              assert.equal(child.type, 'Nth', child)
+              switch (child.nth.type) {
+                case 'AnPlusB':
+                  const {a, b} = child.nth
+                  if (a && b) {
+                    return `${a}n+${b}`
+                  } else if (a) {
+                    return `${a}n`
+                  } else if (b) {
+                    return b
+                  } else {
+                    throwBug(`Unsupported An+B syntax`, child)
+                  }
+                case 'Identifier':
+                  return child.nth.name
+                default:
+                  throwBug(`Unsupported nth syntax`, child)
+              }
+            })
+            return `:${sel.name}(${nthChildren.join(', ')})` // not sure if adding the comma is correct
           default:
             throwError(`Unsupported Pseudoclass ":${sel.name}"`, sel)
         }
 
-      case 'PseudoElement':
+      case 'PseudoElementSelector':
         // Discard some of these because sizzle/browser does no recognize them anyway (::outside or :after(3))
         switch (sel.name) {
           // Discard these
@@ -572,12 +788,17 @@ module.exports = class Applier extends EventEmitter {
               return ''
             }
 
+          case 'footnote-marker':
+          case 'footnote-call':
+          case 'marker':
+            // TODO: This should somehow be ignored (not returned) and marked for the vanilla CSS file
+            return ''
           default:
-            throwError(`Unsupported Pseudoelement "::${sel.name}(${sel.type})"`, sel)
+            throwBug(`Unsupported Pseudoelement "::${sel.name}"`, sel)
         }
       default:
-        console.log(sel);
-        throwBug(`Unsupported ${sel.name}(${sel.type})`, sel)
+        console.log(JSON.stringify(sel))
+        throwBug(`Unsupported Selector type=${sel.type} name=${sel.name}`, sel)
     }
   }
 
@@ -620,7 +841,7 @@ module.exports = class Applier extends EventEmitter {
     if (ticks > 0) {
       this.emit('PROGRESS_TICK', {type: 'CONVERTING', ticks: ticks})
     }
-    this.emit('PROGRESS_END', {type: 'CONVERTING'})
+    this.emit('PROGRESS_END', {type: 'CONVERTING', promise_count: allPromises.length})
     return allPromises
   }
 
@@ -659,8 +880,7 @@ module.exports = class Applier extends EventEmitter {
             return
           }
 
-
-          return Promise.all(this._pseudoElementPlugins.map((pseudoElementPlugin) => {
+          return Promise_all(this._pseudoElementPlugins.map((pseudoElementPlugin) => {
             const pseudoElementName = pseudoElementPlugin.getPseudoElementName()
 
             const matchedRulesAtDepth = rulesAtDepth.filter((rule) => {
@@ -695,32 +915,30 @@ module.exports = class Applier extends EventEmitter {
                   return matchedRuleWithPseudo.hasDepth(depth)
                 })
                 if (rulesAtDepth.length == 0) {
-                  return Promise.all([]) // skip the evaluation
+                  return null // skip the evaluation
                 }
 
-                return Promise.all([
+                return Promise_all([
                   this._evaluateRules(depth, reducedRules[index], $newLookupEl, $newElPromise, $debuggingEl),
                   recursePseudoElements(depth + 1, reducedRules[index], $newLookupEl, $newElPromise)
                 ])
 
               })
-              allPromises.push(Promise.all(promises))
-
+              allPromises.push(Promise_all(promises))
             }
-            return Promise.all(allPromises)
+            return Promise_all(allPromises)
 
-          }) ) // Promise.all
-
+          }))
         }
         // Start the evaluation
         const $elPromise = Promise.resolve($el)
-        return Promise.all([
+        return Promise_all([
           recursePseudoElements(0, rulesWithPseudos, $el, $elPromise),
           this._evaluateRules(-1 /*depth*/, rulesWithPseudos, $el, $elPromise, $el)
         ])
       }
 
     })
-    return Promise.all(allElementPromises)
+    return Promise_all(allElementPromises, Promise.resolve('Nothing to process'))
   }
 }

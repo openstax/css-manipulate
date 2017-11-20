@@ -4,7 +4,7 @@ const {throwError, throwBug} = require('./packet-builder')
 module.exports = {
   // Returns a triple of numbers to match https://www.w3.org/TR/CSS21/cascade.html#specificity
   // a rule can have multiple selectors. to find the specificity, we need to know which selector was matched
-  getSpecificity: (selector, depth) => {
+  getSpecificity: (selector, depth, selectorIndex) => {
     assert.is(depth >= -1) //TODO: Really should make depth be 0-based. it's -1 based because 0 is the depth of the array of pseudo-element selectors
 
     let idCount = 0                             // b (in the w3c spec)
@@ -14,20 +14,21 @@ module.exports = {
     selector.children.toArray().forEach((selectorItem) => {
       const {type} = selectorItem
       switch (type) {
-        case 'Id':
+        case 'IdSelector':
           idCount += 1
           break
-        case 'PseudoElement':
-        case 'Type': // element
+        case 'PseudoElementSelector':
+        case 'TypeSelector': // element
           elementNamesAndPseudoElementsCount += 1
           break
-        case 'Attribute':
-        case 'Class':
-        case 'PseudoClass': // could also be a pseudoelement (if it starts with "X")
+        case 'AttributeSelector':
+        case 'ClassSelector':
+        case 'PseudoClassSelector': // could also be a pseudoelement (if it starts with "X")
           attributesAndPseudoClassesCount += 1
           break
         case 'Universal':
         case 'Combinator':
+        case 'WhiteSpace':
           // TODO: Verify that these do not count
           break
         default:
@@ -35,7 +36,7 @@ module.exports = {
       }
     })
 
-    return [idCount, attributesAndPseudoClassesCount, elementNamesAndPseudoElementsCount]
+    return [idCount, attributesAndPseudoClassesCount, elementNamesAndPseudoElementsCount, selectorIndex]
   },
   // Compares 2 selectors as defined in http://www.w3.org/TR/CSS21/cascade.html#specificity
   //
@@ -58,6 +59,16 @@ module.exports = {
       return specificity1[1] - specificity2[1]
     } else if (specificity1[2] !== specificity2[2]) {
       return specificity1[2] - specificity2[2]
+    } else if (specificity1[3] !== null && specificity1[3] !== specificity2[3]) {
+      // Optionally we add the index of the selector to provide the final sorting
+      const diff = specificity1[3] - specificity2[3]
+      if (diff < 0) {
+        return -1
+      } else if (diff > 0) {
+        return 1
+      } else {
+        return 0
+      }
     } else {
       return 0
     }

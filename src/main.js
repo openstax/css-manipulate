@@ -1,6 +1,9 @@
 const fs = require('fs')
 const path = require('path')
 const {convertNodeJS, finish} = require('./helper/node')
+const {simpleConvertValueToString} = require('./helper/ast-tools')
+const {throwError} = require('./helper/packet-builder')
+
 const argv = require('yargs')
 .strict(true)
 .option('css', {
@@ -46,11 +49,16 @@ if (!htmlPath) { console.error('Missing HTML input file'); process.exit(1) }
 if (!htmlOutputPath) { console.error('Missing HTML output file'); process.exit(1) }
 
 
+cssPath = path.resolve(process.cwd(), cssPath)
+htmlPath = path.resolve(process.cwd(), htmlPath)
+htmlOutputPath = path.resolve(process.cwd(), htmlOutputPath)
+
 const htmlOutputLcovPath = `${htmlOutputPath}.lcov`
 const htmlOutputSourceMapPath = `${htmlOutputPath}.map`
+const htmlOutputVanillaCSSPath = `${htmlOutputPath}.css`
 const htmlOutputSourceMapFilename = path.basename(htmlOutputSourceMapPath)
-const cssContents = fs.readFileSync(cssPath)
-const htmlContents = fs.readFileSync(htmlPath)
+const cssContents = fs.readFileSync(cssPath, 'utf-8')
+const htmlContents = fs.readFileSync(htmlPath, 'utf-8')
 
 
 function coverageDataToLcov(htmlOutputPath, coverageData) {

@@ -8,7 +8,7 @@
   "scripts": {
     "prerebuild-tests": "./script/compile-css",
     "prestart": "./script/compile-css",
-    "rebuild-tests": "WRITE_TEST_RESULTS=true npm run-script test",
+    "rebuild-tests": "WRITE_TEST_RESULTS=true npm run-script test --",
     "start": "ava --watch --source '**/*.{js}' --source 'test/*.{css,in.html}' ./test/index.js",
     "preci": "ADD_COVERAGE=true webpack --config ./webpack.config.js",
     "ci": "nyc --reporter html --reporter text --reporter json ava ./test/index.js",
@@ -22,10 +22,11 @@
   },
   "dependencies": {
     "chalk": "^2.3.0",
-    "css-tree": "1.0.0-alpha14",
+    "css-tree": "https://github.com/philschatz/csstree#validate-sourcemap",
     "escape-html": "^1.0.3",
     "jquery": "^3.1.1",
     "mkdirp": "^0.5.1",
+    "mmmagic": "^0.4.5",
     "progress": "^2.0.0",
     "puppeteer": "^0.12.0",
     "sax": "^1.2.4",

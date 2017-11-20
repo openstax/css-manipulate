@@ -1,2 +1,2 @@
-  [2mtest/./unit/x-log.css:1:15[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/./unit/x-log.css:2:15[22m ([2mtest/./unit/x-log.in.xhtml:2:7[22m)
-  [2mtest/./unit/x-log.css:3:18[22m [34m[1mLOG[22m[39m encountered a .log-me ([2mtest/./unit/x-log.in.xhtml:3:8[22m)
+  [2mtest/unit/x-log.css:1:16[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/x-log.css:2:16[22m ([2mtest/unit/x-log.in.xhtml:2:7[22m)
+  [2mtest/unit/x-log.css:3:19[22m [34m[1mLOG[22m[39m encountered a .log-me ([2mtest/unit/x-log.in.xhtml:3:8[22m)

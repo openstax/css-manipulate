@@ -1,0 +1,15 @@
+div.foo::before {
+  border-color: green;
+}
+#special-snowflake {
+  background-color: blue;
+}
+#special-snowflake::before {
+  border: 1px solid blue;
+}
+.foo::before {
+  content: "Hello";
+  border: 1px solid blue;
+  border-color: yellow;
+}
+/*# sourceMappingURL=sandbox.css.map */
