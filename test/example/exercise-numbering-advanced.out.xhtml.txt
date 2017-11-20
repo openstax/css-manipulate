@@ -1,7 +1,7 @@
-  [2mtest/example/exercise-numbering-advanced.less:9:14[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/example/exercise-numbering-advanced.less:23:16[22m ([2mtest/./example/exercise-numbering-advanced.in.xhtml:11:15[22m)
+  [2mtest/example/exercise-numbering-advanced.less:9:14[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/example/exercise-numbering-advanced.less:23:16[22m ([2mtest/example/exercise-numbering-advanced.in.xhtml:11:15[22m)
 
 /----------------------------------------------------
-| Debugging data for [2m<<test/./example/exercise-numbering-advanced.in.xhtml:16:17>>[22m
+| Debugging data for [2m<<test/example/exercise-numbering-advanced.in.xhtml:16:17>>[22m
 | Matched Selectors:
 |   [2mtest/example/exercise-numbering-advanced.less:7:3[22m		[33m[1mexercise::before[22m[39m {...}
 |   [2mtest/example/exercise-numbering-advanced.less:22:5[22m		[33m[1mexercise.conceptual::before[22m[39m {...}
@@ -13,7 +13,7 @@
 \----------------------------------------------------
 
 /----------------------------------------------------
-| Debugging data for [2m<<test/./example/exercise-numbering-advanced.in.xhtml:16:17>>[22m
+| Debugging data for [2m<<test/example/exercise-numbering-advanced.in.xhtml:16:17>>[22m
 | Matched Selectors:
 | Applied Declarations:
 \----------------------------------------------------

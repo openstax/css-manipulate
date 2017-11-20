@@ -1,1 +1,1 @@
-  [2mtest/./unit/vanilla.css:34:13[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/./unit/vanilla.css:34:13[22m ([2mtest/./unit/vanilla.in.xhtml:8:6[22m)
+  [2mtest/unit/vanilla.css:34:13[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/vanilla.css:34:13[22m ([2mtest/unit/vanilla.in.xhtml:8:6[22m)

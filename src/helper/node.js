@@ -3,7 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const assert = require('assert')
 const mkdirp = require('mkdirp')
-// const jsdom = require('jsdom')
+const sax = require('sax')
 const jquery = require('jquery')
 const {SourceMapConsumer} = require('source-map')
 
@@ -20,6 +20,12 @@ let browserPromise = null // assigned on 1st attempt to convert
 
 let hasBeenWarned = false
 async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, options, packetHandler) {
+  // Ensure that the paths are absolute
+  cssPath = path.resolve(cssPath)
+  htmlPath = path.resolve(htmlPath)
+  htmlOutputPath = path.resolve(htmlOutputPath)
+
+
   const htmlSourcePathRelativeToSourceMapFile = toRelative(htmlOutputPath, htmlPath)
   const cssPathRelativeToSourceMapFile = toRelative(htmlOutputPath, cssPath)
   const cssPathRelativeToOutputHtmlPath = path.relative(path.dirname(htmlOutputPath), cssPath)
@@ -32,47 +38,7 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
 
 
   const selectorToLocationMap = {}
-  // Build up a mapping from selector to HTML line/column information so we can look it up when using the sourcemaps for messages or for the HTML output
-  // if (isXhtml) {
-  //   console.log('Setting to XML Parsing mode')
-  //   jsdomArgs = {contentType: 'application/xml', /*includeNodeLocations: true*/}
-  // } else {
-  //   jsdomArgs = {includeNodeLocations: true}
-  // }
-  // const dom = new jsdom.JSDOM(htmlContents, jsdomArgs)
-  // const {window} = dom
-  // const {document} = window
-  // // Traverse the document ()
-  // count = 0
-  // function walkDOMElementsInOrder(el, index, acc, fn) {
-  //   if ((el.tagName.toLowerCase() === 'span' || el.tagName.toLowerCase() === 'div') && el.childNodes.length === 0) {
-  //     console.log(`akjdhaksjhdaksjhd SKIPPING ${constructSelector(el)}`);
-  //     // skip counting because chrome removes it
-  //     // These elements are in the metadata and need to be fixed
-  //   } else if (el.getAttribute('data-type') === "cnx-archive-uri") {
-  //     console.log(`akjdhaksjhdaksjhd SKIPPING ${constructSelector(el)}`);
-  //   } else if (el.getAttribute('data-type') === "cnx-archive-shortid") {
-  //     console.log(`akjdhaksjhdaksjhd SKIPPING ${constructSelector(el)}`);
-  //   } else {
-  //     acc = fn(el, index, acc)
-  //     count += 1
-  //   }
-  //   if (el.firstElementChild) {
-  //     walkDOMElementsInOrder(el.firstElementChild, 1, acc, fn)
-  //   }
-  //   if (el.nextElementSibling) {
-  //     walkDOMElementsInOrder(el.nextElementSibling, index + 1, acc, fn)
-  //   }
-  // }
-  // walkDOMElementsInOrder(document.documentElement, 1, '', (el, index, acc) => {
-  //   const selector = constructSelector(el)
-  //   // selectorToLocationMap[selector] = dom.nodeLocation(el)
-  //   console.log(`jsdom: ${selector}`);
-  // })
-  // window.close()
-  // console.log('qiweuyqiuwye jsdomcount=' + count);
 
-  const sax = require('sax')
   const parser = sax.parser(true/*strict*/, {xmlns: true, position: true, lowercase: true})
 
   // Use the sax parser to get source line/column information from the XHTML document
@@ -160,13 +126,12 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
     const sourceMapURLPath = path.join(path.dirname(cssPath), cssSourceMappingURL)
     try {
       cssSourceMapJson = JSON.parse(fs.readFileSync(sourceMapURLPath).toString())
-      // TODO: Fix up all the paths to be relative to the output HTML file.
-      //        newStartPath = path.join(path.dirname(cssSourcePath), newStartPath)
       cssSourceMapJson.sources = cssSourceMapJson.sources.map((sourcePath) => {
+        // Keep the paths absolute
         return path.join(path.dirname(sourceMapURLPath), sourcePath)
       })
     } catch (e) {
-      showWarning(`sourceMappingURL was found in ${cssPath} but could not open the file ${sourceMapURLPath}`)
+      showWarning(`sourceMappingURL was found in ${path.relative(process.cwd(), cssPath)} but could not open the file ${sourceMapURLPath}`)
     }
   }
 
@@ -184,7 +149,7 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
   const browser = await browserPromise
   const page = await browser.newPage()
 
-  const url = `file://${path.resolve(htmlPath)}`
+  const url = `file://${htmlPath}`
 
   page.on('console', ({type, text}) => {
     if (type === 'warning') {
@@ -199,7 +164,7 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
         if (packetHandler) {
           packetHandler(json, htmlSourceLookupMap)
         } else {
-          renderPacket(json, htmlSourceLookupMap, options, true/*justRenderToConsole*/)
+          renderPacket(process.cwd(), json, htmlSourceLookupMap, options, true/*justRenderToConsole*/)
         }
       }
 
@@ -263,7 +228,7 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
 
   // CssPlus = (document, $, cssContents, cssSourcePath, htmlSourcePath, consol, htmlSourceLookup, htmlSourceFilename, sourceMapPath, rewriteSourceMapsFn, options)
   try {
-    ret = await page.evaluate(`CssPlus(window.document, window.jQuery, \`${escaped(cssContents)}\`, \`${escaped(cssPath)}\`, \`${escaped(htmlPath)}\`, console, function() { return '???sourceLookup123'}, \`${escaped(htmlPath)}\`, \`${escaped(sourceMapFileName)}\`, null, ${JSON.stringify(options)})`)
+    ret = await page.evaluate(`CssPlus(window.document, window.jQuery, \`${escaped(cssContents)}\`, \`${escaped(cssPath)}\`, \`${escaped(htmlPath)}\`, console, function() { return '???sourceLookup123'}, \`${escaped(htmlPath)}\`, \`${escaped(sourceMapFileName)}\`, null, ${JSON.stringify(options)}, \`${escaped(htmlOutputPath)}\`)`)
     await saveCoverage()
     await page.close()
   } catch (e) {

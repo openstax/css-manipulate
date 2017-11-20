@@ -49,6 +49,10 @@ if (!htmlPath) { console.error('Missing HTML input file'); process.exit(1) }
 if (!htmlOutputPath) { console.error('Missing HTML output file'); process.exit(1) }
 
 
+cssPath = path.resolve(process.cwd(), cssPath)
+htmlPath = path.resolve(process.cwd(), htmlPath)
+htmlOutputPath = path.resolve(process.cwd(), htmlOutputPath)
+
 const htmlOutputLcovPath = `${htmlOutputPath}.lcov`
 const htmlOutputSourceMapPath = `${htmlOutputPath}.map`
 const htmlOutputVanillaCSSPath = `${htmlOutputPath}.css`

@@ -1,3 +1,4 @@
+const path = require('path')
 const chalk = require('chalk')
 const ProgressBar = require('progress')
 
@@ -8,9 +9,17 @@ const logColor = chalk.blue.bold
 
 let currentProgressBar
 
-function renderPacket(json, htmlSourceLookupMap, argv, justRenderToConsole) {
+function renderPacket(cwd, json, htmlSourceLookupMap, argv, justRenderToConsole) {
   const {type} = json
   const output = []
+
+  function fileDetailsToString(htmlSourceLookupMap, htmlDetails) {
+    // try looking up the line/col info from the SAX-parsed lookup map
+    const details = Array.isArray(htmlDetails.location) ? htmlDetails.location.join(':') : htmlSourceLookupMap[htmlDetails.location] ? htmlSourceLookupMap[htmlDetails.location].join(':') : htmlDetails.location
+    return `${path.relative(cwd, htmlDetails.filename)}:${details}`
+  }
+
+
   if (type === 'LINT') {
     let {severity, message, css_file_info, html_file_info, additional_css_file_info} = json
     let color;
@@ -162,10 +171,5 @@ function renderPacket(json, htmlSourceLookupMap, argv, justRenderToConsole) {
   }
 }
 
-function fileDetailsToString(htmlSourceLookupMap, htmlDetails) {
-  // try looking up the line/col info from the SAX-parsed lookup map
-  const details = Array.isArray(htmlDetails.location) ? htmlDetails.location.join(':') : htmlSourceLookupMap[htmlDetails.location] ? htmlSourceLookupMap[htmlDetails.location].join(':') : htmlDetails.location
-  return `${htmlDetails.filename}:${details}`
-}
 
 module.exports = renderPacket

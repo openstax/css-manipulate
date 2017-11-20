@@ -12,7 +12,7 @@ const constructSelector = require('./helper/construct-selector')
 
 
 
-module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, consol, htmlSourceLookup, htmlSourceFilename, sourceMapPath, rewriteSourceMapsFn__Unused, options) => {
+module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, consol, htmlSourceLookup, htmlSourceFilename, sourceMapPath, rewriteSourceMapsFn__Unused, options, htmlOutputPath) => {
 
   errorInit(consol, htmlSourceLookup, htmlSourcePath, options)
 
@@ -170,6 +170,6 @@ module.exports = (document, $, cssContents, cssSourcePath, htmlSourcePath, conso
   // - assign the contents of a DOM node
 
   return allElementsDoneProcessingPromise.then(() => {
-    return serializer(engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, sourceMapPath, engine.getVanillaRules())
+    return serializer(engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, sourceMapPath, engine.getVanillaRules(), htmlOutputPath)
   })
 }

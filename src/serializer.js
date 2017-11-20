@@ -1,8 +1,9 @@
+const path = require('path')
 const csstree = require('css-tree')
 const escapeHtml = require('escape-html')
 const {SourceMapGenerator, SourceMapConsumer} = require('source-map')
 const constructSelector = require('./helper/construct-selector')
-const {showBug} = require('./helper/packet-builder')
+const {showBug, throwBug} = require('./helper/packet-builder')
 
 const DEBUGGING_NEWLINE = '' // Add newlines whene serializing to more-clearly see what is being mapped
 
@@ -19,7 +20,7 @@ function walkDOMNodesInOrder(el, startFn, endFn) {
 const SELF_CLOSING_TAGS = ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr']
 
 // We use a custom serializer so sourcemaps can be generated (we know the output line and columns for things)
-module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, htmlSourceMapPath, vanillaRules) => {
+module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, htmlSourceMapPath, vanillaRules, htmlOutputPath) => {
   const coverageData = {}
   const documentElement = engine.getRoot()
 
@@ -184,22 +185,22 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, 
               // Output the Vanilla CSS
               const mapJson = map.toJSON()
               mapJson.sources = mapJson.sources.map((source) => {
-                // HACK
-                console.log('HACK. Need to use the htmlOutputPath in order to make these CSS source paths relative');
-                debugger
-                return source.replace('test/unit/', '')
+                return path.relative(path.dirname(htmlOutputPath), source)
               })
-              mapJson.file = 'sandbox.out.xhtml.css'
-              debugger
               pushAndMap(node, css)
               // base64encode the sourcemap
               pushAndMap(node, `\n/*# sourceMappingURL=data:application/json;utf-8,${encodeURIComponent(JSON.stringify(mapJson))} */`)
-              console.log('asjkdhaskjhd');
-              console.log(JSON.stringify(mapJson));
+              // validate the output sourcemap
               const consumer = new SourceMapConsumer(mapJson)
+              let isValid = true
               consumer.eachMapping((mapping) => {
-                console.log(`SOURCEMAP source=${mapping.source} original=${mapping.originalLine}:${mapping.originalColumn+1} generated=${mapping.generatedLine}:${mapping.generatedColumn+1}`);
+                if (mapping.originalLine === null || mapping.originalColumn === null || mapping.generatedLine === null || mapping.generatedColumn === null) {
+                  isValid = false
+                }
               })
+              if (!isValid) {
+                throwBug(`CSS Source Mapping for the <style> element is buggy. Check the version of css-tree that is installed`)
+              }
 
               pushAndMap(node, '</style>', true)
 

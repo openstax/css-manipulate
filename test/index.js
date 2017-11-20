@@ -95,7 +95,7 @@ function buildTest(cssFilename, htmlFilename) {
     // Record all warnings/errors/bugs into an output file for diffing
     const actualStdout = []
     function packetHandler(packet, htmlSourceLookupMap) {
-      const message = renderPacket(packet, htmlSourceLookupMap, argv)
+      const message = renderPacket(process.cwd(), packet, htmlSourceLookupMap, argv)
       if (message) {
         actualStdout.push(message)
         if (WRITE_TEST_RESULTS === 'true') {
@@ -180,7 +180,7 @@ function buildErrorTests() {
       // Record all warnings/errors/bugs into an output file for diffing
       const actualStdout = []
       function packetHandler(packet, htmlSourceLookupMap) {
-        const message = renderPacket(packet, htmlSourceLookupMap, argv)
+        const message = renderPacket(process.cwd(), packet, htmlSourceLookupMap, argv)
         if (message) { // could've been a progress bar. in which case do not show anything
           actualStdout.push(message)
           if (WRITE_TEST_RESULTS === 'true') {
