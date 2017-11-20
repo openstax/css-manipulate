@@ -445,19 +445,7 @@ module.exports = class Applier extends EventEmitter {
   getVanillaRules() {
     const stylesheetAst = csstree.fromPlainObject({
       type: 'StyleSheet',
-      loc: {
-        source: 'blammo.css',
-        start: {
-          // offset: 1,
-          line: 1,
-          column: 1
-        },
-        end: {
-          // offset: 213,
-          line: 1,
-          column: 212
-        }
-      },
+      loc: null,
       children: Object.values(this._unprocessedRulesAndClassNames).map(({className, declaration: {selector, astNode}}) => {
         debugger
         return {

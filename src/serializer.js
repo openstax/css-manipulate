@@ -193,7 +193,7 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, 
               debugger
               pushAndMap(node, css)
               // base64encode the sourcemap
-              pushAndMap(node, `\n/*# sourceMappingURL=data:application/json;base64,${btoa(JSON.stringify(mapJson))} */`)
+              pushAndMap(node, `\n/*# sourceMappingURL=data:application/json;utf-8,${encodeURIComponent(JSON.stringify(mapJson))} */`)
               console.log('asjkdhaskjhd');
               console.log(JSON.stringify(mapJson));
               const consumer = new SourceMapConsumer(mapJson)
