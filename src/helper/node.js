@@ -1,7 +1,10 @@
-const puppeteer = require('puppeteer')
 const fs = require('fs')
 const path = require('path')
 const assert = require('assert')
+const puppeteer = require('puppeteer')
+const csstree = require('css-tree')
+const pify = require('pify')
+const {Magic, MAGIC_MIME_TYPE} = require('mmmagic')
 const mkdirp = require('mkdirp')
 const sax = require('sax')
 const jquery = require('jquery')
@@ -243,11 +246,63 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
     options
   }
   try {
-    const vanillaRules = await page.evaluate(`(function () {
+    let vanillaRules = await page.evaluate(`(function () {
       window.__instance = new CssPlus()
       return window.__instance.convertElements(window.document, window.jQuery, console, ${JSON.stringify(config)})
     }) ()`)
     // TODO: convert the vanillaRules to embed the images as data-URIs (based64 encoded)
+    // do extra serializing/deserializing so was can walk over the AST
+    vanillaRules = csstree.fromPlainObject(csstree.clone(vanillaRules))
+    const urls = []
+    csstree.walk(vanillaRules, (node) => {
+      if (node.type === 'Url') {
+        let relPath
+        switch (node.value.type) {
+          case 'String':
+            // unwrap the quotes
+            relPath = node.value.value.substring(1, node.value.value.length - 1)
+            break
+          case 'Raw':
+            relPath = node.value.value
+            // it should be ok below since we add quotes anyway so we do not need
+            // to change the type of this node
+            break
+          default:
+            throwBug(`Unsupported url argument type ${node.value.type}`)
+        }
+        const absPath = path.resolve(path.dirname(cssPath), relPath)
+        urls.push({node, absPath})
+      }
+    })
+
+    debugger
+    for (const urlPair of urls) {
+      // TODO: if it a real URL (`https://....`) then do not change anything
+      const {node, absPath} = urlPair
+
+      const magic = new Magic(MAGIC_MIME_TYPE)
+      const detect = pify(magic.detectFile.bind(magic))
+      const mimeType = await detect(absPath)
+      const buffer = fs.readFileSync(absPath)
+
+      let dataUri
+      // SVG is more efficient if it is just URI-Encoded (since it is not binary)
+      // Other image types should be base64-encoded
+      switch (mimeType) {
+        case 'text/html': // For some reason some SVG images are interpreted as text/html
+        case 'image/svg+xml':
+          dataUri = `data:image/svg+xml;charset%3Dutf-8,${encodeURIComponent(buffer.toString('utf8'))}`
+          break
+        // case 'image/png':
+        default:
+          dataUri = `data:${mimeType};base64,${buffer.toString('base64')}`
+      }
+      node.value.value = `"${dataUri}"`
+    }
+
+
+
+    vanillaRules = csstree.toPlainObject(vanillaRules)
     ret = await page.evaluate(`(function () {
       return window.__instance.serialize(${JSON.stringify(vanillaRules)})
     }) ()`)

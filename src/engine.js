@@ -210,7 +210,7 @@ module.exports = class Applier extends EventEmitter {
             this._$.xmlns[nsPrefix] = ns
             break
           default:
-            showWarning('Unrecognized at-rule. Skipping', rule)
+            showWarning('Unrecognized at-rule. Skipping. TODO: include it in the <style>', rule)
             return
         }
         return

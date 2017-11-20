@@ -300,14 +300,14 @@ To pause when evaluating an element, add `data-debugger="true"` to the element.
 - [x] Show colorful warnings
 - [x] Support attributes with a namespace (like `<div epub:type="glossary">` in [EPUB3 epub:type](http://www.idpf.org/epub/30/spec/epub30-contentdocs.html#sec-xhtml-content-type-attribute) )
 - [x] Support the original selectivity for vanilla declarations (having `padding: 0; padding-top: 1em;` is different than `padding-top: 1em; padding: 0;`)
-- [ ] output CSS should have 1 class for each selector (so sourcemaps will point to the original selector)
-- [ ] output CSS should have sourcemaps
-- [ ] Output <style> tags instead of foo.out.xhtml.css
-- construct output CSS using AST and https://github.com/csstree/csstree/blob/f7888dfd758179e8f825f8fed090108deea97618/docs/translate.md#translatewithsourcemapast
-- [ ] encode images into url() paths.
-  https://css-tricks.com/data-uris/
-  https://css-tricks.com/probably-dont-base64-svg/
-  Example: https://github.com/filamentgroup/grunticon/blob/master/example/output/icons.data.svg.css
+- [x] output CSS should have 1 class for each selector (so sourcemaps will point to the original selector)
+- [x] output CSS should have sourcemaps
+- [x] Output <style> tags instead of foo.out.xhtml.css
+- [x] construct output CSS using AST and https://github.com/csstree/csstree/blob/f7888dfd758179e8f825f8fed090108deea97618/docs/translate.md#translatewithsourcemapast
+- [x] encode images into url() paths.
+  - See https://css-tricks.com/data-uris/
+  - See https://css-tricks.com/probably-dont-base64-svg/
+  - Example: https://github.com/filamentgroup/grunticon/blob/master/example/output/icons.data.svg.css
 
 
 

@@ -2,11 +2,14 @@
  * Backticks should be parseable: ``
  */
 
-.body::after(1) {
+body::after(1) {
+  content: "An SVG image followed by a PNG image encoded in the CSS";
+}
+body::after(2) {
   content: url('./vanilla.svg');
 }
-.body::after(2) {
-  content: url('./vanilla.png');
+body::after(3) {
+  content: url(vanilla.png);
 }
 
 .example {
