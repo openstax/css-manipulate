@@ -57,8 +57,8 @@ const htmlOutputLcovPath = `${htmlOutputPath}.lcov`
 const htmlOutputSourceMapPath = `${htmlOutputPath}.map`
 const htmlOutputVanillaCSSPath = `${htmlOutputPath}.css`
 const htmlOutputSourceMapFilename = path.basename(htmlOutputSourceMapPath)
-const cssContents = fs.readFileSync(cssPath)
-const htmlContents = fs.readFileSync(htmlPath)
+const cssContents = fs.readFileSync(cssPath, 'utf-8')
+const htmlContents = fs.readFileSync(htmlPath, 'utf-8')
 
 
 function coverageDataToLcov(htmlOutputPath, coverageData) {

@@ -20,7 +20,7 @@ function walkDOMNodesInOrder(el, startFn, endFn) {
 const SELF_CLOSING_TAGS = ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr']
 
 // We use a custom serializer so sourcemaps can be generated (we know the output line and columns for things)
-module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, htmlSourceMapPath, vanillaRules, htmlOutputPath) => {
+module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, vanillaRules, htmlOutputPath) => {
   const coverageData = {}
   const documentElement = engine.getRoot()
 
@@ -55,7 +55,7 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceFilename, 
       originalColumn = startColumn
 
     } else if (locationInfo && locationInfo.line !== null) { // Some nodes like <head> do not have location info?
-      sourceFilePath = htmlSourceFilename
+      sourceFilePath = htmlSourcePath
       if (isEndTag && locationInfo.endTag) { // self-closing tags do not have an endTag
         originalLine = locationInfo.endTag.line
         originalColumn = locationInfo.endTag.col

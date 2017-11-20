@@ -8,7 +8,7 @@ const jquery = require('jquery')
 const {SourceMapConsumer} = require('source-map')
 
 const converter = require('../converter')
-const {showWarning} = require('./packet-builder')
+const {showWarning, throwBug} = require('./packet-builder')
 const renderPacket = require('./packet-render')
 const constructSelector = require('./construct-selector')
 
@@ -24,6 +24,14 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
   cssPath = path.resolve(cssPath)
   htmlPath = path.resolve(htmlPath)
   htmlOutputPath = path.resolve(htmlOutputPath)
+
+  // Ensure that the cssContents and htmlContents are strings (not buffers)
+  if (typeof cssContents !== 'string') {
+    throwBug(`Expected cssContents to be a string but it was ${typeof cssContents}`)
+  }
+  if (typeof htmlContents !== 'string') {
+    throwBug(`Expected htmlContents to be a string but it was ${typeof htmlContents}`)
+  }
 
 
   const htmlSourcePathRelativeToSourceMapFile = toRelative(htmlOutputPath, htmlPath)
@@ -226,9 +234,16 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
   let ret
   let err
 
-  // CssPlus = (document, $, cssContents, cssSourcePath, htmlSourcePath, consol, htmlSourceLookup, htmlSourceFilename, sourceMapPath, rewriteSourceMapsFn, options)
+  const config = {
+    cssContents,
+    cssSourcePath: cssPath,
+    htmlSourcePath: htmlPath,
+    sourceMapPath: sourceMapFileName,
+    htmlOutputPath,
+    options
+  }
   try {
-    ret = await page.evaluate(`CssPlus(window.document, window.jQuery, \`${escaped(cssContents)}\`, \`${escaped(cssPath)}\`, \`${escaped(htmlPath)}\`, console, function() { return '???sourceLookup123'}, \`${escaped(htmlPath)}\`, \`${escaped(sourceMapFileName)}\`, null, ${JSON.stringify(options)}, \`${escaped(htmlOutputPath)}\`)`)
+    ret = await page.evaluate(`CssPlus(window.document, window.jQuery, console, ${JSON.stringify(config)})`)
     await saveCoverage()
     await page.close()
   } catch (e) {
