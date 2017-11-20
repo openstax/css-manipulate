@@ -243,7 +243,14 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
     options
   }
   try {
-    ret = await page.evaluate(`CssPlus(window.document, window.jQuery, console, ${JSON.stringify(config)})`)
+    const vanillaRules = await page.evaluate(`(function () {
+      window.__instance = new CssPlus()
+      return window.__instance.convertElements(window.document, window.jQuery, console, ${JSON.stringify(config)})
+    }) ()`)
+    // TODO: convert the vanillaRules to embed the images as data-URIs (based64 encoded)
+    ret = await page.evaluate(`(function () {
+      return window.__instance.serialize(${JSON.stringify(vanillaRules)})
+    }) ()`)
     await saveCoverage()
     await page.close()
   } catch (e) {

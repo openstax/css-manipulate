@@ -2,8 +2,11 @@
  * Backticks should be parseable: ``
  */
 
-.body::after {
-  content: url('some-icon-with-quote-in-name".png');
+.body::after(1) {
+  content: url('./vanilla.svg');
+}
+.body::after(2) {
+  content: url('./vanilla.png');
 }
 
 .example {

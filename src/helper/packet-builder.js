@@ -162,7 +162,6 @@ function showDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclaration
                     return htmlLocation(el)
                   })
                 } else {
-                  debugger
                   return v2
                 }
               })

@@ -447,7 +447,6 @@ module.exports = class Applier extends EventEmitter {
       type: 'StyleSheet',
       loc: null,
       children: Object.values(this._unprocessedRulesAndClassNames).map(({className, declaration: {selector, astNode}}) => {
-        debugger
         return {
           type: 'Rule',
           loc: astNode.loc,
@@ -484,7 +483,6 @@ module.exports = class Applier extends EventEmitter {
         }
       })
     })
-    debugger
     return stylesheetAst
   }
 

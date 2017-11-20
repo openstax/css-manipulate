@@ -85,7 +85,6 @@ function renderPacket(cwd, json, htmlSourceLookupMap, argv, justRenderToConsole)
                           return sourceColor(`<<${fileDetailsToString(htmlSourceLookupMap, elDetails)}>>`)
                         }).join(', ')
                       } else {
-                        debugger
                         return v2
                       }
                     }).join(' ')
