@@ -1,4 +1,4 @@
-@collated-exercise-classes: .homework, .conceptual;
+@collated-exercise-classes: ".homework", ".conceptual";
 @collated-exercise-sel: exercise.homework, exercise.conceptual;
 
 // Number collated exercises on their own
@@ -6,15 +6,27 @@ exercise {
   // Number exercises by how they occur in the chapter
   &::before(1) {
     tag-name-set: 'strong';
-    content: ancestor-context('chapter', count-of-type('exercise:not(@{collated-exercise-classes})')) '. ';
+    content: ancestor-context('chapter', count-of-type('exercise:not(@{collated-exercise-sel})')) '. ';
   }
 
-  &@{collated-exercise-classes} {
-    &::before(1) {
-      tag-name-set: 'strong';
-      content: ancestor-context('chapter', count-of-type('@{collated-exercise-sel}')) '. ';
+  .loop(@counter) when (@counter <= length(@collated-exercise-classes)) {
+    .loop(@counter + 1);
+    @selector: e(extract(@collated-exercise-classes, @counter));
+    &@{selector} {
+      &::before(1) {
+        tag-name-set: 'strong';
+        content: ancestor-context('chapter', count-of-type('@{collated-exercise-sel}')) '. ';
+      }
     }
   }
+  .loop(1);
+
+  // &@{collated-exercise-classes} {
+  //   &::before(1) {
+  //     tag-name-set: 'strong';
+  //     content: ancestor-context('chapter', count-of-type('@{collated-exercise-sel}')) '. ';
+  //   }
+  // }
 }
 
 chapter::after(1) {

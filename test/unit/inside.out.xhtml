@@ -6,8 +6,16 @@
 
 TODO: It seems nested inside elements do not work yet.
 
-<section class="match2"><span data-pseudo="inside(2)" class="level2">World</span></section>
-<section class="match2"><span data-pseudo="inside(2)" class="level2">World</span></section>
+<section class="match2"><span data-pseudo="inside(1)" class="level1">Howdy</span><span data-pseudo="inside(2)" class="level2">World</span></section>
+<section class="match2"><span data-pseudo="inside(1)" class="level1">Howdy</span><span data-pseudo="inside(2)" class="level2">World</span></section>
+
+
+<section class="match3"><span data-pseudo="before(2)">I should be a sibling of the ::inside element, not inside it</span><span data-pseudo="before(1)">I should be a sibling of the ::inside element, not inside it</span><span data-pseudo="inside(1)" class="wrapper">
+  text
+  <span>kittens1</span>
+  <strong class="tagnamechange">kittens2</strong>
+  <span>kittens3</span>
+</span><span data-pseudo="after(1)">I should be a sibling of the ::inside element, not inside it</span><span data-pseudo="after(2)">I should be a sibling of the ::inside element, not inside it</span></section>
 
 </body>
 
