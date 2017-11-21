@@ -25,3 +25,4 @@ body { content: add(234, 'not a number2'); }
 body { content: add('not a number3', 345); }
 body { content 'missing-colon'; } /* CSS Parsing Error. Missing colon */
 body:hover { color: blue; }
+body::has(.foo) { }
