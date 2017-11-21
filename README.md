@@ -10,7 +10,7 @@
 
 # Why use CSS to transform the DOM?
 
-Book authors need a way to style their book for a PDF and ePUB. Sometimes they need additional elements to properly style. They also need a way to number and move elements around, like solutions in the back of the book. 
+Book authors need a way to style their book for a PDF and ePUB. Sometimes they need additional elements to properly style. They also need a way to number and move elements around, like solutions in the back of the book.
 
 Rather than letting them write JavaScript and execute arbitrary code, authors can describe both the styling and the movement of elements in the same file.
 
@@ -316,7 +316,10 @@ To pause when evaluating an element, add `data-debugger="true"` to the element.
   - See https://css-tricks.com/data-uris/
   - See https://css-tricks.com/probably-dont-base64-svg/
   - Example: https://github.com/filamentgroup/grunticon/blob/master/example/output/icons.data.svg.css
-
+- [ ] warn/error about unused selectors and declarations (useful while developing to make sure you seleected something)
+- [ ] create a `debugger: true;` declaration so you do not have to edit the HTML file to set a breakpoint
+- [ ] create a `content: inject-svg(/path/to/file.svg)` maybe? Or an `xinclude: ` declaration so we can inject SVG files withough having to rely on background-image's
+- [ ] create an `::inside-matches(1, '> selector')` so we can wrap the body of a note but not the title... actually, we could just move the title so maybe done
 
 
 [kanban-image]: https://img.shields.io/github/issues/philschatz/css-plus.svg?label=kanban%20board%20%28gh-board%29

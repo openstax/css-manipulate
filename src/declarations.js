@@ -1,5 +1,5 @@
 const assert = require('./helper/assert')
-const {showLog, throwError} = require('./helper/packet-builder')
+const {showLog, throwError, throwBug} = require('./helper/packet-builder')
 const ExplicitlyThrownError = require('./x-throw-error')
 
 class RuleDeclaration {
@@ -80,9 +80,21 @@ DECLARATIONS.push(new RuleDeclaration('content', ($, $lookupEl, $elPromise, vals
         textNode.__cssLocation = astNode
         $el[0].appendChild(textNode) // use the DOM append so the __cssLocation on the textNode is preserved
         // $el.append(textNode)
-      } else {
+      } else if (val.jquery) {
         // we are likely moving nodes around so just keep them.
-        $el.append(val)
+
+        // check if the tagnames of elements were moved (there's a pointer to the new node)
+        const $val = val.toArray().map((el) => {
+          if (el.__pointerToNewElement) {
+            return el.__pointerToNewElement
+          } else {
+            return el
+          }
+        })
+
+        $el.append($val)
+      } else {
+        throwBug(`Moved unknown object type. Expected it to be a string, number, or set of elements`, astNode, $lookupEl)
       }
     })
     return $el
@@ -262,6 +274,12 @@ DECLARATIONS.push(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise,
     assert.equal($el.length, 1, astNode, $lookupEl) // Just check for now, could be lifted later
     // TODO: This needs to somehow percolate to children
     const $newTagNames = replaceTagName.bind($el)(tagName)
+
+    // for things like move-here that remember the old element during the collect phase,
+    // we need to give them a way to look up the new element so they can use it instead
+    $el.contents('IF_YOU_SEE_THIS_THEN_IT_IS_A_TAG_NAME_SET_BUG_MAYBE_THE_SERIALIZER_SHOULD_THROW_A_BUG_WHEN_IT_SEES_THIS_STRING')
+    $el[0].__pointerToNewElement = $newTagNames[0]
+
     // It's very important to edit the existing $el
     // since elements further down the promise chain need to be sure to keep mutating those new elements
     $el[0] = $newTagNames[0]

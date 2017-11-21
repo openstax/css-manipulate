@@ -1,0 +1,9 @@
+/* Moving an element whose tag name is changed caused the contents of the element to disappear */
+
+.re-tag-name {
+  tag-name-set: 'h2';
+}
+
+.destination::before {
+  content: move-here('.source');
+}

@@ -275,7 +275,6 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
       }
     })
 
-    debugger
     for (const urlPair of urls) {
       // TODO: if it a real URL (`https://....`) then do not change anything
       const {node, absPath} = urlPair
