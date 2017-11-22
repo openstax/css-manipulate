@@ -250,6 +250,14 @@ module.exports = class Applier extends EventEmitter {
 
         $matchedNodes = this._filterByPseudoClassName($matchedNodes, selector, -1/*depth*/)
 
+        if ($matchedNodes.length === 0) {
+          // TODO: Maybe hide this behind a --verbose flag
+          debugger
+          const selectorChildren = selector.children.toArray()
+          // use the last one. to have a more precise location
+          showWarning('Unused selector', selectorChildren[selectorChildren.length - 1])
+        }
+
         $matchedNodes.each((index, el) => {
           el.MATCHED_RULES = el.MATCHED_RULES || []
           el.MATCHED_RULES.push({rule, selector})

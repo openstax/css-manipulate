@@ -1,0 +1,7 @@
+/*
+ * Backticks should be parseable: ``
+ */
+
+body.unused {
+  content: 'BROKEN';
+}

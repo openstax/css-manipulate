@@ -320,6 +320,8 @@ To pause when evaluating an element, add `data-debugger="true"` to the element.
 - [ ] create a `debugger: true;` declaration so you do not have to edit the HTML file to set a breakpoint
 - [ ] create a `content: inject-svg(/path/to/file.svg)` maybe? Or an `xinclude: ` declaration so we can inject SVG files withough having to rely on background-image's
 - [ ] create an `::inside-matches(1, '> selector')` so we can wrap the body of a note but not the title... actually, we could just move the title so maybe done
+- [ ] add a function that converts a number to upper-al lower-alpha arabic roman, etc
+- [ ] add a `count-ancestors-of-type(selector)` to determine heading level (h1, h2, h3, ...)
 
 
 [kanban-image]: https://img.shields.io/github/issues/philschatz/css-plus.svg?label=kanban%20board%20%28gh-board%29
