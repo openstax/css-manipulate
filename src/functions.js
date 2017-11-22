@@ -67,16 +67,20 @@ FUNCTIONS.push(new FunctionEvaluator('this', ($, {$contextEl}, $currentEl, evalu
 } ))
 FUNCTIONS.push(new FunctionEvaluator('add', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
   const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
-  assert.is(vals.length >= 2, astNode, $currentEl, 'Missing argument')
-  assert.equal(vals[0].length, 1, astNode, $currentEl, 'First argument must have 1 value')
-  assert.equal(vals[1].length, 1, astNode, $currentEl, 'Second argument must have 1 value')
+  assert.is(vals.length >= 2, astNode, $currentEl, 'Missing argument (at least 2 are needed)')
   let sum = 0
-  vals.forEach(([val], index) => {
-    val = Number.parseInt(val)
-    if (Number.isNaN(val)) {
-      throwError(`Argument ${index} must be an integer but it was '${val}'`, astNode, $currentEl)
+  vals.forEach((value, index) => {
+    assert.equal(value.length, 1, astNode, $currentEl, `Argument ${index + 1} must be a single number but it actually contains ${value.length} items`)
+    const val = value[0]
+    const v = Number.parseInt(val)
+    if (Number.isNaN(v)) {
+      if (val.jquery) {
+        throwError(`Argument ${index + 1} must be a number but it was a set of HTML nodes`, astNode, $currentEl)
+      } else {
+        throwError(`Argument ${index + 1} must be a number but it was '${val}'`, astNode, $currentEl)
+      }
     }
-    sum += val
+    sum += v
   })
   return sum
 } ))

@@ -10,9 +10,13 @@ function assertIs(val, astNode, $el, message) {
     throwBug(`Assertion failed. Reason: ${message}`, astNode, $el)
   }
 }
-function assertEqual(actual, expected, astNode, $el) {
+function assertEqual(actual, expected, astNode, $el, message) {
   if (expected !== actual) {
-    throwBug(`Assertion failed. Expected ${expected} but got ${actual}`, astNode, $el)
+    if (message) {
+      throwBug(`Assertion failed. Reason: ${message}`, astNode, $el)
+    } else {
+      throwBug(`Assertion failed. Expected ${expected} but got ${actual}`, astNode, $el)
+    }
   }
 }
 
