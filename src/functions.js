@@ -67,18 +67,18 @@ FUNCTIONS.push(new FunctionEvaluator('this', ($, {$contextEl}, $currentEl, evalu
 } ))
 FUNCTIONS.push(new FunctionEvaluator('add', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
   const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
-  assert.equal(vals.length, 2, astNode, $currentEl, 'Missing argument')
+  assert.is(vals.length >= 2, astNode, $currentEl, 'Missing argument')
   assert.equal(vals[0].length, 1, astNode, $currentEl, 'First argument must have 1 value')
   assert.equal(vals[1].length, 1, astNode, $currentEl, 'Second argument must have 1 value')
-  const val1 = Number.parseInt(vals[0][0])
-  const val2 = Number.parseInt(vals[1][0])
-  if (Number.isNaN(val1)) {
-    throwError(`First argument must be an integer but it was '${vals[0]}'`, astNode, $currentEl)
-  }
-  if (Number.isNaN(val2)) {
-    throwError(`Second argument must be an integer but it was '${vals[1]}'`, astNode, $currentEl)
-  }
-  return val1 + val2
+  let sum = 0
+  vals.forEach(([val], index) => {
+    val = Number.parseInt(val)
+    if (Number.isNaN(val)) {
+      throwError(`Argument ${index} must be an integer but it was '${val}'`, astNode, $currentEl)
+    }
+    sum += val
+  })
+  return sum
 } ))
 FUNCTIONS.push(new FunctionEvaluator('collect-all', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
   const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)

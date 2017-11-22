@@ -94,7 +94,7 @@ The rest:
 - `count-of-type('.selector')` counts the number of items matching this selector up until the current element (used for numbering)
   - combined with `ancestor-context(...)` this gives a similar set of features as `counter-reset: counterName;` and `content: counter(counterName);` but very different implementation
 - `count-all-of-type('.selector')` counts the number of items matching this selector (used for offsetting numbers as a HACK around not being able to number after elements have moved)
-- `add(12, 23)` adds 2 numbers (used for adjusting the result of `count-of-type(...)`)
+- `add(12, 23, 34)` adds 2 or more numbers (used for adjusting the result of `count-of-type(...)`)
 - `collect-all("Figure" 1 "." 3)` collects all the fields into a string. Useful for computing a link target because `target-context(...)` only allows 2 arguments
 - `x-tag-name()` find out current elements' tag name (ie 'div', 'pre', 'h1')
 - `x-throw()` throws an error (useful for unit tests)
