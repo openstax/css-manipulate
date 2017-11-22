@@ -81,7 +81,7 @@ function renderPacket(cwd, json, htmlSourceLookupMap, argv, justRenderToConsole)
                         return chalk.cyan(v2)
                       } else if (Array.isArray(v2)) {
                         // moved elements
-                        return v2.toArray().map((elDetails) => {
+                        return v2.map((elDetails) => {
                           return sourceColor(`<<${fileDetailsToString(htmlSourceLookupMap, elDetails)}>>`)
                         }).join(', ')
                       } else {
