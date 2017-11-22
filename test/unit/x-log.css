@@ -1,5 +1,5 @@
 body { x-log: "EXPLODE"; }
-body { x-log: none; }
+body { x-log: default; }
 .log-me { x-log: "encountered a .log-me"; }
 
 /* This is added here just because x-throw only has one case when it will not error

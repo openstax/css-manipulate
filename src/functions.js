@@ -59,6 +59,12 @@ FUNCTIONS.push(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, evalu
   }
   return ret
 } ))
+FUNCTIONS.push(new FunctionEvaluator('this', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+  // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
+  assert.equal($contextEl.length, 1)
+  // TODO: This still does not output properly
+  return $contextEl
+} ))
 FUNCTIONS.push(new FunctionEvaluator('add', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
   const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
   assert.equal(vals.length, 2, astNode, $currentEl, 'Missing argument')
@@ -73,6 +79,11 @@ FUNCTIONS.push(new FunctionEvaluator('add', ($, {$contextEl}, $currentEl, evalua
     throwError(`Second argument must be an integer but it was '${vals[1]}'`, astNode, $currentEl)
   }
   return val1 + val2
+} ))
+FUNCTIONS.push(new FunctionEvaluator('collect-all', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
+  const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)
+  assert.equal(vals.length, 1, astNode, $currentEl, 'Missing argument')
+  return vals[0].join('')
 } ))
 FUNCTIONS.push(new FunctionEvaluator('x-tag-name', ($, {$contextEl}, $currentEl, evaluator, argExprs, mutationPromise, astNode) => {
   const vals = evaluator({$contextEl}, $currentEl, mutationPromise, argExprs)

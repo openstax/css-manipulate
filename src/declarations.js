@@ -35,7 +35,7 @@ DECLARATIONS.push(new RuleDeclaration('x-log', ($, $lookupEl, $elPromise, vals, 
   assert.is(vals.length >= 1, astNode, $lookupEl)
   // Do nothing when set to none;
   // TODO: verify that it is not the string "none" (also needed for format-number())
-  if (vals[0][0] === 'none') {
+  if (vals[0][0] === 'default') {
     assert.equal(vals.length, 1)
     assert.equal(vals[0].length, 1)
     return $elPromise
@@ -222,6 +222,7 @@ DECLARATIONS.push(new RuleDeclaration('x-display', ($, $lookupEl, $elPromise, va
 
     $el.attr('data-debug-was-explicitly-detached', true)
     $el.detach()
+    // TODO: Offer an option to add a comment instead
     $el[0].__cssLocation = astNode
     // It's very important to edit the existing $el
     // since elements further down the promise chain need to be sure to keep mutating those new elements

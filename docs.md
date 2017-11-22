@@ -64,7 +64,7 @@ Each declaration can also take the value of `none` (like `class-add: none;`) to 
 - `attrs-remove: "name1", "name2";` (or `attrs-remove: '*';` to remove all)
 - `tag-name-set: "tagName";` : changes the element name (`div`, `a`, `strong`)
 - `display: none;` or `display: default;` : removes the element from the DOM
-- `x-log: "message" "or elements:" move-here('.foo');` : generates a log message for debugging
+- `x-log: "message or elements:" move-here('.foo');` : generates a log message for debugging (can specify `default` to suppress the log message)
 - `x-throw: now;` or `x-throw: later;` or `x-throw: attr(href);` : used by unit tests to intentionally explode
 
 **TODO:** Consider dropping the `x-` prefix because it is cumbersome to type
@@ -95,6 +95,7 @@ The rest:
   - combined with `ancestor-context(...)` this gives a similar set of features as `counter-reset: counterName;` and `content: counter(counterName);` but very different implementation
 - `count-all-of-type('.selector')` counts the number of items matching this selector (used for offsetting numbers as a HACK around not being able to number after elements have moved)
 - `add(12, 23)` adds 2 numbers (used for adjusting the result of `count-of-type(...)`)
+- `collect-all("Figure" 1 "." 3)` collects all the fields into a string. Useful for computing a link target because `target-context(...)` only allows 2 arguments
 - `x-tag-name()` find out current elements' tag name (ie 'div', 'pre', 'h1')
 - `x-throw()` throws an error (useful for unit tests)
 
