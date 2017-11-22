@@ -1,4 +1,4 @@
-Hey! I manually grafted together a Raw HTML file for entrepreneurship and tried writing the recipe using https://github.com/philschatz/css-plus and tried adding in the styling that is in https://github.com/Connexions/oer.exports/pull/3019 .
+Hey! I manually grafted together a Raw HTML file for entrepreneurship and tried writing the recipe using [https://github.com/philschatz/css-plus](https://github.com/philschatz/css-plus) and tried adding in the styling that is in [https://github.com/Connexions/oer.exports/pull/3019](https://github.com/Connexions/oer.exports/pull/3019) .
 
 I didn't complete everything but I got to a point where I thought it would be worth showing.
 
@@ -15,9 +15,9 @@ Some of the things that are not perfect:
 
 Links to files:
 
-- Viewable (& inspectable with sourcemaps) HTML: http://philschatz.com/css-plus/data/entrepreneurship-baked.xhtml
-- Raw HTML source: http://philschatz.com/css-plus/data/entrepreneurship-raw.xhtml
-- LESS source: https://github.com/philschatz/css-plus/blob/gh-pages/data/style.less
+- Viewable (& inspectable with sourcemaps) HTML: [http://philschatz.com/css-plus/data/entrepreneurship-baked.xhtml](http://philschatz.com/css-plus/data/entrepreneurship-baked.xhtml)
+- Raw HTML source: [http://philschatz.com/css-plus/data/entrepreneurship-raw.xhtml](http://philschatz.com/css-plus/data/entrepreneurship-raw.xhtml)
+- LESS source: [https://github.com/philschatz/css-plus/blob/gh-pages/data/style.less](https://github.com/philschatz/css-plus/blob/gh-pages/data/style.less)
 - Instructions for running it locally:
 
 ```sh
