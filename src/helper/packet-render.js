@@ -9,6 +9,8 @@ const logColor = chalk.blue.bold
 
 let currentProgressBar
 
+const warningCache = {}
+
 function renderPacket(cwd, json, htmlSourceLookupMap, argv, justRenderToConsole) {
   const {type} = json
   const output = []
@@ -32,9 +34,11 @@ function renderPacket(cwd, json, htmlSourceLookupMap, argv, justRenderToConsole)
     } else {
       throw new Error(`Invalid severity: ${severity}`)
     }
+
     if (additional_css_file_info) {
       message = `${message}${sourceColor(fileDetailsToString(htmlSourceLookupMap, additional_css_file_info))}`
     }
+
     if (!css_file_info) {
       if (html_file_info) {
         output.push(`${color(severity)} ${message} (${sourceColor(fileDetailsToString(htmlSourceLookupMap, html_file_info))})`)
@@ -48,6 +52,20 @@ function renderPacket(cwd, json, htmlSourceLookupMap, argv, justRenderToConsole)
       } else {
         output.push(`  ${sourceColor(cssInfo)} ${color(severity)} ${message}`)
       }
+
+      // Cull the number of warning messages by skipping repeats (or close-to-repeats)
+      // only do it when there is a CSS location so "Unused Selector" warnings will all show up (they have a unique entry in `warningCache`)
+      if (warningCache[`${cssInfo} ${message}`] && !argv.verbose && severity === 'WARN') {
+        if (justRenderToConsole) {
+          // do nothing
+          return
+        } else {
+          return ''
+        }
+      } else {
+        warningCache[`${cssInfo} ${message}`] = true
+      }
+
     }
 
     // if (severity === 'BUG' || severity === 'ERROR') {

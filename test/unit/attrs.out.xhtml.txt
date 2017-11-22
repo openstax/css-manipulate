@@ -1,1 +1,8 @@
   [2mtest/unit/attrs.css:13:18[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/attrs.css:15:18[22m ([2mtest/unit/attrs.in.xhtml:8:5[22m)
+  [2mtest/unit/attrs.css:12:15[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/attrs.css:14:15[22m ([2mtest/unit/attrs.in.xhtml:8:5[22m)
+  [2mtest/unit/attrs.css:17:18[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/attrs.css:18:18[22m ([2mtest/unit/attrs.in.xhtml:8:5[22m)
+  [2mtest/unit/attrs.css:12:15[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/attrs.css:23:15[22m ([2mtest/unit/attrs.in.xhtml:10:5[22m)
+  [2mtest/unit/attrs.css:14:15[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/attrs.css:23:15[22m ([2mtest/unit/attrs.in.xhtml:10:5[22m)
+  [2mtest/unit/attrs.css:17:18[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/attrs.css:22:18[22m ([2mtest/unit/attrs.in.xhtml:10:5[22m)
+  [2mtest/unit/attrs.css:18:18[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/attrs.css:22:18[22m ([2mtest/unit/attrs.in.xhtml:10:5[22m)
+  [2mtest/unit/attrs.css:28:18[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/attrs.css:29:18[22m ([2mtest/unit/attrs.in.xhtml:12:10[22m)

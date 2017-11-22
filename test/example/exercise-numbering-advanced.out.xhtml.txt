@@ -17,3 +17,4 @@
 | Matched Selectors:
 | Applied Declarations:
 \----------------------------------------------------
+  [2mtest/example/exercise-numbering-advanced.less:9:14[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/example/exercise-numbering-advanced.less:14:16[22m ([2mtest/example/exercise-numbering-advanced.in.xhtml:22:15[22m)

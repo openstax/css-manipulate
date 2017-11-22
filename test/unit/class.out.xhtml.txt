@@ -1,1 +1,3 @@
   [2mtest/unit/class.css:13:18[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/class.css:15:18[22m ([2mtest/unit/class.in.xhtml:8:5[22m)
+  [2mtest/unit/class.css:12:15[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/class.css:14:15[22m ([2mtest/unit/class.in.xhtml:8:5[22m)
+  [2mtest/unit/class.css:20:18[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/class.css:21:18[22m ([2mtest/unit/class.in.xhtml:10:10[22m)

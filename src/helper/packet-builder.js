@@ -119,13 +119,8 @@ function throwBug(message, cssSnippet, $el, err) {
   }
 }
 
-const displayedWarningCache = {} // Only show a warning for a particular source line once. Otherwise it is annoying
 function showWarning(message, cssSnippet, $el, additionalCssSnippet) {
-  const key = `${cssSnippetToJson(cssSnippet)} | ${message}`
-  if (!displayedWarningCache[key] || _options.verbose) {
-    sendLintMessage('WARN', message, cssSnippet, $el, additionalCssSnippet)
-    displayedWarningCache[key] = true
-  }
+  sendLintMessage('WARN', message, cssSnippet, $el, additionalCssSnippet)
 }
 
 function showLog(message, cssSnippet, $el) {

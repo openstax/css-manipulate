@@ -1,1 +1,2 @@
+  [2mtest/unit/simple-selectors.css:5:2[22m [33m[1mWARN[22m[39m Unused selector
   [2mtest/unit/simple-selectors.css:2:35[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/simple-selectors.css:3:35[22m ([2mtest/unit/simple-selectors.in.xhtml:6:5[22m)
