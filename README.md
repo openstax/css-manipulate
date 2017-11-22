@@ -8,6 +8,46 @@
 [![greenkeeper][greenkeeper-image]][greenkeeper-url]
 
 
+# What is this?
+
+This is a language that describes how to move and number HTML elements in a document.
+It is being used to make textbooks.
+
+# How do I try it out?
+
+fiddle, npm install
+
+# What does it look like?
+
+
+# How does it work?
+
+Headless chrome opens the HTML file up
+selectors are matched
+- the rule declarations are resolved using CSS specificity
+- the DOM is annotated with the work to be done
+- Any non-interpretable CSS (ie `background-color: blue;` is collected and `-autogen-###` classes are added to the DOM
+
+the DOM is walked in order (the order is not necessary)
+- Closures are created that will change the DOM
+- any other data is looked up at this point and included in the closure
+- these closures become a Tree of Promises
+
+Promises are resolved causing the DOM to change
+The XHTML is serialized back out
+- with sourcemap data showing where elements came from (either in the original HTML file or from content in the CSS file)
+- a `<style>` tag is added to the HTML if any "vanilla" CSS was included in the transform file
+  - why? because styling could have been added to elements that do not exist in the original HTML file
+
+also something about how nodejs communicates to headless Chrome and back
+
+## Specific algorithms
+
+- `css-tree` is used for parsing the CSS file
+- the browser's efficient `document.querySelector(cssSelector)` is used for matching
+- any context-changing functions use memoization to record the results because they are often reused for numbering
+
+
 # Why use CSS to transform the DOM?
 
 Book authors need a way to style their book for a PDF and ePUB. Sometimes they need additional elements to properly style. They also need a way to number and move elements around, like solutions in the back of the book.

@@ -1,0 +1,16 @@
+#!/bin/bash
+cd "$(dirname "$0")/.." || exit 111
+source ./script/bootstrap || exit 111
+
+bake_command="./bin/css-plus"
+
+less_file="./data/style.less"
+css_file="./data/style.css"
+raw_file="./data/entrepreneurship-raw.xhtml"
+baked_file="./data/entrepreneurship-baked.xhtml"
+
+do_progress_quiet "Compiling LESS file" \
+  $(npm bin)/lessc --source-map "${less_file}" "${css_file}"
+
+do_progress "Baking HTML file"
+"${bake_command}" --css "${css_file}" --html "${raw_file}" --output "${baked_file}" $@
