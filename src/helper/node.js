@@ -270,8 +270,12 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
           default:
             throwBug(`Unsupported url argument type ${node.value.type}`)
         }
-        const absPath = path.resolve(path.dirname(cssPath), relPath)
-        urls.push({node, absPath})
+
+        // skip if the URL is a real https?:// URL
+        if (! /https?:\/\//.test(relPath)) {
+          const absPath = path.resolve(path.dirname(cssPath), relPath)
+          urls.push({node, absPath})
+        }
       }
     })
 

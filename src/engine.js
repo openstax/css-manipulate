@@ -179,6 +179,9 @@ module.exports = class Applier extends EventEmitter {
       // if not a rule then return
       if (rule.type === 'Atrule') {
         switch (rule.name) {
+          case 'import':
+            // this is included in the vanilla CSS so no need to warn
+            break
           case 'namespace':
             assert.is(rule.prelude, rule, null)
             assert.equal(rule.prelude.type, 'AtrulePrelude', rule.prelude, null)
@@ -210,7 +213,7 @@ module.exports = class Applier extends EventEmitter {
             this._$.xmlns[nsPrefix] = ns
             break
           default:
-            showWarning('Unrecognized at-rule. Skipping. TODO: include it in the <style>', rule)
+            showWarning('Unrecognized at-rule. Skipping processing but including in the output', rule)
             return
         }
         return
@@ -451,18 +454,25 @@ module.exports = class Applier extends EventEmitter {
   }
 
   getVanillaRules() {
-    const stylesheetAst = csstree.fromPlainObject({
-      type: 'StyleSheet',
-      loc: null,
-      children: Object.values(this._unprocessedRulesAndClassNames).map(({className, declaration: {selector, astNode}}) => {
-        return {
-          type: 'Rule',
-          loc: astNode.loc,
-          prelude: {
-            type: 'SelectorList',
-            loc: null,
+    const atRules = this._ast.children.toArray().filter((rule) => rule.type === 'Atrule')
+    const children = atRules.concat(Object.values(this._unprocessedRulesAndClassNames).map(({className, declaration: {selector, astNode}}) => {
+      return {
+        type: 'Rule',
+        loc: astNode.loc,
+        prelude: {
+          type: 'SelectorList',
+          loc: null,
+          children: [{
+            type: 'Selector',
+            loc: {
+              source: selector.loc.source,
+              start: {
+                line: selector.loc.start.line,
+                column: selector.loc.start.column + 1,
+              }
+            },
             children: [{
-              type: 'Selector',
+              type: 'ClassSelector',
               loc: {
                 source: selector.loc.source,
                 start: {
@@ -470,26 +480,21 @@ module.exports = class Applier extends EventEmitter {
                   column: selector.loc.start.column + 1,
                 }
               },
-              children: [{
-                type: 'ClassSelector',
-                loc: {
-                  source: selector.loc.source,
-                  start: {
-                    line: selector.loc.start.line,
-                    column: selector.loc.start.column + 1,
-                  }
-                },
-                name: className
-              }]
+              name: className
             }]
-          },
-          block: {
-            type: 'Block',
-            loc: astNode.loc,
-            children: [astNode]
-          }
+          }]
+        },
+        block: {
+          type: 'Block',
+          loc: astNode.loc,
+          children: [astNode]
         }
-      })
+      }
+    }))
+    const stylesheetAst = csstree.fromPlainObject({
+      type: 'StyleSheet',
+      loc: null,
+      children: children
     })
     return stylesheetAst
   }

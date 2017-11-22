@@ -13,6 +13,7 @@ const UNIT_FILES_TO_TEST = [
   './example/exercise-numbering',
   './example/exercise-numbering-advanced',
   './example/glossary',
+  './unit/at-rule',
   './unit/unused',
   './unit/move-here',
   './unit/before-after',
