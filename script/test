@@ -2,6 +2,6 @@
 cd "$(dirname "$0")/.." || exit 111
 source ./script/bootstrap || exit 111
 
-npm test $@ || exit 111
+npm test -- $@ || die "Try running this with --serial to see if it is a race-condition problem"
 
 _say "${c_green}To see Code coverage${c_none} run ./script/ci instead"

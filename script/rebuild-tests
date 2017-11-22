@@ -2,4 +2,10 @@
 cd "$(dirname "$0")/.." || exit 111
 source ./script/bootstrap || exit 111
 
-try npm run-script rebuild-tests $@
+# by default run serially
+if [[ ! $1 ]]; then
+  _say "Running tests serially by default. Specify an argument to this script to override that"
+  additional_args="--serial"
+fi
+
+try npm run-script rebuild-tests -- "${additional_args}" $@
