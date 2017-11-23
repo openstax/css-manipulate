@@ -346,8 +346,7 @@ module.exports = class Applier extends EventEmitter {
             $matchedNodes = $matchedNodes.filter((index, matchedNode) => {
               const $matchedNode = this._$(matchedNode)
               const context = {$contextEl: $matchedNode}
-              const $elPromise = Promise.resolve('IT_IS_A_BUG_IF_YOU_RELY_ON_THIS_PROMISE_BECAUSE_WE_ARE_FILTERING_ON_A_CLASS_NAME')
-              const args = this._evaluateVals(context, $matchedNode, $elPromise, splitOnCommas(pseudoClassElement.children.toArray()))
+              const args = this._evaluateVals(context, $matchedNode, splitOnCommas(pseudoClassElement.children.toArray()))
               return pseudoClassPlugin.matches(this._$, $matchedNode, args, pseudoClassElement)
             })
           }
@@ -358,8 +357,7 @@ module.exports = class Applier extends EventEmitter {
     return $matchedNodes
   }
 
-  _evaluateVals(context, $currentEl, $elPromise, vals) {
-    assert.is($elPromise instanceof Promise)
+  _evaluateVals(context, $currentEl, vals) {
     return vals.map((argTmp) => {
       return argTmp.map((arg) => {
         switch (arg.type) {
@@ -394,8 +392,7 @@ module.exports = class Applier extends EventEmitter {
             if (!theFunction) {
               throw new UnsupportedFunctionError(`Unsupported function named ${arg.name}`, arg, $currentEl)
             }
-            const mutationPromise = Promise.resolve('HACK_FOR_NOW')
-            const fnReturnVal = theFunction.evaluateFunction(this._$, context, $currentEl, this._evaluateVals.bind(this), splitOnCommas(arg.children.toArray()), mutationPromise, arg /*AST node*/)
+            const fnReturnVal = theFunction.evaluateFunction(this._$, context, $currentEl, this._evaluateVals.bind(this), splitOnCommas(arg.children.toArray()), arg /*AST node*/)
             if (!(typeof fnReturnVal === 'string' || typeof fnReturnVal === 'number' || (typeof fnReturnVal === 'object' && typeof fnReturnVal.appendTo === 'function'))) {
               throwBug(`CSS function should return a string or number. Found ${typeof fnReturnVal} while evaluating ${theFunction.getFunctionName()}.`, arg, $currentEl)
             }
@@ -556,7 +553,7 @@ module.exports = class Applier extends EventEmitter {
 
           let vals
           try {
-            vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, $elPromise, splitOnCommas(value.children.toArray()))
+            vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, splitOnCommas(value.children.toArray()))
 
           } catch (err) {
             if (err instanceof UnsupportedFunctionError) {
