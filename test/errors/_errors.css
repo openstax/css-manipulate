@@ -26,3 +26,6 @@ body { content: add('not a number3', 345); }
 body { content 'missing-colon'; } /* CSS Parsing Error. Missing colon */
 body:hover { color: blue; }
 body::has(.foo) { }
+body { content: add(456, 567, 'not a number4'); }
+body { content: add(678 789, 890); }
+body { content: add(901, move-here('.move-source')); }

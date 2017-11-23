@@ -1,1 +1,1 @@
-  [2mtest/errors/_errors.css:24:18[22m [31m[1mERROR[22m[39m Second argument must be an integer but it was 'not a number2' ([2mtest/errors/_errors.in.xhtml:2:7[22m)
+  [2mtest/errors/_errors.css:24:18[22m [31m[1mERROR[22m[39m Argument 2 must be a number but it was 'not a number2' ([2mtest/errors/_errors.in.xhtml:2:7[22m)
