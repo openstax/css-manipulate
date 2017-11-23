@@ -1,15 +1,14 @@
 const EventEmitter = require('events')
 const csstree = require('css-tree')
-const assert = require('./helper/assert')
-// const ProgressBar = require('progress')
 const chalk = require('chalk')
-const jqueryXmlns = require('./helper/jquery.xmlns')
-const RuleWithPseudos = require('./helper/rule-with-pseudos')
-const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./helper/specificity')
-const {throwError, throwBug, showWarning, showDebuggerData} = require('./helper/packet-builder')
-const ExplicitlyThrownError = require('./x-throw-error')
-const UnsupportedFunctionError = require ('./x-unsupported-function-error')
-const {simpleConvertValueToString} = require('./helper/ast-tools')
+const assert = require('./misc/assert')
+const jqueryXmlns = require('./misc/jquery.xmlns')
+const RuleWithPseudos = require('./misc/rule-with-pseudos')
+const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./misc/specificity')
+const {throwError, throwBug, showWarning, showDebuggerData} = require('./misc/packet-builder')
+const ExplicitlyThrownError = require('./misc/x-throw-error')
+const UnsupportedFunctionError = require ('./misc/x-unsupported-function-error')
+const {simpleConvertValueToString} = require('./misc/ast-tools')
 
 const sourceColor = chalk.dim
 let HACK_COUNTER_A = 0

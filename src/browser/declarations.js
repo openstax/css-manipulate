@@ -1,6 +1,6 @@
-const assert = require('./helper/assert')
-const {showLog, throwError, throwBug} = require('./helper/packet-builder')
-const ExplicitlyThrownError = require('./x-throw-error')
+const assert = require('./misc/assert')
+const {showLog, throwError, throwBug} = require('./misc/packet-builder')
+const ExplicitlyThrownError = require('./misc/x-throw-error')
 
 class RuleDeclaration {
   constructor(name, fn) {

@@ -10,10 +10,12 @@ const sax = require('sax')
 const jquery = require('jquery')
 const {SourceMapConsumer} = require('source-map')
 
-const converter = require('../converter')
-const {showWarning, throwBug} = require('./packet-builder')
 const renderPacket = require('./packet-render')
-const constructSelector = require('./construct-selector')
+const {showWarning, throwBug} = require('./browser/misc/packet-builder')
+const constructSelector = require('./browser/misc/construct-selector')
+
+const JQUERY_PATH = require.resolve('jquery')
+const ENGINE_PATH = require.resolve('../dist/browser')
 
 function toRelative(outputPath, inputPath, contextPath='') {
   return path.relative(path.dirname(path.join(process.cwd(), outputPath)), path.join(process.cwd(), contextPath, inputPath))
@@ -205,8 +207,8 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
       }
     }
   })()`)
-  await page.addScriptTag({path: require.resolve('jquery')})
-  await page.addScriptTag({path: require.resolve('../../dist/browser')})
+  await page.addScriptTag({path: JQUERY_PATH})
+  await page.addScriptTag({path: ENGINE_PATH})
   await page.evaluate(`(function () {
     document.querySelectorAll('script').forEach((el) => el.remove())
   })()`)

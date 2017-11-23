@@ -1,6 +1,6 @@
-const assert = require('./helper/assert')
-const PseudoElementEvaluator = require('./helper/pseudo-element')
-const {showLog, showWarning, throwError, throwBug} = require('./helper/packet-builder')
+const assert = require('./misc/assert')
+const PseudoElementEvaluator = require('./misc/pseudo-element')
+const {showLog, showWarning, throwError, throwBug} = require('./misc/packet-builder')
 
 const PSEUDO_ELEMENTS = []
 const PSEUDO_CLASSES = []

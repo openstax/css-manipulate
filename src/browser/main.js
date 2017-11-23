@@ -6,9 +6,8 @@ const serializer = require('./serializer')
 const {DECLARATIONS} = require('./declarations')
 const FUNCTIONS = require('./functions')
 const {PSEUDO_ELEMENTS, PSEUDO_CLASSES} = require('./selectors')
-const {init: errorInit, throwBug, throwError, showWarning, showError, showLog, sendElementCount, sendProgressStart, sendProgressTick, sendProgressEnd} = require('./helper/packet-builder')
-
-const constructSelector = require('./helper/construct-selector')
+const {init: errorInit, throwBug, throwError, showWarning, showError, showLog, sendElementCount, sendProgressStart, sendProgressTick, sendProgressEnd} = require('./misc/packet-builder')
+const constructSelector = require('./misc/construct-selector')
 
 
 

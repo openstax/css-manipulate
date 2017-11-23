@@ -1,8 +1,8 @@
 const fs = require('fs')
 const path = require('path')
-const {convertNodeJS, finish} = require('./helper/node')
-const {simpleConvertValueToString} = require('./helper/ast-tools')
-const {throwError} = require('./helper/packet-builder')
+const {convertNodeJS, finish} = require('./node')
+const {simpleConvertValueToString} = require('./browser/misc/ast-tools')
+const {throwError} = require('./browser/misc/packet-builder')
 
 const argv = require('yargs')
 .strict(true)

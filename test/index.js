@@ -2,9 +2,9 @@ const fs = require('fs')
 const path = require('path')
 const test = require('ava')
 const jquery = require('jquery')
-const {convertNodeJS} = require('../src/helper/node')
-const {SPECIFICITY_COMPARATOR} = require('../src/helper/specificity')
-const renderPacket = require('../src/helper/packet-render')
+const {convertNodeJS} = require('../src/node')
+const renderPacket = require('../src/packet-render')
+const {SPECIFICITY_COMPARATOR} = require('../src/browser/misc/specificity')
 
 const {WRITE_TEST_RESULTS} = process.env
 

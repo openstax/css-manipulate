@@ -2,8 +2,8 @@ const path = require('path')
 const csstree = require('css-tree')
 const escapeHtml = require('escape-html')
 const {SourceMapGenerator, SourceMapConsumer} = require('source-map')
-const constructSelector = require('./helper/construct-selector')
-const {showBug, throwBug} = require('./helper/packet-builder')
+const constructSelector = require('./misc/construct-selector')
+const {showBug, throwBug} = require('./misc/packet-builder')
 
 const DEBUGGING_NEWLINE = '' // Add newlines whene serializing to more-clearly see what is being mapped
 
