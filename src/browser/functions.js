@@ -40,11 +40,11 @@ function STRING_OR_NUMBER_COMPARATOR (a, b) {
   }
 }
 
-FUNCTIONS.push(new FunctionEvaluator('x-throw', ($, {$contextEl}, $currentEl, evaluator, argExprs, astNode) => {
+FUNCTIONS.push(new FunctionEvaluator('x-throw', (evaluator, argExprs, astNode, $contextEl, $, $currentEl) => {
   const vals = evaluator({$contextEl}, $currentEl, argExprs)
   throwError(`"x-throw()" was called. ${vals[0]}`, astNode)
 }))
-FUNCTIONS.push(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, evaluator, argExprs, astNode) => {
+FUNCTIONS.push(new FunctionEvaluator('attr', (evaluator, argExprs, astNode, $contextEl, $, $currentEl) => {
   const vals = evaluator({$contextEl}, $currentEl, argExprs)
   // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
   assert.equal($contextEl.length, 1)
@@ -55,13 +55,13 @@ FUNCTIONS.push(new FunctionEvaluator('attr', ($, {$contextEl}, $currentEl, evalu
   }
   return ret
 }))
-FUNCTIONS.push(new FunctionEvaluator('this', ($, {$contextEl}, $currentEl, evaluator, argExprs, astNode) => {
+FUNCTIONS.push(new FunctionEvaluator('this', (evaluator, argExprs, astNode, $contextEl, $, $currentEl) => {
   // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
   assert.equal($contextEl.length, 1, astNode, $contextEl)
   // TODO: This still does not output properly
   return $contextEl
 }))
-FUNCTIONS.push(new FunctionEvaluator('add', ($, {$contextEl}, $currentEl, evaluator, argExprs, astNode) => {
+FUNCTIONS.push(new FunctionEvaluator('add', (evaluator, argExprs, astNode, $contextEl, $, $currentEl) => {
   const vals = evaluator({$contextEl}, $currentEl, argExprs)
   assert.is(vals.length >= 2, astNode, $currentEl, 'Missing argument (at least 2 are needed)')
   let sum = 0
@@ -80,12 +80,12 @@ FUNCTIONS.push(new FunctionEvaluator('add', ($, {$contextEl}, $currentEl, evalua
   })
   return sum
 }))
-FUNCTIONS.push(new FunctionEvaluator('collect-all', ($, {$contextEl}, $currentEl, evaluator, argExprs, astNode) => {
+FUNCTIONS.push(new FunctionEvaluator('collect-all', (evaluator, argExprs, astNode, $contextEl, $, $currentEl) => {
   const vals = evaluator({$contextEl}, $currentEl, argExprs)
   assert.equal(vals.length, 1, astNode, $currentEl, 'Missing argument')
   return vals[0].join('')
 }))
-FUNCTIONS.push(new FunctionEvaluator('x-tag-name', ($, {$contextEl}, $currentEl, evaluator, argExprs, astNode) => {
+FUNCTIONS.push(new FunctionEvaluator('x-tag-name', (evaluator, argExprs, astNode, $contextEl, $, $currentEl) => {
   const vals = evaluator({$contextEl}, $currentEl, argExprs)
   // check that we are only operating on 1 element at a time
   assert.equal($contextEl.length, 1, astNode, $contextEl)
@@ -94,7 +94,7 @@ FUNCTIONS.push(new FunctionEvaluator('x-tag-name', ($, {$contextEl}, $currentEl,
   }
   return $contextEl[0].tagName.toLowerCase()
 }))
-FUNCTIONS.push(new FunctionEvaluator('text-contents', ($, {$contextEl}, $currentEl, evaluator, argExprs, astNode) => {
+FUNCTIONS.push(new FunctionEvaluator('text-contents', (evaluator, argExprs, astNode, $contextEl, $, $currentEl) => {
   const vals = evaluator({$contextEl}, $currentEl, argExprs)
   // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
   assert.is($contextEl.length, 1, astNode, $contextEl)
@@ -108,7 +108,7 @@ FUNCTIONS.push(new FunctionEvaluator('text-contents', ($, {$contextEl}, $current
   }
   return ret
 }))
-FUNCTIONS.push(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, evaluator, argExprs, astNode) => {
+FUNCTIONS.push(new FunctionEvaluator('move-here', (evaluator, argExprs, astNode, $contextEl, $, $currentEl) => {
   const vals = evaluator({$contextEl}, $currentEl, [argExprs[0]])
   assert.equal(vals.length, 1)
   const selector = vals[0].join('')
@@ -147,7 +147,7 @@ FUNCTIONS.push(new FunctionEvaluator('move-here', ($, {$contextEl}, $currentEl, 
   // mutationPromise.then(() => ret.detach())
   return ret
 }))
-FUNCTIONS.push(new FunctionEvaluator('count-of-type', ($, {$contextEl}, $currentEl, evaluator, argExprs, astNode) => {
+FUNCTIONS.push(new FunctionEvaluator('count-of-type', (evaluator, argExprs, astNode, $contextEl, $, $currentEl) => {
   const vals = evaluator({$contextEl}, $currentEl, argExprs)
   assert.equal(vals.length, 1, astNode, $contextEl)
   assert.is(Array.isArray(vals[0]), astNode, $contextEl)
@@ -179,7 +179,7 @@ FUNCTIONS.push(new FunctionEvaluator('count-of-type', ($, {$contextEl}, $current
     return count
   })
 }))
-FUNCTIONS.push(new FunctionEvaluator('count-all-of-type', ($, {$contextEl}, $currentEl, evaluator, argExprs, astNode) => {
+FUNCTIONS.push(new FunctionEvaluator('count-all-of-type', (evaluator, argExprs, astNode, $contextEl, $, $currentEl) => {
   const vals = evaluator({$contextEl}, $currentEl, argExprs)
   assert.equal(vals.length, 1, astNode, $contextEl)
   assert.is(Array.isArray(vals[0]), astNode, $contextEl)
@@ -193,7 +193,7 @@ FUNCTIONS.push(new FunctionEvaluator('count-all-of-type', ($, {$contextEl}, $cur
   return $matches.length
 }))
 FUNCTIONS.push(new FunctionEvaluator('parent-context',
-  ($, {$contextEl}, $currentEl, evaluator, argExprs, astNode) => {
+  (evaluator, argExprs, astNode, $contextEl, $, $currentEl) => {
     // Determine the new $contextEl
     $contextEl = $contextEl.parent()
 
@@ -206,7 +206,7 @@ FUNCTIONS.push(new FunctionEvaluator('parent-context',
     return vals[0][0]
   }))
 FUNCTIONS.push(new FunctionEvaluator('target-context',
-  ($, {$contextEl}, $currentEl, evaluator, argExprs, astNode) => {
+  (evaluator, argExprs, astNode, $contextEl, $, $currentEl) => {
     // Determine the new $contextEl
     const selector = evaluator({$contextEl}, $currentEl, [argExprs[0]]).join('')
     assert.equal(typeof selector, 'string')
@@ -247,7 +247,7 @@ FUNCTIONS.push(new FunctionEvaluator('target-context',
     return vals[0][0]
   }))
 FUNCTIONS.push(new FunctionEvaluator('ancestor-context',
-  ($, {$contextEl}, $currentEl, evaluator, argExprs, astNode) => {
+  (evaluator, argExprs, astNode, $contextEl, $, $currentEl) => {
     // Determine the new $contextEl
     const selector = evaluator({$contextEl}, $currentEl, [argExprs[0]]).join('')
 
@@ -270,7 +270,7 @@ FUNCTIONS.push(new FunctionEvaluator('ancestor-context',
     return vals[0][0]
   }))
 FUNCTIONS.push(new FunctionEvaluator('descendant-context',
-  ($, {$contextEl}, $currentEl, evaluator, argExprs, astNode) => {
+  (evaluator, argExprs, astNode, $contextEl, $, $currentEl) => {
     // Determine the new $contextEl
     const selector = evaluator({$contextEl}, $currentEl, [argExprs[0]]).join('')
 
@@ -295,7 +295,7 @@ FUNCTIONS.push(new FunctionEvaluator('descendant-context',
     return vals[0][0]
   }))
 FUNCTIONS.push(new FunctionEvaluator('next-sibling-context',
-  ($, {$contextEl}, $currentEl, evaluator, argExprs, astNode) => {
+  (evaluator, argExprs, astNode, $contextEl, $, $currentEl) => {
     // Determine the new $contextEl
     const selector = evaluator({$contextEl}, $currentEl, [argExprs[0]])
     $contextEl = $contextEl.next(selector)

@@ -382,7 +382,7 @@ module.exports = class Applier extends EventEmitter {
             if (!theFunction) {
               throw new UnsupportedFunctionError(`Unsupported function named ${arg.name}`, arg, $currentEl)
             }
-            const fnReturnVal = theFunction.evaluateFunction(this._$, context, $currentEl, this._evaluateVals.bind(this), splitOnCommas(arg.children.toArray()), arg /* AST node */)
+            const fnReturnVal = theFunction.evaluateFunction(this._evaluateVals.bind(this), splitOnCommas(arg.children.toArray()), arg /* AST node */, context.$contextEl, this._$, $currentEl)
             if (!(typeof fnReturnVal === 'string' || typeof fnReturnVal === 'number' || (typeof fnReturnVal === 'object' && typeof fnReturnVal.appendTo === 'function'))) {
               throwBug(`CSS function should return a string or number. Found ${typeof fnReturnVal} while evaluating ${theFunction.getFunctionName()}.`, arg, $currentEl)
             }
