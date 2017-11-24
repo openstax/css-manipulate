@@ -1,4 +1,38 @@
-<html xmlns="http://www.w3.org/1999/xhtml"><head></head>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css-plus+css">
+      /* Please wrap everyhtin in quotes. `class` and `calculus` are just for testing. TODO: Validation error otherwise*/
+      p { attrs-add: "id" "id3.1415", class calculus; }
+      ol {
+        /*TODO: Flip these 2 for extra testing*/
+        attrs-remove: "data-remove-me", data-remove-me-too, "data-non-existent-attribute";
+        attrs-add: "data-show-me" "kit" "tens", "data-show-me-too" "puppies";
+      }
+
+
+      ul {
+        /* TODO: Flip these to test selectivity */
+        attrs-add: "ERRROR-BUG" "this should not be in the resulting HTML";
+        attrs-remove: "data-keep-me";
+        attrs-add: none;
+        attrs-remove: none;
+
+        tag-name-set: "ol";
+        tag-name-set: none;
+      }
+
+      .change-me-to-ol {
+        tag-name-set: "ol";
+        attrs-add: "attrs-add-is-evaluated-before-tag-name-set" "true";
+      }
+
+      section {
+        attrs-add: "data-animal" "kittens";
+        attrs-remove: none;
+        attrs-remove: '*'; /* TODO: fix this so quotes are not needed */
+      }
+    </style>
+  </head>
 <body>
 
 

@@ -1,1 +1,1 @@
-  [2mtest/errors/_errors.css:3:2[22m [31m[1mERROR[22m[39m Unsupported Pseudoclass ":expode"
+  [2mtest/errors/error-3.css:1:2[22m [31m[1mERROR[22m[39m Unsupported Pseudoclass ":expode"

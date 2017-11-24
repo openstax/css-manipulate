@@ -9,10 +9,13 @@ const {SPECIFICITY_COMPARATOR} = require('../src/browser/misc/specificity')
 const {WRITE_TEST_RESULTS} = process.env
 
 
-const UNIT_FILES_TO_TEST = [
+const EXAMPLE_FILES_TO_TEST = [
   './example/exercise-numbering',
   './example/exercise-numbering-advanced',
   './example/glossary',
+]
+const UNIT_FILES_TO_TEST = [
+  './unit/add',
   './unit/at-rule',
   './unit/unused',
   './unit/move-here',
@@ -55,8 +58,6 @@ const MOTIVATION_FILES_TO_TEST = [
   './motivation/all',
 ]
 
-const ERROR_TEST_FILENAME = '_errors'
-
 
 function coverageDataToLcov(htmlOutputPath, coverageData) {
   const lines = []
@@ -77,19 +78,22 @@ function coverageDataToLcov(htmlOutputPath, coverageData) {
 }
 
 
-function buildTest(cssFilename, htmlFilename) {
+function buildTest(htmlFilename, cssFilename) {
   const argv = {noprogress: true}
-  const cssPath = `test/${cssFilename}`
+  let cssPath
+  if (cssFilename) {
+    cssPath = `test/${cssFilename}`
+  }
   const htmlPath = `test/${htmlFilename}`
-  test(`Generates ${cssPath}`, (t) => {
+  const prefixPath = cssPath ? cssPath.replace('.css', '') : htmlPath.replace('.in.xhtml', '')
+  const htmlOutputPath = `${prefixPath}.out.xhtml`
+  const htmlOutputSourceMapPath = `${htmlOutputPath}.map`
+  const htmlOutputCoveragePath = `${htmlOutputPath}.lcov`
+  const stdoutPath = `${htmlOutputPath}.txt`
+  const htmlOutputSourceMapFilename = path.basename(htmlOutputSourceMapPath)
+
+  test(`Generates ${htmlOutputPath}`, (t) => {
     t.plan(2) // 2 assertions
-    const htmlOutputPath = cssPath.replace('.css', '.out.xhtml')
-    const htmlOutputSourceMapPath = `${htmlOutputPath}.map`
-    const htmlOutputCoveragePath = `${htmlOutputPath}.lcov`
-    const stdoutPath = `${cssPath.replace('.css', '.out.xhtml')}.txt`
-    const htmlOutputSourceMapFilename = path.basename(htmlOutputSourceMapPath)
-    const cssContents = fs.readFileSync(cssPath, 'utf8')
-    const htmlContents = fs.readFileSync(htmlPath, 'utf8')
     let expectedStdoutContents
     if (WRITE_TEST_RESULTS !== 'true' && fs.existsSync(stdoutPath)) {
       expectedStdoutContents = fs.readFileSync(stdoutPath, 'utf8')
@@ -107,12 +111,16 @@ function buildTest(cssFilename, htmlFilename) {
       }
     }
 
-    return convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, argv, packetHandler).then(({html: actualOutput, sourceMap, coverageData, __coverage__}) => {
+    return convertNodeJS(cssPath, htmlPath, htmlOutputPath, argv, packetHandler).then(({html: actualOutput, sourceMap, coverageData, __coverage__}) => {
       if (fs.existsSync(htmlOutputPath)) {
         const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
 
         fs.writeFileSync(htmlOutputSourceMapPath, sourceMap)
-        fs.writeFileSync(htmlOutputCoveragePath, coverageDataToLcov(htmlOutputPath, coverageData))
+        const lcov = coverageDataToLcov(htmlOutputPath, coverageData)
+        // some tests do not cover anything so do not create an empty file
+        if (lcov) {
+          fs.writeFileSync(htmlOutputCoveragePath, lcov)
+        }
 
         if (WRITE_TEST_RESULTS === 'true') {
           fs.writeFileSync(htmlOutputPath, actualOutput)
@@ -139,7 +147,6 @@ function buildTest(cssFilename, htmlFilename) {
     // if (process.env['NODE_ENV'] === 'profile') {
     //   return new Promise(function(resolve) {
     //     setTimeout(function() {
-    //       debugger
     //       resolve('yay')
     //     }, 20 * 60 * 1000) // Wait 20 minutes
     //   })
@@ -150,11 +157,9 @@ function buildTest(cssFilename, htmlFilename) {
 
 function buildErrorTests() {
   const argv = {noprogress: true}
-  const cssPath = `test/errors/${ERROR_TEST_FILENAME}.css`
-  const errorRules = fs.readFileSync(cssPath, 'utf8').split('\n')
-  const htmlPath = cssPath.replace('.css', '.in.xhtml')
-  const htmlOutputPath = cssPath.replace('.css', '.out.xhtml')
-  const htmlContents = fs.readFileSync(htmlPath, 'utf8')
+  const htmlPath = `test/errors/_errors.in.xhtml`
+  const sourceCssPath = `test/errors/_errors.css`
+  const errorRules = fs.readFileSync(sourceCssPath, 'utf8').split('\n')
 
   errorRules.forEach((cssContents, lineNumber) => {
     if (!cssContents || cssContents[0] === '/' && (cssContents[1] === '*' || cssContents[1] === '/')) {
@@ -180,6 +185,11 @@ function buildErrorTests() {
     test(`Errors while trying to evaluate "${cssContents}" (see _errors.css:${lineNumber + 1})`, (t) => {
       t.plan(2) // 2 assertions
 
+      const cssPath = `test/errors/error-${lineNumber + 1}.css`
+      fs.writeFileSync(cssPath, cssContents)
+      const htmlOutputPath = cssPath.replace('.css', '.out.xhtml')
+      const htmlContents = fs.readFileSync(htmlPath, 'utf8')
+
       // Record all warnings/errors/bugs into an output file for diffing
       const actualStdout = []
       function packetHandler(packet, htmlSourceLookupMap) {
@@ -192,7 +202,7 @@ function buildErrorTests() {
         }
       }
 
-      return convertNodeJS(cssContentsWithPadding, htmlContents, cssPath, htmlPath, htmlOutputPath, argv, packetHandler)
+      return convertNodeJS(cssPath, htmlPath, htmlOutputPath, argv, packetHandler)
       .then(() => {
         t.fail(`Expected to fail but succeeded. See _errors.css:${lineNumber + 1}`)
       })
@@ -203,7 +213,6 @@ function buildErrorTests() {
           // checking for path.relative was causing an TypeError which caused this test to not fail
           t.fail(e)
         } else {
-
           if (WRITE_TEST_RESULTS === 'true') {
             fs.writeFileSync(stdoutPath, actualStdout.join('\n'))
             t.is(true, true) // just so ava counts that 1 assertion was made
@@ -227,9 +236,9 @@ function specificityTest(msg, correct, items) {
   })
 }
 
-
-UNIT_FILES_TO_TEST.forEach((filename) => buildTest(`${filename}.css`, `${filename}.in.xhtml`))
-MOTIVATION_FILES_TO_TEST.forEach((filename) => buildTest(`${filename}.css`, MOTIVATION_INPUT_HTML_PATH))
+UNIT_FILES_TO_TEST.forEach((filename) => buildTest(`${filename}.in.xhtml` /* Do not include CSS because it is in the <style> */))
+EXAMPLE_FILES_TO_TEST.forEach((filename) => buildTest(`${filename}.in.xhtml`, `${filename}.css`))
+MOTIVATION_FILES_TO_TEST.forEach((filename) => buildTest(MOTIVATION_INPUT_HTML_PATH, `${filename}.css`))
 buildErrorTests()
 
 

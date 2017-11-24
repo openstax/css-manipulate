@@ -1,1 +1,1 @@
-  [2mtest/errors/_errors.css:2:2[22m [31m[1mBUG[22m[39m Unsupported Pseudoelement "::explode"
+  [2mtest/errors/error-2.css:1:2[22m [31m[1mBUG[22m[39m Unsupported Pseudoelement "::explode"

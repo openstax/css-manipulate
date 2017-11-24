@@ -1,9 +1,0 @@
-.foo                  { content: "kittens1"; }
-[data-type="mytype"]  { content: "kittens2"; }
-[data-type^="mytype"] { content: "kittens3"; }
-[data-type2]          { content: "kittens4"; }
-[data-type3]          { content: "kittens5"; }
-body *:has(strong)    { content: "kittens6"; }
-body h3:has(.foo2)    { content: "kittens7"; }
-h4:not(.skipme)       { content: "kittens8"; }
-#id123                { content: "kittens9"; }

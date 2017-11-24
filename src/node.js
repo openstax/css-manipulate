@@ -8,7 +8,7 @@ const {Magic, MAGIC_MIME_TYPE} = require('mmmagic')
 const mkdirp = require('mkdirp')
 const sax = require('sax')
 const jquery = require('jquery')
-const {SourceMapConsumer} = require('source-map')
+const {SourceMapConsumer, SourceMapGenerator} = require('source-map')
 
 const renderPacket = require('./packet-render')
 const {showWarning, throwBug} = require('./browser/misc/packet-builder')
@@ -24,30 +24,29 @@ function toRelative(outputPath, inputPath, contextPath='') {
 let browserPromise = null // assigned on 1st attempt to convert
 
 let hasBeenWarned = false
-async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, options, packetHandler) {
+async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetHandler) {
   // Ensure that the paths are absolute
-  cssPath = path.resolve(cssPath)
+  if (cssPath) {
+    cssPath = path.resolve(cssPath)
+  }
   htmlPath = path.resolve(htmlPath)
   htmlOutputPath = path.resolve(htmlOutputPath)
 
-  // Ensure that the cssContents and htmlContents are strings (not buffers)
-  if (typeof cssContents !== 'string') {
-    throwBug(`Expected cssContents to be a string but it was ${typeof cssContents}`)
-  }
-  if (typeof htmlContents !== 'string') {
-    throwBug(`Expected htmlContents to be a string but it was ${typeof htmlContents}`)
+  const htmlContents = fs.readFileSync(htmlPath, 'utf-8')
+  let cssContents
+  if (cssPath) {
+    cssContents = fs.readFileSync(cssPath, 'utf-8')
   }
 
 
   const htmlSourcePathRelativeToSourceMapFile = toRelative(htmlOutputPath, htmlPath)
-  const cssPathRelativeToSourceMapFile = toRelative(htmlOutputPath, cssPath)
-  const cssPathRelativeToOutputHtmlPath = path.relative(path.dirname(htmlOutputPath), cssPath)
+  let cssPathRelativeToSourceMapFile
+  if (cssPath) {
+    cssPathRelativeToSourceMapFile = toRelative(htmlOutputPath, cssPath)
+  }
 
   const sourceMapPath = `${htmlOutputPath}.map`
   const sourceMapFileName = path.basename(sourceMapPath) // This is used for the value of the sourceMappingURL
-
-  // If the CSS contains namespace declarations then parse the html file as XML (no HTML source line info though)
-  const isXhtml = /@namespace/.test(cssContents.toString()) || /xmlns/.test(htmlContents.toString())
 
 
   const selectorToLocationMap = {}
@@ -80,6 +79,8 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
   let currentDepth = 0
   let parserStartTagPosition = null
   let encounteredHeadElement = false
+  let useStyleTagForCssContents = false
+  let styleSourceShiftStart = null
   parser.onopentagstart = () => {
     // remember the line/col from the parser so we can use it instead of the position of the end of the open tag
     parserStartTagPosition = {line: parser.line, column: parser.column}
@@ -101,12 +102,34 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
       saxCount += 1
     }
 
+    if (local == 'style') {
+      if (attributes['type'] && attributes['type'].value === 'text/css-plus+css') {
+        if (!cssContents) {
+          useStyleTagForCssContents = true
+        } else {
+          console.log('Skipping <style> tag in favor of provided CSS file');
+        }
+      }
+    }
+
     if (local === 'span' && isSelfClosing) {
       // do not count because chrome eats this element
     } else {
       htmlSourceLookupMap[str] = [parserStartTagPosition.line + 1, parserStartTagPosition.column + 1]
       // Count the elements for checksumming later with what Chrome found
       saxCount += 1
+    }
+  }
+  parser.ontextstart = () => {
+    // remember the line/col from the parser so we can use it instead of the position of the end of the open tag
+    parserStartTagPosition = {line: parser.line, column: parser.column}
+  }
+  parser.ontext = (text) => {
+    if (useStyleTagForCssContents) {
+      cssContents = text
+      cssPath = path.join(path.dirname(htmlPath), '<style>')
+      styleSourceShiftStart = parserStartTagPosition
+      useStyleTagForCssContents = false
     }
   }
   parser.onclosetag = () => {
@@ -119,13 +142,16 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
   parser.write(htmlContents).close()
 
 
+  if (!cssContents) {
+    throw new Error('BUG: no CSS was provided')
+  }
 
 
 
 
   // Read in the CSS sourcemap
   let cssSourceMappingURL
-  if (!options.nocssmap) {
+  if (!options.nocssmap && cssContents) {
     const sourceMappingURLMatch = /sourceMappingURL=([^\ \n]+)/.exec(cssContents.toString())
     if (sourceMappingURLMatch) {
       cssSourceMappingURL = sourceMappingURLMatch[1]
@@ -148,6 +174,26 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
     }
   }
 
+
+  if (styleSourceShiftStart) {
+    // Parse the file so we can provide a mapping that shifts the CSS to point to the <style> tag in the HTML
+    const map = new SourceMapGenerator({file: htmlPath})
+    const ast = csstree.parse(cssContents, {positions: true, filename: cssPath})
+    csstree.walk(ast, (node) => {
+      if (node.loc) {
+        const {line, column} = node.loc.start
+        map.addMapping({
+          source: htmlPath,
+          original: {
+            line: styleSourceShiftStart.line + line,
+            column: line === 0 ? styleSourceShiftStart.column + column : column
+          },
+          generated: { line: line, column: column}
+        })
+      }
+    })
+    cssSourceMapJson = map.toJSON()
+  }
 
 
 
@@ -228,8 +274,8 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
     // Write the headless Chrome coverage data out
     if (istanbulCoverage) {
       // TODO: This should probably not be in this file. it should probably be hoisted into the test files
-      mkdirp.sync(path.join(__dirname, `../../.nyc_output/`))
-      fs.writeFileSync(path.join(__dirname, `../../.nyc_output/hacky-chrome-stats_${Math.random()}.json`), JSON.stringify(istanbulCoverage))
+      mkdirp.sync(path.join(__dirname, `../.nyc_output/`))
+      fs.writeFileSync(path.join(__dirname, `../.nyc_output/hacky-chrome-stats_${Math.random()}.json`), JSON.stringify(istanbulCoverage))
     }
   }
 
@@ -249,6 +295,9 @@ async function convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlO
   }
   try {
     let vanillaRules = await page.evaluate(`(function () {
+      // Delete any style tags (TODO: Use this as a way to process the DOM)
+      $('html').find('style[type="text/css-plus+css"]').remove()
+
       window.__instance = new CssPlus()
       return window.__instance.convertElements(window.document, window.jQuery, console, ${JSON.stringify(config)})
     }) ()`)

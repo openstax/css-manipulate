@@ -1,4 +1,22 @@
-<html xmlns="http://www.w3.org/1999/xhtml"><head></head>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css-plus+css">
+      div.foo::before {
+        border-color: green;
+      }
+      #special-snowflake {
+        background-color: blue;
+      }
+      #special-snowflake::before {
+        border: 1px solid blue;
+      }
+      .foo::before {
+        content: "Hello";
+        border: 1px solid blue;
+        border-color: yellow;
+      }
+    </style>
+  </head>
 <body>
 
 <div class="foo"></div>

@@ -1,4 +1,29 @@
-<html xmlns="http://www.w3.org/1999/xhtml"><head></head>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css-plus+css">
+      /* TODO: Verify that '> section' works */
+      /*chapter::after(1)::for-each-descendant(1, '> section'),
+      chapter::after(2)::for-each-descendant(1, '> section') {
+        class-add: "eoc-section";
+      }*/
+
+      chapter::after(1)::before { content: "Homework Exercises"; }
+      chapter::after(2)::before { content: "Conceptual Questions"; }
+
+      chapter::after(1)::for-each-descendant(1, 'section'),
+      chapter::after(2)::for-each-descendant(1, 'section') {
+        class-add: "eoc-section";
+      }
+      chapter::after(1)::for-each-descendant(1, 'section')::before(2) { class-add: "homeworks"; content: move-here('exercise.homework'); }
+      chapter::after(2)::for-each-descendant(1, 'section')::before(2) { class-add: "conceptuals"; content: move-here('exercise.conceptual'); }
+
+      chapter::after(1)::for-each-descendant(1, 'section')::before(1),
+      chapter::after(2)::for-each-descendant(1, 'section')::before(1) {
+        class-add: "title";
+        content: descendant-context('> .title', text-contents());
+      }
+    </style>
+  </head>
 <body>
 
 <chapter>

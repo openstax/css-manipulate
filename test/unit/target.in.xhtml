@@ -1,4 +1,11 @@
-<html xmlns="http://www.w3.org/1999/xhtml"><head></head>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css-plus+css">
+      a:target(href, 'exercise') {
+        content: 'See Exercise: ' target-context(attr(href), text-contents());
+      }
+    </style>
+  </head>
 <body>
 
 

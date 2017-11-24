@@ -1,4 +1,30 @@
-<html xmlns="http://www.w3.org/1999/xhtml"><head></head>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css-plus+css">
+      /* Please wrap everyhtin in quotes. `class` and `calculus` are just for testing. TODO: Validation error otherwise*/
+      p { class-add: 'calculus', biology; }
+      ol {
+        /*TODO: Flip these 2 for extra testing*/
+        class-remove: 'remove-me', remove-me-too, 'ignore-non-existent-attribute';
+        class-add: 'kittens' 'more-kittens', 'most-kittens';
+      }
+
+
+      ul {
+        /* TODO: Flip these to test selectivity */
+        class-add: 'ERRROR-BUG';
+        class-remove: 'keep-me';
+        class-add: none;
+        class-remove: none;
+      }
+
+      section {
+        class-add: 'kittens';
+        class-remove: none;
+        class-remove: '*'; /* TODO: fix this so quotes are not needed */
+      }
+    </style>
+  </head>
 <body>
 
 

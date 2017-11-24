@@ -1,1 +1,1 @@
-  [2mtest/errors/_errors.css:18:18[22m [31m[1mERROR[22m[39m tried to look up an attribute that was not available attr(non-existent-attribute). ([2mtest/errors/_errors.in.xhtml:2:7[22m)
+  [2mtest/errors/error-18.css:1:18[22m [31m[1mERROR[22m[39m tried to look up an attribute that was not available attr(non-existent-attribute). ([2mtest/errors/_errors.in.xhtml:2:7[22m)

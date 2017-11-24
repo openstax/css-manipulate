@@ -42,7 +42,6 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('after',  ($, $lookupEl, $contex
 PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('before', ($, $lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.prepend($newEl); return $newEl }), $newLookupEl: $lookupEl}] })) // TODO: These are evaluated in reverse order
 PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('outside', ($, $lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { /*HACK*/ const $temp = $contextEl.wrap($newEl).parent();                  attachToEls($temp, $newEl[0].__cssLocation); return $temp }), $newLookupEl: $lookupEl}] }))
 PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('inside', ($, $lookupEl, $contextElPromise, $newEl, secondArg) =>  {
-  debugger
   const $contentsToWrapBeforeDomManipulationStarts = $lookupEl.contents()
   return [{$newElPromise: $contextElPromise.then(($contextEl) => {
 

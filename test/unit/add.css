@@ -1,7 +1,0 @@
-body::after(1) {
-  content: add(0, count-of-type('.type-a'));
-}
-
-body::after(2) {
-  content: add(0, count-of-type('.type-a'), count-of-type('.type-b'));
-}
