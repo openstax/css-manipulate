@@ -1,4 +1,3 @@
-const assert = require('assert')
 const csstree = require('css-tree')
 const {SourceMapConsumer} = require('source-map')
 const Engine = require('./engine')
@@ -6,15 +5,11 @@ const serializer = require('./serializer')
 const {DECLARATIONS} = require('./declarations')
 const FUNCTIONS = require('./functions')
 const {PSEUDO_ELEMENTS, PSEUDO_CLASSES} = require('./selectors')
-const {init: errorInit, throwBug, throwError, showWarning, showError, showLog, sendElementCount, sendProgressStart, sendProgressTick, sendProgressEnd} = require('./helper/packet-builder')
-
-const constructSelector = require('./helper/construct-selector')
-
-
+const {init: errorInit, throwBug, showWarning, sendElementCount, sendProgressStart, sendProgressTick, sendProgressEnd} = require('./misc/packet-builder')
+const constructSelector = require('./misc/construct-selector')
 
 module.exports = class Converter {
-  convertElements(document, $, consol, {cssContents, cssSourcePath, htmlSourcePath, sourceMapPath, htmlOutputPath, options}) {
-
+  convertElements (document, $, consol, {cssContents, cssSourcePath, htmlSourcePath, sourceMapPath, htmlOutputPath, options}) {
     this._htmlSourcePath = htmlSourcePath
     this._sourceMapPath = sourceMapPath
     this._htmlOutputPath = htmlOutputPath
@@ -30,16 +25,14 @@ module.exports = class Converter {
 
     this._engine.setCSSContents(cssContents, cssSourcePath)
 
-
     // Add all the language plugins
     PSEUDO_ELEMENTS.forEach(this._engine.addPseudoElement.bind(this._engine))
     PSEUDO_CLASSES.forEach(this._engine.addPseudoClass.bind(this._engine))
     DECLARATIONS.forEach(this._engine.addRuleDeclaration.bind(this._engine))
     FUNCTIONS.forEach(this._engine.addFunction.bind(this._engine))
 
-
     let count = 0
-    function walkDOMElementsInOrder(el, index, acc, fn) {
+    function walkDOMElementsInOrder (el, index, acc, fn) {
       acc = fn(el, index, acc)
       count += 1
       if (el.firstElementChild) {
@@ -49,7 +42,7 @@ module.exports = class Converter {
         walkDOMElementsInOrder(el.nextElementSibling, index + 1, acc, fn)
       }
     }
-    walkDOMElementsInOrder(document.documentElement, 1, '', (el, index, acc) => {
+    walkDOMElementsInOrder(document.documentElement, 1, '', (el) => {
       const selector = constructSelector(el)
       el.__sourceSelector = selector
       // console.log(`chrome: ${selector}`);
@@ -57,16 +50,15 @@ module.exports = class Converter {
     // console.log('qiweuyqiuwye chromecount=' + count);
     sendElementCount(count)
 
-
     let map
     if (window.__CSS_SOURCE_MAP_JSON) {
       map = new SourceMapConsumer(window.__CSS_SOURCE_MAP_JSON)
     }
 
     let showedNoSourceWarning = false // Only show this warning once, not for every element
-    function rewriteSourceMapsFn(astNode) {
+    function rewriteSourceMapsFn (astNode) {
       if (map && astNode.loc) {
-        const {source: cssSourcePath, start, end} = astNode.loc
+        const {start} = astNode.loc
         let {source: newStartPath, line: newStartLine, column: newStartColumn} = map.originalPositionFor(start)
         // Unfortunately, SASS does not provide this end information properly in its source maps
         // const {source: newEndPath, line: newEndLine, column: newEndColumn} = map.originalPositionFor(end)
@@ -79,7 +71,7 @@ module.exports = class Converter {
             start: {
               line: newStartLine,
               column: newStartColumn
-            },
+            }
             // end: {
             //   line: newEndLine,
             //   column: newEndColumn
@@ -92,37 +84,24 @@ module.exports = class Converter {
           }
         }
       }
-      let hasRecursed = false
       if (astNode.children) {
-        hasRecursed = true
         astNode.children.toArray().forEach(rewriteSourceMapsFn)
       }
       if (astNode.block) {
-        hasRecursed = true
         rewriteSourceMapsFn(astNode.block)
       }
       if (astNode.selector) {
-        hasRecursed = true
         rewriteSourceMapsFn(astNode.selector)
       }
       // astNode.type == "Rule"
       if (astNode.prelude) {
-        hasRecursed = true
         rewriteSourceMapsFn(astNode.prelude)
       }
       // astNode.type == "Declaration"
       if (astNode.value) {
-        hasRecursed = true
         rewriteSourceMapsFn(astNode.value)
       }
-      // if (!hasRecursed && astNode.loc) {
-      //   debugger
-      // }
     }
-
-
-
-
 
     this._engine.prepare(rewriteSourceMapsFn)
     // console.profile('CPU Profile')
@@ -141,11 +120,11 @@ module.exports = class Converter {
     })
   }
 
-  _htmlSourceLookup(node) {
+  _htmlSourceLookup (node) {
     if (!node) {
       throwBug('Expected node, but got nothing')
     }
-    if (!node.__sourceSelector && node.nodeType === 1 /*ELEMENT_NODE*/) {
+    if (!node.__sourceSelector && node.nodeType === 1 /* ELEMENT_NODE */) {
       if (!node.__cssLocation) {
         throwBug(`Found a node with no sourceSelector. Could be an autogenerated node. The selector might be: "${constructSelector(node)}"`, null, [node])
       } else {
@@ -159,7 +138,7 @@ module.exports = class Converter {
     } else {
       if (node.__sourceSelector === 'head') {
         showWarning('Could not find source for this element. It seems the original XHTML did not have a <head> but that is invalid XHTML', null, [node], null)
-      } else if (node.nodeType === 1 /*ELEMENT_NODE*/) {
+      } else if (node.nodeType === 1 /* ELEMENT_NODE */) {
         showWarning('Could not find source for this element', null, [node], null)
       } else {
         // Do nothing. it's an attribute, text, comment, etc
@@ -169,9 +148,8 @@ module.exports = class Converter {
     }
   }
 
-  serialize(vanillaRules) {
+  serialize (vanillaRules) {
     vanillaRules = csstree.fromPlainObject(vanillaRules)
     return serializer(this._engine, this._htmlSourceLookup, this._htmlSourcePath, this._sourceMapPath, vanillaRules, this._htmlOutputPath)
   }
-
 }

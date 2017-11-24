@@ -1,4 +1,28 @@
-<html xmlns="http://www.w3.org/1999/xhtml"><head></head>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css-plus+css">
+      chapter::after(1)::before(1) { content: "DONOTSHOWME(1)"; }
+      chapter::after(2)::before(1) { content: "after2-before1 content"; }
+      chapter::after(2)::before(2) { content: "DONOTSHOWME(2)"; }
+      chapter::after(2)::before(2) { content: "after2-before2 content"; }
+      chapter::after::before { content: "after1-before1 content"; }
+      chapter::after(3) {
+        content: "DONOTSHOWME(3)";
+        content: "after3 content";
+      }
+      /* Verify that ::before is evaluated after content: */
+      chapter::after(3)::before(3) { content: "kittens(4)"; }
+
+      /*assert.equal(app._$('[pseudo="Xafter"]').length, 3)
+      assert.equal(app._$('[pseudo="Xbefore"]').length, 3)
+      assert.equal(app._$('[pseudo="Xafter"] > [pseudo="Xbefore"]').length, 3)*/
+
+
+      /* TODO: if there are no rules (and no nested pseudoelements that would require this on to be generated) then the pseudoelement should not be rendered
+      chapter::Outside(100) { }
+      */
+    </style>
+  </head>
 <body>
 
 <chapter>

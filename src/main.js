@@ -1,13 +1,13 @@
 const fs = require('fs')
 const path = require('path')
-const {convertNodeJS, finish} = require('./helper/node')
-const {simpleConvertValueToString} = require('./helper/ast-tools')
-const {throwError} = require('./helper/packet-builder')
+const {convertNodeJS, finish} = require('./node')
+const {simpleConvertValueToString} = require('./browser/misc/ast-tools')
+const {throwError} = require('./browser/misc/packet-builder')
 
 const argv = require('yargs')
 .strict(true)
 .option('css', {
-  demandOption: true,
+  demandOption: false,
   type: 'string',
   describe: 'Input CSS file'
 })
@@ -39,17 +39,18 @@ const argv = require('yargs')
 })
 .argv
 
-let cssPath = argv.css || argv._[0]
-let htmlPath = argv.html || argv._[1]
-let htmlOutputPath = argv.output || argv._[2]
+let cssPath = argv.css
+let htmlPath = argv.html
+let htmlOutputPath = argv.output
 
 
-if (!cssPath) { console.error('Missing CSS file'); process.exit(1) }
 if (!htmlPath) { console.error('Missing HTML input file'); process.exit(1) }
 if (!htmlOutputPath) { console.error('Missing HTML output file'); process.exit(1) }
 
 
-cssPath = path.resolve(process.cwd(), cssPath)
+if (cssPath) {
+  cssPath = path.resolve(process.cwd(), cssPath)
+}
 htmlPath = path.resolve(process.cwd(), htmlPath)
 htmlOutputPath = path.resolve(process.cwd(), htmlOutputPath)
 
@@ -57,8 +58,6 @@ const htmlOutputLcovPath = `${htmlOutputPath}.lcov`
 const htmlOutputSourceMapPath = `${htmlOutputPath}.map`
 const htmlOutputVanillaCSSPath = `${htmlOutputPath}.css`
 const htmlOutputSourceMapFilename = path.basename(htmlOutputSourceMapPath)
-const cssContents = fs.readFileSync(cssPath, 'utf-8')
-const htmlContents = fs.readFileSync(htmlPath, 'utf-8')
 
 
 function coverageDataToLcov(htmlOutputPath, coverageData) {
@@ -81,7 +80,8 @@ function coverageDataToLcov(htmlOutputPath, coverageData) {
 }
 
 
-convertNodeJS(cssContents, htmlContents, cssPath, htmlPath, htmlOutputPath, argv).then(({html: actualOutput, sourceMap, coverageData}) => {
+convertNodeJS(cssPath, htmlPath, htmlOutputPath, argv)
+.then(({html: actualOutput, sourceMap, coverageData}) => {
   fs.writeFileSync(htmlOutputPath, actualOutput)
   fs.writeFileSync(htmlOutputSourceMapPath, sourceMap)
   fs.writeFileSync(htmlOutputLcovPath, coverageDataToLcov(htmlOutputPath, coverageData))

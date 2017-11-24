@@ -2,15 +2,14 @@ const path = require('path')
 const csstree = require('css-tree')
 const escapeHtml = require('escape-html')
 const {SourceMapGenerator, SourceMapConsumer} = require('source-map')
-const constructSelector = require('./helper/construct-selector')
-const {showBug, throwBug} = require('./helper/packet-builder')
+const {throwBug} = require('./misc/packet-builder')
 
 const DEBUGGING_NEWLINE = '' // Add newlines whene serializing to more-clearly see what is being mapped
 
-function walkDOMNodesInOrder(el, startFn, endFn) {
+function walkDOMNodesInOrder (el, startFn, endFn) {
   startFn(el)
   let cur = el.firstChild
-  while(cur) {
+  while (cur) {
     walkDOMNodesInOrder(cur, startFn, endFn)
     cur = cur.nextSibling
   }
@@ -30,7 +29,7 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
   let currentLine = 1
   let currentColumn = 1
 
-  function pushAndMap(node, str, isEndTag) {
+  function pushAndMap (node, str, isEndTag) {
     let locationInfo
 
     if (node.ownerElement) { // It is an attribute. Look it up on the element
@@ -49,11 +48,10 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
     // Look up to see if there is a CSS location information
     if (node.__cssLocation) {
       // Commented out the end inf because the sourceMapLookup bit does not always find end coordinates (almost always does not)
-      const {source: source, start: {line: startLine, column: startColumn} /*, end: {line: endLine, column: endColumn} */} = node.__cssLocation.loc
+      const {source, start: {line: startLine, column: startColumn}} = node.__cssLocation.loc
       sourceFilePath = source
       originalLine = startLine
       originalColumn = startColumn
-
     } else if (locationInfo && locationInfo.line !== null) { // Some nodes like <head> do not have location info?
       sourceFilePath = htmlSourcePath
       if (isEndTag && locationInfo.endTag) { // self-closing tags do not have an endTag
@@ -72,7 +70,6 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
     }
 
     if (originalLine >= 0 && originalColumn >= 0) {
-
       // TODO: Split the string on newlines to make an array
       // TODO: Is this loop necessary?
       // for (let charIndex = 0; charIndex < str.length; charIndex++) {
@@ -88,7 +85,7 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
         source: sourceFilePath,
         // for https://github.com/aki77/atom-source-preview these are flipped (probably because the left panel is not the source)
         original: { line: originalLine, column: originalColumn },
-        generated: { line: currentLine, column: currentColumn },
+        generated: { line: currentLine, column: currentColumn }
       })
     } else {
       // Skipping this node for some reason
@@ -109,8 +106,7 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
     htmlSnippets.push(str)
   }
 
-  statementIndex = 0
-  function addCoverage(filePath, count, start, end) {
+  function addCoverage (filePath, count, start, end) {
     if (!coverageData[filePath]) {
       coverageData[filePath] = {}
     }
@@ -129,7 +125,7 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
 
   walkDOMNodesInOrder(documentElement, (node) => {
     // cover the HTML node
-    if (typeof  node.__COVERAGE_COUNT !== 'undefined') {
+    if (typeof node.__COVERAGE_COUNT !== 'undefined') {
       const locationInfo = htmlSourceLookup(node)
       if (locationInfo) {
         const {line, col} = locationInfo
@@ -140,12 +136,12 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
     }
 
     // StartFn
+    let tagName
     switch (node.nodeType) {
       case node.ELEMENT_NODE:
-        const tagName = node.tagName.toLowerCase()
+        tagName = node.tagName.toLowerCase()
         pushAndMap(node, `<${tagName}`)
 
-        let attributes = []
         for (let index = 0; index < node.attributes.length; index++) {
           const attribute = node.attributes[index]
           pushAndMap(attribute, ` ${attribute.name}="${escapeHtml(attribute.value)}"` + DEBUGGING_NEWLINE)
@@ -163,19 +159,20 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
         pushAndMap(node, `<!--${escapeHtml(node.data)}-->`)
         break
       default:
-        throwError(`Serializing BUG: Unknown nodeType=${node.nodeType}`, null, [node] /* wrapped in array because throwError assumes it is a jQuery*/)
+        throwBug(`Serializing... Unknown nodeType=${node.nodeType}`, null, [node] /* wrapped in array because throwError assumes it is a jQuery */)
     }
   }, (node) => {
     // EndFn
+    let tagName
     switch (node.nodeType) {
       case node.ELEMENT_NODE:
-        const tagName = node.tagName.toLowerCase()
+        tagName = node.tagName.toLowerCase()
         // Output the sourceMapPath (if provided) just before the close </html>
-        if ('html' === tagName && htmlSourceMapPath) {
-          pushAndMap(node, `\n<!-- //# sourceMappingURL=${htmlSourceMapPath} -->`, true /*isEndTag*/)
+        if (tagName === 'html' && htmlSourceMapPath) {
+          pushAndMap(node, `\n<!-- //# sourceMappingURL=${htmlSourceMapPath} -->`, true /* isEndTag */)
         }
         // If we have vanilla rules then we need to inject them as a <style> tag with a sourceMappingURL
-        if ('head' === tagName) {
+        if (tagName === 'head') {
           if (vanillaRules) {
             const {css, map} = csstree.translateWithSourceMap(vanillaRules)
             // Only add the style tag is there was CSS that was vanilla CSS that needs to be added
@@ -198,17 +195,16 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
                   isValid = false
                 }
               })
-              if (!isValid) {
+              if (!isValid) { // eslint-disable-line max-depth
                 throwBug(`CSS Source Mapping for the <style> element is buggy. Check the version of css-tree that is installed`)
               }
 
               pushAndMap(node, '</style>', true)
-
             }
           }
         }
         if (!(SELF_CLOSING_TAGS.indexOf(tagName) >= 0)) {
-          pushAndMap(node, `</${node.tagName.toLowerCase()}>` + DEBUGGING_NEWLINE, true /*isEndTag*/)
+          pushAndMap(node, `</${node.tagName.toLowerCase()}>` + DEBUGGING_NEWLINE, true /* isEndTag */)
         }
         break
       default:
@@ -216,32 +212,24 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
   })
 
   // record coverage data on the CSS
-  function walkCssAst(astNode, fn) {
+  function walkCssAst (astNode, fn) {
     fn(astNode)
 
-    let hasRecursed = false
     if (astNode.children) {
-      hasRecursed = true
       astNode.children.toArray().forEach((child) => {
         walkCssAst(child, fn)
       })
     }
     if (astNode.block) {
-      hasRecursed = true
       walkCssAst(astNode.block, fn)
     }
     if (astNode.selector) {
-      hasRecursed = true
       walkCssAst(astNode.selector, fn)
     }
     // astNode.type == "Declaration"
     if (astNode.value) {
-      hasRecursed = true
       walkCssAst(astNode.value, fn)
     }
-    // if (!hasRecursed && astNode.loc) {
-    //   debugger
-    // }
   }
 
   walkCssAst(engine._ast, (astNode) => {

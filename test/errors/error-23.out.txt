@@ -1,1 +1,1 @@
-  [2mtest/errors/_errors.css:23:18[22m [31m[1mBUG[22m[39m Assertion failed. Reason: Missing argument (at least 2 are needed) ([2mtest/errors/_errors.in.xhtml:2:7[22m)
+  [2mtest/errors/error-23.css:1:18[22m [31m[1mBUG[22m[39m Assertion failed. Reason: Missing argument (at least 2 are needed) ([2mtest/errors/_errors.in.xhtml:2:7[22m)

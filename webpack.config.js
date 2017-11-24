@@ -15,7 +15,7 @@ if (process.env['ADD_COVERAGE'] === 'true') {
 module.exports = {
   // devtool: 'inline-source-map',
   devtool: 'source-map',
-  entry: './src/converter',
+  entry: './src/browser/main',
   output: {
     library: 'CssPlus', // name of the Global variable
     path: path.resolve(__dirname, './dist/'),

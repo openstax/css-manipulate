@@ -1,4 +1,23 @@
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head></head>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <style type="text/css-plus+css">
+      /* First line just checks that we can set it without a url(...) */
+      @namespace epub 'http://www.idpf.org/2007/ops';
+      @namespace epub url('http://www.idpf.org/2007/ops');
+
+      [epub|type="glossary"] {
+        content: "kittens";
+      }
+
+      /* There was a bug in jquery.xmlns.js which would not match the following
+         because the RegExp for attributes was greedy and consumed the whitespace
+         preceeding the `[data-type...`
+      */
+      .foo [data-type="exercise"] {
+        content: "kittens";
+      }
+    </style>
+  </head>
 
 <body>
   <div>normal</div>

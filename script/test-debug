@@ -8,4 +8,4 @@ _say '======================================================'
 _say ' Remember to add a `debugger` statement in your code!'
 _say '======================================================'
 
-npm run-script debugger
+npm run-script debugger -- $@

@@ -8,4 +8,24 @@ if [[ ! $1 ]]; then
   additional_args="--serial"
 fi
 
+do_progress "Rebuilding the individual error.css files"
+x=$(< "./test/errors/_errors.css")
+# Split the CSS file into individual lines
+IFS=$'\n' read -rd '' -a style_lines <<<"$x"
+
+rm ./test/errors/error-*.css
+rm ./test/errors/error-*.out.txt
+
+index=0
+for style_line in "${style_lines[@]}"; do
+  index=$((index+1))
+  if [[ ${style_line} != \/* ]]; then
+    echo "${style_line}" > "./test/errors/error-${index}.css" || die "Problem outputting CSS file"
+  fi
+done
+
+
 try npm run-script rebuild-tests -- "${additional_args}" $@
+
+do_progress_quiet "Linting JavaScript files" \
+  npm run-script lint

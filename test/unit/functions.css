@@ -1,7 +1,0 @@
-a {
-  content: attr(href);
-}
-
-.bucket { content: 'Exercises: ' move-here('.exercise'); }
-
-ol > li { content: parent-context(attr(data-label)); }

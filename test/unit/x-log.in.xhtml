@@ -1,4 +1,19 @@
-<html xmlns="http://www.w3.org/1999/xhtml"><head></head>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css-plus+css">
+      body { x-log: "EXPLODE"; }
+      body { x-log: default; }
+      .log-me { x-log: "encountered a .log-me"; }
+
+      /* This is added here just because x-throw only has one case when it will not error
+       * so not worth creating a separate test file.
+       */
+      body {
+        x-throw: now;
+        x-throw: none;
+      }
+    </style>
+  </head>
 <body>
   <div class="log-me">kittens</div>
 </body>

@@ -3,7 +3,7 @@ cd "$(dirname "$0")/.." || exit 111
 source ./script/bootstrap || exit 111
 
 try ./script/compile-css
-try npm run-script ci -- --serial
+try npm run-script ci -- --serial --fail-fast
 
 
 temp_file=$(mktemp)
@@ -30,3 +30,6 @@ if [[ ${CI} != "true" ]]; then
       genhtml --quiet --output ./coverage-css-and-html/ $(find ./test/ -name "*.lcov")
   fi
 fi
+
+do_progress_quiet "Linting JavaScript files" \
+  npm run-script lint

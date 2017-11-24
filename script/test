@@ -4,4 +4,7 @@ source ./script/bootstrap || exit 111
 
 npm test -- $@ || die "Try running this with --serial to see if it is a race-condition problem"
 
+do_progress_quiet "Linting JavaScript files" \
+  npm run-script lint
+
 _say "${c_green}To see Code coverage${c_none} run ./script/ci instead"

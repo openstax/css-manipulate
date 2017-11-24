@@ -1,4 +1,15 @@
-<html xmlns="http://www.w3.org/1999/xhtml"><head></head>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css-plus+css">
+      a.simple {
+        class-add: target-context(attr(href), attr(data-foo));
+      }
+
+      a.complex {
+        class-add: "first", "sec" "ond", "3?" target-context(attr(href), attr(data-foo));
+      }
+    </style>
+  </head>
 <body>
 
 

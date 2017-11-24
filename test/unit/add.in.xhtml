@@ -1,4 +1,14 @@
-<html xmlns="http://www.w3.org/1999/xhtml"><head></head>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css-plus+css">
+      body::after(1) {
+        content: add(0, count-of-type('.type-a'));
+      }
+      body::after(2) {
+        content: add(0, count-of-type('.type-a'), count-of-type('.type-b'));
+      }
+    </style>
+  </head>
 <body>
   <div class="type-a"></div>
   <div class="type-b"></div>

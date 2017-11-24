@@ -1,4 +1,15 @@
-<html xmlns="http://www.w3.org/1999/xhtml"><head></head>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css-plus+css">
+      a {
+        content: attr(href);
+      }
+
+      .bucket { content: 'Exercises: ' move-here('.exercise'); }
+
+      ol > li { content: parent-context(attr(data-label)); }
+    </style>
+  </head>
 <body>
 
 

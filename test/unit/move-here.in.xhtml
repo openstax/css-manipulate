@@ -1,12 +1,25 @@
-<html xmlns="http://www.w3.org/1999/xhtml"><head></head>
-<body>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css-plus+css">
+      /* Moving an element whose tag name is changed caused the contents of the element to disappear */
 
-<div class="destination">
+      .re-tag-name {
+        tag-name-set: 'h2';
+      }
 
-  <div class="source">kittens</div>
-  <div class="source re-tag-name">kittens</div>
+      .destination::before {
+        content: move-here('.source');
+      }
+    </style>
+  </head>
+  <body>
 
-</div>
+    <div class="destination">
 
-</body>
+      <div class="source">kittens</div>
+      <div class="source re-tag-name">kittens</div>
+
+    </div>
+
+  </body>
 </html>
