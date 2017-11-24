@@ -89,7 +89,7 @@ The rest:
 - `text-contents()` all text nodes combined together as a string
 - `move-here('.selector')` finds all descendants (use `ancestor-context(...)` if you need to find non-descendants)
   - similar in concept to `move-to: bucketName` and then `content: pending(bucketName)` but very different in implementation
-- `move-here('.selector', '.guard1-selector' fn1(), '.guard2-selector' fn2(), ...)`
+- `move-here-sorted('.selector', '.guard1-selector' fn1(), '.guard2-selector' fn2(), ...)`
   - sorts the items by `fn#()` based on if the item matches `.guard#-selector`. Useful for ordering the answers at the back of the book
 - `count-of-type('.selector')` counts the number of items matching this selector up until the current element (used for numbering)
   - combined with `ancestor-context(...)` this gives a similar set of features as `counter-reset: counterName;` and `content: counter(counterName);` but very different implementation

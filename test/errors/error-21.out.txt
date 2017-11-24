@@ -1,1 +1,1 @@
-  [2mtest/errors/error-21.css:1:33[22m [31m[1mERROR[22m[39m Only selectors starting with "#" are supported for now ([2mtest/errors/_errors.in.xhtml:2:7[22m)
+  [2mtest/errors/error-21.css:1:18[22m [31m[1mERROR[22m[39m Only selectors starting with "#" are supported for now ([2mtest/errors/_errors.in.xhtml:2:7[22m)

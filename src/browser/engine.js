@@ -8,6 +8,7 @@ const {throwError, throwBug, showWarning, showDebuggerData} = require('./misc/pa
 const ExplicitlyThrownError = require('./misc/x-throw-error')
 const UnsupportedFunctionError = require('./misc/x-unsupported-function-error')
 const {simpleConvertValueToString} = require('./misc/ast-tools')
+const FunctionEvaluator = require('./function-evaluator')
 
 function promiseDotAll (promises, defaultRet = null) {
   // remove any nulls
@@ -39,46 +40,6 @@ function walkDOMElementsInOrder (el, fn) {
   if (el.nextElementSibling) {
     walkDOMElementsInOrder(el.nextElementSibling, fn)
   }
-}
-
-// css-tree parses css arguments a little oddly.
-// For example the args in this expression are a single list of length 5:
-// foo('a' 'b', 'c' 'd')
-//
-// This function returns [ ['a', 'b'], ['c', 'd'] ]
-function splitOnCommas (args) {
-  const ret = []
-  let index = 0
-  ret[index] = []
-  args.forEach((arg) => {
-    switch (arg.type) {
-      case 'Operator': // comma TODO: Group items based on this operator
-        index += 1
-        ret[index] = []
-        break
-      case 'String':
-      case 'Identifier':
-      case 'WhiteSpace':
-      case 'Raw':
-      case 'Function':
-        ret[index].push(arg)
-        break
-      case 'HexColor': // for things like `color: #ccc;`
-      case 'Dimension': // for things like `.5em`
-      case 'Number':
-      case 'Percentage':
-      case 'Url':
-        ret[index].push(arg)
-        break
-      default:
-        throwBug(`Unsupported value type "${arg.type}"`, arg)
-    }
-  })
-  // If we didn't add anything then this must be 0-arguments
-  if (ret.length === 1 && ret[0].length === 0) {
-    return []
-  }
-  return ret
 }
 
 module.exports = class Applier extends EventEmitter {
@@ -336,8 +297,7 @@ module.exports = class Applier extends EventEmitter {
             // update the set of matched nodes
             $matchedNodes = $matchedNodes.filter((index, matchedNode) => {
               const $matchedNode = this._$(matchedNode)
-              const context = {$contextEl: $matchedNode}
-              const args = this._evaluateVals(context, $matchedNode, splitOnCommas(pseudoClassElement.children.toArray()))
+              const args = this._evaluateVals($matchedNode, $matchedNode, pseudoClassElement)
               return pseudoClassPlugin.matches(this._$, $matchedNode, args, pseudoClassElement)
             })
           }
@@ -347,62 +307,9 @@ module.exports = class Applier extends EventEmitter {
     return $matchedNodes
   }
 
-  _evaluateVals (context, $currentEl, vals) {
-    return vals.map((argTmp) => {
-      return argTmp.map((arg) => {
-        switch (arg.type) {
-          case 'String':
-            // strip off the leading and trailing quote characters
-            return arg.value.substring(1, arg.value.length - 1)
-          case 'Identifier':
-            return arg.name
-          case 'WhiteSpace':
-            return ''
-          case 'Operator': // comma TODO: Group items based on this operator
-            throwBug('All of these commas should have been parsed out by now', arg)
-            break
-          case 'Raw': // The value of this is something like `href, '.foo'`
-            // // Make it Look like multitple args
-            // const rawArgs = arg.value.split(', ')
-            // // I'm not really sure about this if test
-            // if (rawArgs.length > 1) {
-            //   rawArgs.forEach((rawArg) => {
-            //     ret[index].push(rawArg)
-            //     index += 1
-            //     ret[index] = [] // FIXME: This leaves a trailing empty Array.
-            //   })
-            // } else {
-            //   ret[index].push(rawArg)
-            // }
-
-            // Too complex to parse because commas can occur inside selector strings so punt
-            return arg.value
-          case 'Function': // eslint-disable-line no-case-declarations
-            const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0]
-            if (!theFunction) {
-              throw new UnsupportedFunctionError(`Unsupported function named ${arg.name}`, arg, $currentEl)
-            }
-            const fnReturnVal = theFunction.evaluateFunction(this._evaluateVals.bind(this), splitOnCommas(arg.children.toArray()), arg /* AST node */, context.$contextEl, this._$, $currentEl)
-            if (!(typeof fnReturnVal === 'string' || typeof fnReturnVal === 'number' || (typeof fnReturnVal === 'object' && typeof fnReturnVal.appendTo === 'function'))) {
-              throwBug(`CSS function should return a string or number. Found ${typeof fnReturnVal} while evaluating ${theFunction.getFunctionName()}.`, arg, $currentEl)
-            }
-            return fnReturnVal // Should not matter if this is context or newContext
-          case 'HexColor':
-            return `#${arg.value}`
-          case 'Dimension':
-            return `${arg.value}${arg.unit}`
-          case 'Number':
-            return arg.value
-          case 'Percentage':
-            return `${arg.value}%`
-          case 'Url':
-            // Throw an exception here so that the `content: url("foo.png")` is not evaluated.
-            throw new UnsupportedFunctionError(`Unsupported function named URL`, arg, $currentEl)
-          default:
-            throwBug('Unsupported evaluated value type ' + arg.type, arg)
-        }
-      })
-    })
+  _evaluateVals ($contextEl, $currentEl, vals) {
+    const evaluator = new FunctionEvaluator(this._functionPlugins, this._$, $contextEl, $currentEl, vals)
+    return evaluator.evaluateAll()
   }
 
   _newClassName () {
@@ -538,7 +445,7 @@ module.exports = class Applier extends EventEmitter {
 
           let vals
           try {
-            vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, splitOnCommas(value.children.toArray()))
+            vals = this._evaluateVals($currentEl, $currentEl, value)
           } catch (err) {
             if (err instanceof UnsupportedFunctionError) {
               return err
