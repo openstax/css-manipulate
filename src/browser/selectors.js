@@ -1,13 +1,13 @@
 const assert = require('./misc/assert')
 const PseudoElementEvaluator = require('./misc/pseudo-element')
-const {showLog, showWarning, throwError, throwBug} = require('./misc/packet-builder')
+const {showWarning, throwBug} = require('./misc/packet-builder')
 
 const PSEUDO_ELEMENTS = []
 const PSEUDO_CLASSES = []
 
 // It is expensive to call $el.find() and friends. Since the DOM does not change, just remember what was returned
 // This occurs frequently for making counters
-function memoize(el, key, value, fn) {
+function memoize (el, key, value, fn) {
   el[key] = el[key] || {}
   if (typeof el[key][value] === 'undefined') {
     el[key][value] = fn()
@@ -18,34 +18,31 @@ function memoize(el, key, value, fn) {
 }
 
 class PseudoClassFilter {
-  constructor(name, fn) {
+  constructor (name, fn) {
     this._name = name
     this._fn = fn
   }
-  getPseudoClassName() { return this._name }
-  matches($, $el, args) {
+  getPseudoClassName () { return this._name }
+  matches () {
     return this._fn.apply(null, arguments)
   }
 }
 
-
-function attachToEls($els, locationInfo) {
+function attachToEls ($els, locationInfo) {
   assert.is(locationInfo)
   $els.each((i, node) => {
     node.__cssLocation = locationInfo
   })
 }
 
-
 // I promise that I will give you back at least 1 element that has been added to el
-PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('after',  ($, $lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.append($newEl); return $newEl }), $newLookupEl: $lookupEl}] }))
-PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('before', ($, $lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.prepend($newEl); return $newEl }), $newLookupEl: $lookupEl}] })) // TODO: These are evaluated in reverse order
-PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('outside', ($, $lookupEl, $contextElPromise, $newEl, secondArg) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { /*HACK*/ const $temp = $contextEl.wrap($newEl).parent();                  attachToEls($temp, $newEl[0].__cssLocation); return $temp }), $newLookupEl: $lookupEl}] }))
-PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('inside', ($, $lookupEl, $contextElPromise, $newEl, secondArg) =>  {
+PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('after', ($, $lookupEl, $contextElPromise, $newEl) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.append($newEl); return $newEl }), $newLookupEl: $lookupEl}] }))
+PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('before', ($, $lookupEl, $contextElPromise, $newEl) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.prepend($newEl); return $newEl }), $newLookupEl: $lookupEl}] })) // TODO: These are evaluated in reverse order
+PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('outside', ($, $lookupEl, $contextElPromise, $newEl) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { /* HACK */ const $temp = $contextEl.wrap($newEl).parent(); attachToEls($temp, $newEl[0].__cssLocation); return $temp }), $newLookupEl: $lookupEl}] }))
+PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('inside', ($, $lookupEl, $contextElPromise, $newEl) => {
   const $contentsToWrapBeforeDomManipulationStarts = $lookupEl.contents()
   return [{$newElPromise: $contextElPromise.then(($contextEl) => {
-
-    $beforeEl = $contextEl.find('> [data-pseudo^="before"]').last()
+    const $beforeEl = $contextEl.find('> [data-pseudo^="before"]').last()
     if ($beforeEl.length !== 0) {
       $beforeEl.after($newEl)
     } else {
@@ -63,7 +60,8 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('inside', ($, $lookupEl, $contex
     // $contextEl.append($temp.find('> [data-pseudo^="after"]'))
     // assert.equal($temp.find('> [data-pseudo]:not([data-pseudo^="inside"])').length, 0, secondArg, $lookupEl) // 1 meaning the only pseudo-child is not the inside one
     // return $temp
-  }) , $newLookupEl: $lookupEl}]
+  }),
+    $newLookupEl: $lookupEl}]
 }))
 PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $lookupEl, $contextElPromise, $newEl, secondArg, firstArg) => {
   const locationInfo = $newEl[0].__cssLocation // HACK . Should get the ast node directly
@@ -80,7 +78,7 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $look
   const ret = []
   $newLookupEls.each((index, newLookupEl) => {
     const $newElPromise = $contextElPromise.then(($contextEl) => {
-      if(!$contextEl.parents(':last').is('html')) {
+      if (!$contextEl.parents(':last').is('html')) {
         throwBug(`provided element is not attached to the DOM`, null, $contextEl)
       }
 
@@ -96,7 +94,6 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $look
   })
   return ret
 }))
-
 
 PSEUDO_CLASSES.push(new PseudoClassFilter('target', ($, $el, args, astNode) => {
   assert.equal(args.length, 1)
@@ -134,7 +131,7 @@ PSEUDO_CLASSES.push(new PseudoClassFilter('target', ($, $el, args, astNode) => {
     if ($targetEl.length >= 2) {
       showWarning(`More than one element has the id=${attrValue.substring(1)}`, astNode, $el)
       return false
-    } else if ($targetEl.length == 0) {
+    } else if ($targetEl.length === 0) {
       showWarning(`Could not find target element with id=${attrValue.substring(1)}`, astNode, $el)
       return false
     }
@@ -143,7 +140,6 @@ PSEUDO_CLASSES.push(new PseudoClassFilter('target', ($, $el, args, astNode) => {
     return memoize($targetEl[0], '_is', selector, () => {
       return $targetEl.is(selector)
     })
-
   } else {
     return false
   }

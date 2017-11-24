@@ -26,3 +26,6 @@ done
 
 
 try npm run-script rebuild-tests -- "${additional_args}" $@
+
+do_progress_quiet "Linting JavaScript files" \
+  npm run-script lint

@@ -1,22 +1,17 @@
 const EventEmitter = require('events')
 const csstree = require('css-tree')
-const chalk = require('chalk')
 const assert = require('./misc/assert')
 const jqueryXmlns = require('./misc/jquery.xmlns')
 const RuleWithPseudos = require('./misc/rule-with-pseudos')
 const {getSpecificity, SPECIFICITY_COMPARATOR} = require('./misc/specificity')
 const {throwError, throwBug, showWarning, showDebuggerData} = require('./misc/packet-builder')
 const ExplicitlyThrownError = require('./misc/x-throw-error')
-const UnsupportedFunctionError = require ('./misc/x-unsupported-function-error')
+const UnsupportedFunctionError = require('./misc/x-unsupported-function-error')
 const {simpleConvertValueToString} = require('./misc/ast-tools')
 
-const sourceColor = chalk.dim
-let HACK_COUNTER_A = 0
-let HACK_COUNTER_B = 0
-
-const Promise_all = (promises, defaultRet = null) => {
+function promiseDotAll (promises, defaultRet = null) {
   // remove any nulls
-  const real = promises.filter(p => p)
+  const real = promises.filter((p) => p)
   if (real.length > 0) {
     return Promise.all(real)
   } else {
@@ -26,7 +21,7 @@ const Promise_all = (promises, defaultRet = null) => {
 
 // It is expensive to call $el.find() and friends. Since the DOM does not change, just remember what was returned
 // This occurs frequently for making counters
-function memoize(el, key, value, fn) {
+function memoize (el, key, value, fn) {
   el[key] = el[key] || {}
   if (typeof el[key][value] === 'undefined') {
     el[key][value] = fn()
@@ -36,7 +31,7 @@ function memoize(el, key, value, fn) {
   return el[key][value]
 }
 
-function walkDOMElementsInOrder(el, fn) {
+function walkDOMElementsInOrder (el, fn) {
   fn(el)
   if (el.firstElementChild) {
     walkDOMElementsInOrder(el.firstElementChild, fn)
@@ -51,7 +46,7 @@ function walkDOMElementsInOrder(el, fn) {
 // foo('a' 'b', 'c' 'd')
 //
 // This function returns [ ['a', 'b'], ['c', 'd'] ]
-function splitOnCommas(args) {
+function splitOnCommas (args) {
   const ret = []
   let index = 0
   ret[index] = []
@@ -84,12 +79,10 @@ function splitOnCommas(args) {
     return []
   }
   return ret
-
 }
 
-
 module.exports = class Applier extends EventEmitter {
-  constructor(document, $, options) {
+  constructor (document, $, options) {
     super()
     // Add the jquery.xmlns plugin so we can select on attributes like epub:type
     // But only add it when the CSS file has @namespace in it. Otherwise, it just adds to execution time
@@ -114,14 +107,14 @@ module.exports = class Applier extends EventEmitter {
   }
 
   // getWindow() { return this._document.defaultView }
-  getRoot() { return this._document.documentElement }
+  getRoot () { return this._document.documentElement }
 
-  setCSSContents(css, sourcePath) {
+  setCSSContents (css, sourcePath) {
     this._cssContents = css
     this._cssSourcePath = sourcePath
   }
 
-  addPseudoElement(plugin) {
+  addPseudoElement (plugin) {
     assert.equal(typeof plugin.selectorReducer, 'function')
     assert.equal(typeof plugin.nodeCreator, 'function')
     assert.equal(typeof plugin.getPseudoElementName, 'function')
@@ -130,20 +123,20 @@ module.exports = class Applier extends EventEmitter {
     this._pseudoElementPluginByName[plugin.getPseudoElementName()] = plugin
   }
 
-  addRuleDeclaration(plugin) {
+  addRuleDeclaration (plugin) {
     assert.equal(typeof plugin.evaluateRule, 'function')
     assert.equal(typeof plugin.getRuleName(), 'string')
     this._ruleDeclarationPlugins.push(plugin)
     this._ruleDeclarationByName[plugin.getRuleName()] = plugin
   }
 
-  addFunction(plugin) {
+  addFunction (plugin) {
     assert.equal(typeof plugin.evaluateFunction, 'function')
     assert.equal(typeof plugin.getFunctionName(), 'string')
     this._functionPlugins.push(plugin)
   }
 
-  addPseudoClass(plugin) {
+  addPseudoClass (plugin) {
     assert.equal(typeof plugin.matches, 'function')
     assert.equal(typeof plugin.getPseudoClassName, 'function')
     assert.equal(typeof plugin.getPseudoClassName(), 'string')
@@ -151,17 +144,19 @@ module.exports = class Applier extends EventEmitter {
     this._pseudoClassPluginByName[plugin.getPseudoClassName()] = plugin
   }
 
-  prepare(rewriteSourceMapsFn) {
-    let ast = csstree.parse(this._cssContents.toString(), {positions: true, filename: this._cssSourcePath, onParseError: (err) => {
+  prepare (rewriteSourceMapsFn) {
+    let ast = csstree.parse(this._cssContents.toString(), {positions: true,
+      filename: this._cssSourcePath,
+      onParseError: (err) => {
       // Formatted to "look like" an AST node. Just for error-reporting
-      const cssSnippet = {
-        loc: {
-          source: this._cssSourcePath,
-          start: {line: err.line, column: err.column}
+        const cssSnippet = {
+          loc: {
+            source: this._cssSourcePath,
+            start: {line: err.line, column: err.column}
+          }
         }
-      }
-      throwError(`Problem parsing CSS. ${err.message}`, cssSnippet, null, err)
-    }})
+        throwError(`Problem parsing CSS. ${err.message}`, cssSnippet, null, err)
+      }})
     this._ast = ast
 
     if (rewriteSourceMapsFn) {
@@ -181,7 +176,7 @@ module.exports = class Applier extends EventEmitter {
           case 'import':
             // this is included in the vanilla CSS so no need to warn
             break
-          case 'namespace':
+          case 'namespace': // eslint-disable-line no-case-declarations
             assert.is(rule.prelude, rule, null)
             assert.equal(rule.prelude.type, 'AtrulePrelude', rule.prelude, null)
             const args = rule.prelude.children.toArray()
@@ -250,7 +245,7 @@ module.exports = class Applier extends EventEmitter {
         let $matchedNodes = selectorCache[browserSelector]
         selector.__COVERAGE_COUNT = $matchedNodes.length
 
-        $matchedNodes = this._filterByPseudoClassName($matchedNodes, selector, -1/*depth*/)
+        $matchedNodes = this._filterByPseudoClassName($matchedNodes, selector, -1/* depth */)
 
         if ($matchedNodes.length === 0) {
           const selectorChildren = selector.children.toArray()
@@ -278,25 +273,25 @@ module.exports = class Applier extends EventEmitter {
     // })
   }
 
-  _isPseudoElementSelectorElement(selectorElement) {
-    if(selectorElement.type !== 'PseudoElementSelector') {
+  _isPseudoElementSelectorElement (selectorElement) {
+    if (selectorElement.type !== 'PseudoElementSelector') {
       return false
     }
-    return !! this._pseudoElementPluginByName[selectorElement.name]
+    return !!this._pseudoElementPluginByName[selectorElement.name]
   }
 
-  _isPseudoClassSelectorElement(selectorElement) {
-    if(selectorElement.type !== 'PseudoClassSelector') {
+  _isPseudoClassSelectorElement (selectorElement) {
+    if (selectorElement.type !== 'PseudoClassSelector') {
       return false
     }
-    return !! this._pseudoClassPluginByName[selectorElement.name]
+    return !!this._pseudoClassPluginByName[selectorElement.name]
   }
 
-  _isRuleDeclarationName(name) {
-    return !! this._ruleDeclarationByName[name]
+  _isRuleDeclarationName (name) {
+    return !!this._ruleDeclarationByName[name]
   }
 
-  _filterByPseudoClassName($matchedNodes, selector, startDepth) {
+  _filterByPseudoClassName ($matchedNodes, selector, startDepth) {
     let depth = -1
     const browserSelectorElements = []
     const pseudoClassElements = []
@@ -310,10 +305,10 @@ module.exports = class Applier extends EventEmitter {
           } else {
             browserSelectorElements.push(selectorElement)
           }
-        } else if (depth <= -1 && -1 === startDepth) {
+        } else if (depth <= -1 && startDepth === -1) {
           browserSelectorElements.push(selectorElement)
         }
-      } else if (depth <= -1 && -1 === startDepth) {
+      } else if (depth <= -1 && startDepth === -1) {
         // include all of the "vanilla" selectors like #id123 or .class-name or [href]
         browserSelectorElements.push(selectorElement)
       }
@@ -331,7 +326,6 @@ module.exports = class Applier extends EventEmitter {
       } else {
         $matchedNodes = $matchedNodes.filter(browserSelector)
       }
-
     }
 
     // Perform additional filtering only if there are nodes to filter on
@@ -348,13 +342,12 @@ module.exports = class Applier extends EventEmitter {
             })
           }
         })
-
       })
     }
     return $matchedNodes
   }
 
-  _evaluateVals(context, $currentEl, vals) {
+  _evaluateVals (context, $currentEl, vals) {
     return vals.map((argTmp) => {
       return argTmp.map((arg) => {
         switch (arg.type) {
@@ -384,12 +377,12 @@ module.exports = class Applier extends EventEmitter {
 
             // Too complex to parse because commas can occur inside selector strings so punt
             return arg.value
-          case 'Function':
+          case 'Function': // eslint-disable-line no-case-declarations
             const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0]
             if (!theFunction) {
               throw new UnsupportedFunctionError(`Unsupported function named ${arg.name}`, arg, $currentEl)
             }
-            const fnReturnVal = theFunction.evaluateFunction(this._$, context, $currentEl, this._evaluateVals.bind(this), splitOnCommas(arg.children.toArray()), arg /*AST node*/)
+            const fnReturnVal = theFunction.evaluateFunction(this._$, context, $currentEl, this._evaluateVals.bind(this), splitOnCommas(arg.children.toArray()), arg /* AST node */)
             if (!(typeof fnReturnVal === 'string' || typeof fnReturnVal === 'number' || (typeof fnReturnVal === 'object' && typeof fnReturnVal.appendTo === 'function'))) {
               throwBug(`CSS function should return a string or number. Found ${typeof fnReturnVal} while evaluating ${theFunction.getFunctionName()}.`, arg, $currentEl)
             }
@@ -408,19 +401,16 @@ module.exports = class Applier extends EventEmitter {
           default:
             throwBug('Unsupported evaluated value type ' + arg.type, arg)
         }
-
       })
     })
-    return ret
-
   }
 
-  _newClassName() {
+  _newClassName () {
     this._autogenClassNameCounter += 1
     return `-css-plus-autogen-${this._autogenClassNameCounter}`
   }
 
-  _addVanillaRules(declarationsMap) {
+  _addVanillaRules (declarationsMap) {
     let declarations = []
     const autogenClassNames = []
     Object.values(declarationsMap).forEach((decls) => {
@@ -447,7 +437,7 @@ module.exports = class Applier extends EventEmitter {
     return autogenClassNames.join(' ')
   }
 
-  getVanillaRules() {
+  getVanillaRules () {
     const atRules = this._ast.children.toArray().filter((rule) => rule.type === 'Atrule')
     const children = atRules.concat(Object.values(this._unprocessedRulesAndClassNames).map(({className, declaration: {selector, astNode}}) => {
       return {
@@ -462,7 +452,7 @@ module.exports = class Applier extends EventEmitter {
               source: selector.loc.source,
               start: {
                 line: selector.loc.start.line,
-                column: selector.loc.start.column + 1,
+                column: selector.loc.start.column + 1
               }
             },
             children: [{
@@ -471,7 +461,7 @@ module.exports = class Applier extends EventEmitter {
                 source: selector.loc.source,
                 start: {
                   line: selector.loc.start.line,
-                  column: selector.loc.start.column + 1,
+                  column: selector.loc.start.column + 1
                 }
               },
               name: className
@@ -493,10 +483,9 @@ module.exports = class Applier extends EventEmitter {
     return stylesheetAst
   }
 
-  _evaluateRules(depth, rules, $currentEl, $elPromise, $debuggingEl) {
-
+  _evaluateRules (depth, rules, $currentEl, $elPromise, $debuggingEl) {
     if ($debuggingEl.attr('data-debugger')) {
-      debugger
+      debugger // eslint-disable-line no-debugger
     }
 
     // Pull out all the declarations for this rule, and then later sort by specificity.
@@ -505,7 +494,6 @@ module.exports = class Applier extends EventEmitter {
     const debugMatchedRules = []
     const debugAppliedDeclarations = []
     const debugSkippedDeclarations = []
-    const ruleDeclarationsByName = {}
 
     // TODO: Decide if rule declarations should be evaluated before or after nested pseudoselectors
     rules.forEach((matchedRule, index) => {
@@ -513,7 +501,7 @@ module.exports = class Applier extends EventEmitter {
       if (matchedRule.getDepth() - 1 === depth) {
         debugMatchedRules.push(matchedRule)
         matchedRule.getRule().rule.block.children.toArray().forEach((declaration) => {
-          const {type, important, property, value} = declaration
+          const {important, property, value} = declaration
 
           if (!this._isRuleDeclarationName(property)) {
             if (this._options.verbose) {
@@ -531,13 +519,13 @@ module.exports = class Applier extends EventEmitter {
       if (declarations) {
         declarations = declarations.sort(SPECIFICITY_COMPARATOR)
         // use the last declaration because that's how CSS works; the last rule (all-other-things-equal) wins
-        const {value, specificity, isImportant, selector, declaration} = declarations[declarations.length - 1]
+        const {value} = declarations[declarations.length - 1]
         // Log that other rules were skipped because they were overridden
         declarations.slice(0, declarations.length - 1).forEach((declaration) => {
           const {value} = declaration
           // BUG: Somehow the same selector can be matched twice for an element . This occurs with the `:not(:has(...))` ones
-          showWarning(`Skipping because this was overridden by `, value, $currentEl, /*additional CSS snippet*/declarations[declarations.length - 1].value)
-          declaration.astNode.__COVERAGE_COUNT |= 0
+          showWarning(`Skipping because this was overridden by `, value, $currentEl, /* additional CSS snippet */declarations[declarations.length - 1].value)
+          declaration.astNode.__COVERAGE_COUNT = declaration.astNode.__COVERAGE_COUNT || 0
 
           const unevaluatedVals = value.children.map((val) => simpleConvertValueToString(val))
           debugSkippedDeclarations.push({declaration, unevaluatedVals})
@@ -551,10 +539,9 @@ module.exports = class Applier extends EventEmitter {
           let vals
           try {
             vals = this._evaluateVals({$contextEl: $currentEl}, $currentEl, splitOnCommas(value.children.toArray()))
-
           } catch (err) {
             if (err instanceof UnsupportedFunctionError) {
-                return err
+              return err
             } else {
               // Error was already logged so just throw it
               // throwError(err.message, value, $currentEl, err)
@@ -597,7 +584,6 @@ module.exports = class Applier extends EventEmitter {
 
     // Any remaining declarations will be output in the CSS file but we need to add a class to the elements
     if (Object.keys(declarationsMap).length !== 0) {
-
       const autogenClassNames = this._addVanillaRules(declarationsMap)
 
       Object.values(declarationsMap).forEach((declarations) => {
@@ -617,11 +603,10 @@ module.exports = class Applier extends EventEmitter {
       showDebuggerData($currentEl, debugMatchedRules, debugAppliedDeclarations, debugSkippedDeclarations, $debuggingEl, this.toBrowserSelector.bind(this))
     }
 
-    return Promise_all(promises)
+    return promiseDotAll(promises)
   }
 
-
-  toBrowserSelector(selector, includePseudoElements) {
+  toBrowserSelector (selector, includePseudoElements) {
     assert.equal(selector.type, 'Selector')
     // Stop processing at the first PseudoElement
     const ret = []
@@ -637,7 +622,7 @@ module.exports = class Applier extends EventEmitter {
     return ret.join('')
   }
 
-  toBrowserSelector2(sel, includePseudoElements) {
+  toBrowserSelector2 (sel, includePseudoElements) {
     switch (sel.type) {
       case 'Universal':
         return sel.name
@@ -655,16 +640,14 @@ module.exports = class Applier extends EventEmitter {
         } else {
           return ` ${sel.name} `
         }
-      case 'AttributeSelector':
-        const name = sel.name
-        const value = sel.value
+      case 'AttributeSelector': // eslint-disable-line no-case-declarations
+        const {name, value} = sel
         let nam
         switch (name.type) {
           case 'Identifier':
             nam = name.name
             break
           default:
-            console.log(JSON.stringify(sel))
             throwBug(`Unmatched nameType=${name.type}`, name)
         }
         let val
@@ -678,7 +661,6 @@ module.exports = class Applier extends EventEmitter {
               val = value.name
               break
             default:
-              console.log(JSON.stringify(sel))
               throwBug(`Unmatched valueType=${value.type}`, value)
           }
           return `[${nam}${sel.matcher}${val}]`
@@ -713,7 +695,8 @@ module.exports = class Applier extends EventEmitter {
               return ''
             }
           // keep these
-          case 'not-has': // This was added because SASS has a bug and silently drops `:not(:has(foo))`. A more-hacky way would be to write `:not(:not(SASS_HACK):has(foo))`
+          case 'not-has': // eslint-disable-line no-case-declarations
+            // This was added because SASS has a bug and silently drops `:not(:has(foo))`. A more-hacky way would be to write `:not(:not(SASS_HACK):has(foo))`
             assert.is(sel.children)
             const children = sel.children.map((child) => {
               assert.equal(child.type, 'Raw')
@@ -724,7 +707,6 @@ module.exports = class Applier extends EventEmitter {
           case 'last-child':
           case 'not':
           case 'first-child': // Just vanilla CSS, not tested yet
-          case 'first-of-type':
           case 'last-of-type':
           case 'only-of-type':
           case 'only-child':
@@ -741,11 +723,11 @@ module.exports = class Applier extends EventEmitter {
           // from https://github.com/jquery/sizzle/wiki
           case 'nth-child':
           case 'nth-of-type': // Just vanilla CSS, not tested yet
-          case 'nth-last-of-type':
+          case 'nth-last-of-type': // eslint-disable-line no-case-declarations
             const nthChildren = sel.children.map((child) => {
               assert.equal(child.type, 'Nth', child)
               switch (child.nth.type) {
-                case 'AnPlusB':
+                case 'AnPlusB': // eslint-disable-line no-case-declarations
                   const {a, b} = child.nth
                   if (a && b) {
                     return `${a}n+${b}`
@@ -756,6 +738,7 @@ module.exports = class Applier extends EventEmitter {
                   } else {
                     throwBug(`Unsupported An+B syntax`, child)
                   }
+                  break
                 case 'Identifier':
                   return child.nth.name
                 default:
@@ -766,7 +749,7 @@ module.exports = class Applier extends EventEmitter {
           default:
             throwError(`Unsupported Pseudoclass ":${sel.name}"`, sel)
         }
-
+        break
       case 'PseudoElementSelector':
         // Discard some of these because sizzle/browser does no recognize them anyway (::outside or :after(3))
         switch (sel.name) {
@@ -803,18 +786,17 @@ module.exports = class Applier extends EventEmitter {
           default:
             throwBug(`Unsupported Pseudoelement "::${sel.name}"`, sel)
         }
+        break
       default:
-        console.log(JSON.stringify(sel))
         throwBug(`Unsupported Selector type=${sel.type} name=${sel.name}`, sel)
     }
   }
 
-  run(fn) {
+  run (fn) {
     let total = 0
-    walkDOMElementsInOrder(this._document.documentElement, (el) => {
+    walkDOMElementsInOrder(this._document.documentElement, () => {
       total += 1
     })
-
 
     // const bar = new ProgressBar(`${chalk.bold('Converting')} :percent ${sourceColor(this._options.debug ? ':elapsed' : ':etas')} [${chalk.green(':bar')}] #:current ${sourceColor(':sourceLocation')}`, {
     //   renderThrottle: 200,
@@ -848,19 +830,18 @@ module.exports = class Applier extends EventEmitter {
     if (ticks > 0) {
       this.emit('PROGRESS_TICK', {type: 'CONVERTING', ticks: ticks})
     }
-    this.emit('PROGRESS_END', {type: 'CONVERTING', promise_count: allPromises.length})
+    this.emit('PROGRESS_END', {type: 'CONVERTING', promise_count: allPromises.length}) // eslint-disable-line camelcase
     return allPromises
   }
 
-  process() {
+  process () {
     const allPseudoElementNames = this._pseudoElementPlugins.map((plugin) => plugin.getPseudoElementName())
     const allElementPromises = this.run(($el, rules) => {
       const $debuggingEl = $el // used for the data-debugger to know which DOM node to check if debugging is enabled
       if (rules.length > 0) {
-
         // Allow pausing the engine when an element has `data-debugger="true"` set
         if ($el.attr('data-debugger')) {
-          debugger
+          debugger // eslint-disable-line no-debugger
         }
 
         const rulesWithPseudos = rules.map((rule) => new RuleWithPseudos(rule, allPseudoElementNames))
@@ -870,13 +851,12 @@ module.exports = class Applier extends EventEmitter {
         // TODO: delay creating the nodes (or at least appending them to the DOM)
         // until other evaluations have finished.
         const recursePseudoElements = (depth, rulesWithPseudos, $lookupEl, $contextElPromise) => {
-
           // TODO: Fix this annoying off-by-one error
           const rulesAtDepth = rulesWithPseudos.filter((matchedRuleWithPseudo) => {
             // Check if additional pseudoClasses have caused this to end prematurely.
             // For example: `::for-each-descendant('section'):has(exercise)::....`
             // will stop evaluating if the `section` does not contain an `exercise`
-            if (0 === this._filterByPseudoClassName($lookupEl, matchedRuleWithPseudo.getMatchedSelector(), depth-1).length) {
+            if (this._filterByPseudoClassName($lookupEl, matchedRuleWithPseudo.getMatchedSelector(), depth - 1).length === 0) {
               return false
             }
 
@@ -887,7 +867,7 @@ module.exports = class Applier extends EventEmitter {
             return
           }
 
-          return Promise_all(this._pseudoElementPlugins.map((pseudoElementPlugin) => {
+          return promiseDotAll(this._pseudoElementPlugins.map((pseudoElementPlugin) => {
             const pseudoElementName = pseudoElementPlugin.getPseudoElementName()
 
             const matchedRulesAtDepth = rulesAtDepth.filter((rule) => {
@@ -897,13 +877,11 @@ module.exports = class Applier extends EventEmitter {
             // const $contextElPromise = Promise.resolve($contextEls)
             const newElementsAndContexts = pseudoElementPlugin.nodeCreator(this._$, reducedRules, $lookupEl, $contextElPromise, depth)
 
-
             // Zip up the reducedRules with the new DOM nodes that were created and recurse
             assert.equal(reducedRules.length, newElementsAndContexts.length)
             const allPromises = []
             for (let index = 0; index < reducedRules.length; index++) {
               const promises = newElementsAndContexts[index].map(({$newElPromise, $newLookupEl}) => {
-
                 // $newElPromise.then(($newEl) => {
                 //   if(!$newEl.parents(':last').is('html')) {
                 //     throwBug(`provided element is not attached to the DOM`, null, $newEl)
@@ -916,36 +894,33 @@ module.exports = class Applier extends EventEmitter {
                   // Check if additional pseudoClasses have caused this to end prematurely.
                   // For example: `::for-each-descendant('section'):has(exercise)::....`
                   // will stop evaluating if the `section` does not contain an `exercise`
-                  if (0 === this._filterByPseudoClassName($newLookupEl, matchedRuleWithPseudo.getMatchedSelector(), depth).length) {
+                  if (this._filterByPseudoClassName($newLookupEl, matchedRuleWithPseudo.getMatchedSelector(), depth).length === 0) {
                     return false
                   }
                   return matchedRuleWithPseudo.hasDepth(depth)
                 })
-                if (rulesAtDepth.length == 0) {
+                if (rulesAtDepth.length === 0) {
                   return null // skip the evaluation
                 }
 
-                return Promise_all([
+                return promiseDotAll([
                   this._evaluateRules(depth, reducedRules[index], $newLookupEl, $newElPromise, $debuggingEl),
                   recursePseudoElements(depth + 1, reducedRules[index], $newLookupEl, $newElPromise)
                 ])
-
               })
-              allPromises.push(Promise_all(promises))
+              allPromises.push(promiseDotAll(promises))
             }
-            return Promise_all(allPromises)
-
+            return promiseDotAll(allPromises)
           }))
         }
         // Start the evaluation
         const $elPromise = Promise.resolve($el)
-        return Promise_all([
+        return promiseDotAll([
           recursePseudoElements(0, rulesWithPseudos, $el, $elPromise),
-          this._evaluateRules(-1 /*depth*/, rulesWithPseudos, $el, $elPromise, $el)
+          this._evaluateRules(-1 /* depth */, rulesWithPseudos, $el, $elPromise, $el)
         ])
       }
-
     })
-    return Promise_all(allElementPromises, Promise.resolve('Nothing to process'))
+    return promiseDotAll(allElementPromises, Promise.resolve('Nothing to process'))
   }
 }

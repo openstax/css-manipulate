@@ -3,12 +3,12 @@ const {showLog, throwError, throwBug} = require('./misc/packet-builder')
 const ExplicitlyThrownError = require('./misc/x-throw-error')
 
 class RuleDeclaration {
-  constructor(name, fn) {
+  constructor (name, fn) {
     this._name = name
     this._fn = fn
   }
-  getRuleName() { return this._name }
-  evaluateRule($lookupEl, $elPromise, args, astNode) {
+  getRuleName () { return this._name }
+  evaluateRule ($lookupEl, $elPromise, args, astNode) {
     const ret = this._fn.apply(null, arguments)
     assert.is(ret instanceof Promise, astNode, $lookupEl)
     return ret
@@ -16,18 +16,16 @@ class RuleDeclaration {
 }
 
 // This is copy/pasta'd into pseudo-element
-function attachToAttribute($els, attrName, astNode) {
-  assert.is(astNode, astNode, $els) //TODO: Maybe this should astNode so we do not need to do this hack
+function attachToAttribute ($els, attrName, astNode) {
+  assert.is(astNode, astNode, $els) // TODO: Maybe this should astNode so we do not need to do this hack
   $els.each((i, node) => {
-    for(let index = 0; index < node.attributes.length; index++) {
+    for (let index = 0; index < node.attributes.length; index++) {
       if (node.attributes[index].name === attrName) {
         node.attributes[index].__cssLocation = astNode
       }
     }
   })
 }
-
-
 
 const DECLARATIONS = []
 
@@ -114,7 +112,7 @@ DECLARATIONS.push(new RuleDeclaration('class-remove', ($, $lookupEl, $elPromise,
     if (vals[0][0] === '*') {
       assert.equal(vals.length, 1, astNode, $lookupEl)
       assert.equal(vals[0].length, 1, astNode, $lookupEl)
-      while($el[0].classList.length > 0) {
+      while ($el[0].classList.length > 0) {
         $el[0].classList.remove($el[0].classList[0])
       }
     } else {
@@ -162,7 +160,7 @@ DECLARATIONS.push(new RuleDeclaration('attrs-remove', ($, $lookupEl, $elPromise,
     if (vals[0][0] === '*') {
       assert.equal(vals.length, 1, astNode, $lookupEl)
       assert.equal(vals[0].length, 1, astNode, $lookupEl)
-      while($el[0].attributes.length > 0) {
+      while ($el[0].attributes.length > 0) {
         $el[0].removeAttribute($el[0].attributes[0].name)
       }
     } else {
@@ -200,7 +198,6 @@ DECLARATIONS.push(new RuleDeclaration('attrs-add', ($, $lookupEl, $elPromise, va
       const attrValue = val.slice(1).join('')
       $el.attr(attrName, attrValue)
       attachToAttribute($el, attrName, astNode)
-
     })
     return $el
   })
@@ -230,7 +227,6 @@ DECLARATIONS.push(new RuleDeclaration('x-display', ($, $lookupEl, $elPromise, va
   })
 }))
 
-
 // FIXME: tag-name-set MUST be the last rule evaluated becuase it changes the $els set.
 // So until evaluateRule can return a new set of els this needs to be the last rule that is evaluated
 DECLARATIONS.push(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise, vals, astNode) => {
@@ -247,27 +243,27 @@ DECLARATIONS.push(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise,
 
   // http://stackoverflow.com/a/21727562
   // http://stackoverflow.com/a/9468280
-  function replaceTagName(replaceWith) {
-      var tags = [],
-          i    = this.length;
-      while (i--) {
-          var newElement = $(`<${replaceWith}/>`)[0],
-              thisi      = this[i],
-              thisia     = thisi.attributes;
-          for (var a = thisia.length - 1; a >= 0; a--) {
-              var attrib = thisia[a];
-              newElement.setAttribute(attrib.name, attrib.value);
-          };
-          // The following line does not work when parsing in XML mode
-          // newElement.innerHTML = thisi.innerHTML;
-          $(newElement).append($(thisi).contents())
-
-          $(thisi).after(newElement).remove();
-          tags[i] = newElement;
-          // Add sourcemap
-          newElement.__cssLocation = astNode
+  function replaceTagName (replaceWith) {
+    const tags = []
+    let i = this.length
+    while (i--) {
+      const newElement = $(`<${replaceWith}/>`)[0]
+      const thisi = this[i]
+      const thisia = thisi.attributes
+      for (let a = thisia.length - 1; a >= 0; a--) {
+        const attrib = thisia[a]
+        newElement.setAttribute(attrib.name, attrib.value)
       }
-      return $(tags);
+      // The following line does not work when parsing in XML mode
+      // newElement.innerHTML = thisi.innerHTML;
+      $(newElement).append($(thisi).contents())
+
+      $(thisi).after(newElement).remove()
+      tags[i] = newElement
+          // Add sourcemap
+      newElement.__cssLocation = astNode
+    }
+    return $(tags)
   }
 
   assert.is($elPromise instanceof Promise, astNode, $lookupEl)

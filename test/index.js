@@ -1,18 +1,17 @@
+/* eslint-disable no-sync, dot-location */
 const fs = require('fs')
 const path = require('path')
 const test = require('ava')
-const jquery = require('jquery')
 const {convertNodeJS} = require('../src/node')
 const renderPacket = require('../src/packet-render')
 const {SPECIFICITY_COMPARATOR} = require('../src/browser/misc/specificity')
 
 const {WRITE_TEST_RESULTS} = process.env
 
-
 const EXAMPLE_FILES_TO_TEST = [
   './example/exercise-numbering',
   './example/exercise-numbering-advanced',
-  './example/glossary',
+  './example/glossary'
 ]
 const UNIT_FILES_TO_TEST = [
   './unit/add',
@@ -40,7 +39,7 @@ const UNIT_FILES_TO_TEST = [
   './unit/has',
   './unit/namespace-attributes',
   './unit/vanilla',
-  './unit/sandbox',
+  './unit/sandbox'
 ]
 
 const MOTIVATION_INPUT_HTML_PATH = `./motivation/_input.xhtml`
@@ -55,20 +54,19 @@ const MOTIVATION_FILES_TO_TEST = [
   './motivation/8',
   './motivation/9',
   './motivation/10',
-  './motivation/all',
+  './motivation/all'
 ]
 
-
-function coverageDataToLcov(htmlOutputPath, coverageData) {
+function coverageDataToLcov (htmlOutputPath, coverageData) {
   const lines = []
 
-  for (const filePath in coverageData) {
+  for (const filePath in coverageData) { // eslint-disable-line guard-for-in
     const absoluteFilePath = path.resolve(filePath)
     const countData = coverageData[filePath]
     // SF:./rulesets/output/biology.css
     lines.push(`SF:${absoluteFilePath}`)
-    for (const key in countData) {
-      const {count, start, end} = countData[key]
+    for (const key in countData) { // eslint-disable-line guard-for-in
+      const {count, start} = countData[key]
       lines.push(`DA:${start.line},${count}`)
     }
     lines.push(`end_of_record`)
@@ -77,8 +75,7 @@ function coverageDataToLcov(htmlOutputPath, coverageData) {
   return lines.join('\n')
 }
 
-
-function buildTest(htmlFilename, cssFilename) {
+function buildTest (htmlFilename, cssFilename) {
   const argv = {noprogress: true}
   let cssPath
   if (cssFilename) {
@@ -90,7 +87,6 @@ function buildTest(htmlFilename, cssFilename) {
   const htmlOutputSourceMapPath = `${htmlOutputPath}.map`
   const htmlOutputCoveragePath = `${htmlOutputPath}.lcov`
   const stdoutPath = `${htmlOutputPath}.txt`
-  const htmlOutputSourceMapFilename = path.basename(htmlOutputSourceMapPath)
 
   test(`Generates ${htmlOutputPath}`, (t) => {
     t.plan(2) // 2 assertions
@@ -101,17 +97,17 @@ function buildTest(htmlFilename, cssFilename) {
 
     // Record all warnings/errors/bugs into an output file for diffing
     const actualStdout = []
-    function packetHandler(packet, htmlSourceLookupMap) {
+    function packetHandler (packet, htmlSourceLookupMap) {
       const message = renderPacket(process.cwd(), packet, htmlSourceLookupMap, argv)
       if (message) {
         actualStdout.push(message)
         if (WRITE_TEST_RESULTS === 'true') {
-          console.log(message)
+          console.log(message) // eslint-disable-line no-console
         }
       }
     }
 
-    return convertNodeJS(cssPath, htmlPath, htmlOutputPath, argv, packetHandler).then(({html: actualOutput, sourceMap, coverageData, __coverage__}) => {
+    return convertNodeJS(cssPath, htmlPath, htmlOutputPath, argv, packetHandler).then(({html: actualOutput, sourceMap, coverageData}) => {
       if (fs.existsSync(htmlOutputPath)) {
         const expectedOutput = fs.readFileSync(htmlOutputPath).toString()
 
@@ -139,9 +135,7 @@ function buildTest(htmlFilename, cssFilename) {
           t.pass()
         }
       }
-
     })
-
 
     // // Use this for profiling so the inspector does not close immediately
     // if (process.env['NODE_ENV'] === 'profile') {
@@ -151,29 +145,20 @@ function buildTest(htmlFilename, cssFilename) {
     //     }, 20 * 60 * 1000) // Wait 20 minutes
     //   })
     // }
-
   })
 }
 
-function buildErrorTests() {
+function buildErrorTests () {
   const argv = {noprogress: true}
   const htmlPath = `test/errors/_errors.in.xhtml`
   const sourceCssPath = `test/errors/_errors.css`
   const errorRules = fs.readFileSync(sourceCssPath, 'utf8').split('\n')
 
   errorRules.forEach((cssContents, lineNumber) => {
-    if (!cssContents || cssContents[0] === '/' && (cssContents[1] === '*' || cssContents[1] === '/')) {
+    if (!cssContents || (cssContents[0] === '/' && (cssContents[1] === '*' || cssContents[1] === '/'))) {
       // Skip empty newlines (like at the end of the file) or lines that start with a comment
       return
     }
-
-    // Vertically pad the CSS text that we send so the warnings/errors correspond to the correct line in the file
-    // (since we are only testing one line at a time)
-    let cssContentsWithPadding = ''
-    for (let i = 0; i < lineNumber; i++) {
-      cssContentsWithPadding += '\n'
-    }
-    cssContentsWithPadding += cssContents
 
     const stdoutPath = `test/errors/error-${lineNumber + 1}.out.txt`
     let expectedStdoutContents
@@ -181,23 +166,21 @@ function buildErrorTests() {
       expectedStdoutContents = fs.readFileSync(stdoutPath, 'utf8')
     }
 
-
     test(`Errors while trying to evaluate "${cssContents}" (see _errors.css:${lineNumber + 1})`, (t) => {
       t.plan(2) // 2 assertions
 
       const cssPath = `test/errors/error-${lineNumber + 1}.css`
       fs.writeFileSync(cssPath, cssContents)
       const htmlOutputPath = cssPath.replace('.css', '.out.xhtml')
-      const htmlContents = fs.readFileSync(htmlPath, 'utf8')
 
       // Record all warnings/errors/bugs into an output file for diffing
       const actualStdout = []
-      function packetHandler(packet, htmlSourceLookupMap) {
+      function packetHandler (packet, htmlSourceLookupMap) {
         const message = renderPacket(process.cwd(), packet, htmlSourceLookupMap, argv)
         if (message) { // could've been a progress bar. in which case do not show anything
           actualStdout.push(message)
           if (WRITE_TEST_RESULTS === 'true') {
-            console.log(message)
+            console.log(message) // eslint-disable-line no-console
           }
         }
       }
@@ -224,12 +207,10 @@ function buildErrorTests() {
         }
       })
     })
-
   })
-
 }
 
-function specificityTest(msg, correct, items) {
+function specificityTest (msg, correct, items) {
   test(msg, (t) => {
     items = items.sort(SPECIFICITY_COMPARATOR)
     t.is(items[items.length - 1], correct)
@@ -241,56 +222,54 @@ EXAMPLE_FILES_TO_TEST.forEach((filename) => buildTest(`${filename}.in.xhtml`, `$
 MOTIVATION_FILES_TO_TEST.forEach((filename) => buildTest(MOTIVATION_INPUT_HTML_PATH, `${filename}.css`))
 buildErrorTests()
 
-
 let correct
 let items
 
-correct = {specificity: [1,0,0]}
+correct = {specificity: [1, 0, 0]}
 items = [
-  {specificity: [1,0,0]},
-  correct,
+  {specificity: [1, 0, 0]},
+  correct
 ]
 specificityTest(`Specificity prefers the last item`, correct, items)
 
-
-correct = {specificity: [1,0,0], isImportant: true}
+correct = {specificity: [1, 0, 0], isImportant: true}
 items = [
   correct,
-  {specificity: [1,0,0]},
+  {specificity: [1, 0, 0]}
 ]
 specificityTest(`Specificity prefers the important item`, correct, items)
 
-correct = {specificity: [1,0,0]}
+correct = {specificity: [1, 0, 0]}
 items = [
   correct,
-  {specificity: [0,1,0]},
+  {specificity: [0, 1, 0]}
 ]
 specificityTest(`Specificity prefers the id selector`, correct, items)
 
-correct = {specificity: [0,2,0]}
+correct = {specificity: [0, 2, 0]}
 items = [
   correct,
-  {specificity: [0,1,0]},
+  {specificity: [0, 1, 0]}
 ]
 specificityTest(`Specificity prefers the higher middle arg`, correct, items)
 
-correct = {specificity: [0,0,2]}
+correct = {specificity: [0, 0, 2]}
 items = [
   correct,
-  {specificity: [0,0,1]},
+  {specificity: [0, 0, 1]}
 ]
 specificityTest(`Specificity prefers the higher last arg`, correct, items)
 
-correct = {specificity: [1,0,0]}
+correct = {specificity: [1, 0, 0]}
 items = [
   correct,
-  {specificity: [0,9,0]},
+  {specificity: [0, 9, 0]}
 ]
 specificityTest(`Specificity prefers the first arg`, correct, items)
 
-correct = {specificity: [0,1,0]}
+correct = {specificity: [0, 1, 0]}
 items = [
   correct,
-  {specificity: [0,0,9]},
+  {specificity: [0, 0, 9]}
 ]
 specificityTest(`Specificity prefers the middle arg`, correct, items)

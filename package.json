@@ -6,6 +6,7 @@
     "css-plus-debug": "./bin/css-plus-debug"
   },
   "scripts": {
+    "lint": "standard --verbose --fix ./src/**/*.js ./test/**/*.js | snazzy && eslint src/**/*.js test/**/*.js",
     "prerebuild-tests": "./script/compile-css",
     "prestart": "./script/compile-css",
     "rebuild-tests": "WRITE_TEST_RESULTS=true npm run-script test --",
@@ -14,7 +15,6 @@
     "ci": "nyc --reporter html --reporter text --reporter json ava ./test/index.js",
     "pretest": "npm run-script dist",
     "test": "ava ./test/index.js",
-    "lint": "eslint src/**/*.js",
     "debugger": "NODE_ENV=debugger inspect node_modules/ava/profile.js test/index.js",
     "dist": "webpack --config ./webpack.config.js",
     "snazzy": "nyc --reporter html --reporter text --reporter json ava ./test/index.js 2>&1 | snazzy",
@@ -44,6 +44,7 @@
     "node-sass": "^4.6.0",
     "nyc": "^11.3.0",
     "snazzy": "^7.0.0",
+    "standard": "^10.0.3",
     "webpack": "^3.8.1"
   },
   "main": "src/converter.js",
