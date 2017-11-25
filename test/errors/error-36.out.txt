@@ -1,0 +1,1 @@
+  [2mtest/errors/error-36.css:1:18[22m [31m[1mERROR[22m[39m Counter numbering not supported for list type foo ([2mtest/errors/_errors.in.xhtml:2:7[22m)

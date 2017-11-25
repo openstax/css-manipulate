@@ -40,6 +40,62 @@ function STRING_OR_NUMBER_COMPARATOR (a, b) {
   }
 }
 
+// convert integer to Roman numeral. From http://www.diveintopython.net/unit_testing/romantest.html
+function toRoman (num, astNode, $contextEl) {
+  var i, integer, len, numeral, ref, result, romanNumeralMap
+  romanNumeralMap = [['M', 1000], ['CM', 900], ['D', 500], ['CD', 400], ['C', 100], ['XC', 90], ['L', 50], ['XL', 40], ['X', 10], ['IX', 9], ['V', 5], ['IV', 4], ['I', 1]]
+  if (!((num > 0 && num < 5000))) {
+    throwError(`number out of range (must be 1..4999) but was ${num}`, astNode, $contextEl)
+  }
+  result = ''
+  for (i = 0, len = romanNumeralMap.length; i < len; i++) {
+    ref = romanNumeralMap[i]
+    numeral = ref[0]
+    integer = ref[1]
+    while (num >= integer) {
+      result += numeral
+      num -= integer
+    }
+  }
+  return result
+}
+// Options are defined by http://www.w3.org/TR/CSS21/generate.html#propdef-list-style-type
+function numberingStyle (num, style, astNode, $contextEl) {
+  if (num == null) {
+    throwError(`first argument must be a number`, astNode, $contextEl)
+  }
+  switch (style) {
+    case 'decimal-leading-zero':
+      if (num < 10) {
+        return `0${num}`
+      } else {
+        return num
+      }
+    case 'lower-roman':
+      return toRoman(num, astNode, $contextEl).toLowerCase()
+    case 'upper-roman':
+      return toRoman(num, astNode, $contextEl)
+    case 'lower-latin':
+      if (!((num >= 1 && num <= 26))) {
+        throwError(`number out of range (must be 1...26) but was ${num}`, astNode, $contextEl)
+      } else {
+        return String.fromCharCode(num + 96)
+      }
+      break
+    case 'upper-latin':
+      if (!((num >= 1 && num <= 26))) {
+        throwError(`number out of range (must be 1...26) but was ${num}`, astNode, $contextEl)
+      } else {
+        return String.fromCharCode(num + 64)
+      }
+      break
+    case 'decimal':
+      return num
+    default:
+      throwError(`Counter numbering not supported for list type ${style}`, astNode, $contextEl)
+  }
+}
+
 FUNCTIONS.push(new FunctionEvaluator('x-throw', (evaluator, astNode) => {
   const vals = evaluator.evaluateAll()
   throwError(`"x-throw()" was called. ${vals[0]}`, astNode)
@@ -186,7 +242,7 @@ FUNCTIONS.push(new FunctionEvaluator('count-of-type', (evaluator, astNode, $cont
 }))
 FUNCTIONS.push(new FunctionEvaluator('count-all-of-type', (evaluator, astNode, $contextEl) => {
   const vals = evaluator.evaluateAll()
-  assert.equal(vals.length, 1, astNode, $contextEl)
+  assert.equal(vals.length, 1, astNode, $contextEl, 'Exactly 1 argument is allowed')
   assert.is(Array.isArray(vals[0]), astNode, $contextEl)
   const selector = vals[0].join(' ')  // vals[0] = ['li'] (notice vals is a 2-Dimensional array. If each FunctionEvaluator had a .join() method then this function could be simpler and more intuitive to add more features)
   assert.equal(typeof selector, 'string', astNode, $contextEl)
@@ -196,6 +252,11 @@ FUNCTIONS.push(new FunctionEvaluator('count-all-of-type', (evaluator, astNode, $
     return $matches
   })
   return $matches.length
+}))
+FUNCTIONS.push(new FunctionEvaluator('number-to-letter', (evaluator, astNode, $contextEl) => {
+  const vals = evaluator.evaluateAll()
+  assert.equal(vals.length, 2, astNode, $contextEl, 'Exactly 2 arguments are allowed')
+  return numberingStyle(Number.parseInt(vals[0][0]), vals[1][0], astNode, $contextEl)
 }))
 FUNCTIONS.push(new FunctionEvaluator('parent-context',
   (evaluator, astNode, $contextEl) => {
