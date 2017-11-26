@@ -105,7 +105,7 @@ module.exports = class Applier extends EventEmitter {
     this._pseudoClassPluginByName[plugin.getPseudoClassName()] = plugin
   }
 
-  prepare (rewriteSourceMapsFn) {
+  prepare (cssWalker) {
     let ast = csstree.parse(this._cssContents.toString(), {positions: true,
       filename: this._cssSourcePath,
       onParseError: (err) => {
@@ -120,9 +120,9 @@ module.exports = class Applier extends EventEmitter {
       }})
     this._ast = ast
 
-    if (rewriteSourceMapsFn) {
+    if (cssWalker) {
       // TODO: Optimization: Only rewrite nodes needed for serializing (and add a flag that it was rewritten)
-      rewriteSourceMapsFn(ast)
+      csstree.walk(ast, cssWalker)
     }
 
     // Walking the DOM and calling el.matches(sel) for every selector is inefficient. (causes crash after 7min for big textbook)

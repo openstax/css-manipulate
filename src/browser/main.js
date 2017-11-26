@@ -56,7 +56,7 @@ module.exports = class Converter {
     }
 
     let showedNoSourceWarning = false // Only show this warning once, not for every element
-    function rewriteSourceMapsFn (astNode) {
+    function walker (astNode) {
       if (map && astNode.loc) {
         const {start} = astNode.loc
         let {source: newStartPath, line: newStartLine, column: newStartColumn} = map.originalPositionFor(start)
@@ -84,26 +84,9 @@ module.exports = class Converter {
           }
         }
       }
-      if (astNode.children) {
-        astNode.children.toArray().forEach(rewriteSourceMapsFn)
-      }
-      if (astNode.block) {
-        rewriteSourceMapsFn(astNode.block)
-      }
-      if (astNode.selector) {
-        rewriteSourceMapsFn(astNode.selector)
-      }
-      // astNode.type == "Rule"
-      if (astNode.prelude) {
-        rewriteSourceMapsFn(astNode.prelude)
-      }
-      // astNode.type == "Declaration"
-      if (astNode.value) {
-        rewriteSourceMapsFn(astNode.value)
-      }
     }
 
-    this._engine.prepare(rewriteSourceMapsFn)
+    this._engine.prepare(walker)
     // console.profile('CPU Profile')
     const allElementsDoneProcessingPromise = this._engine.process()
     // console.profileEnd()
