@@ -204,6 +204,15 @@ module.exports = class Applier extends EventEmitter {
 
         selectorCache[browserSelector] = selectorCache[browserSelector] || this._$(browserSelector)
         let $matchedNodes = selectorCache[browserSelector]
+        // // Add coverage to every element in the selector because LESS/SASS supports hierarchies and we want to count all of them
+        // selector.children.each((selectorNode) => {
+        //   // Some nodes are not updateable (WhiteSpace).
+        //   // Luckily, they do not have a .loc field so we can just check
+        //   // if that field exists
+        //   if (selectorNode.loc) {
+        //     selectorNode.__COVERAGE_COUNT = $matchedNodes.length
+        //   }
+        // })
         selector.__COVERAGE_COUNT = $matchedNodes.length
 
         $matchedNodes = this._filterByPseudoClassName($matchedNodes, selector, -1/* depth */)
@@ -494,9 +503,9 @@ module.exports = class Applier extends EventEmitter {
       const autogenClassNames = this._addVanillaRules(declarationsMap)
 
       Object.values(declarationsMap).forEach((declarations) => {
-        declarations.forEach((declaration) => {
-          declaration.astNode.__COVERAGE_COUNT = declaration.astNode.__COVERAGE_COUNT || 0
-          declaration.astNode.__COVERAGE_COUNT += 1
+        declarations.forEach(({astNode}) => {
+          astNode.__COVERAGE_COUNT = astNode.__COVERAGE_COUNT || 0
+          astNode.__COVERAGE_COUNT += 1
         })
       })
 

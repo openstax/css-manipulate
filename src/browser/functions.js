@@ -29,6 +29,14 @@ function memoize (el, key, value, fn) {
   return el[key][value]
 }
 
+function incrementElCoverage (el) {
+  el.__COVERAGE_COUNT = el.__COVERAGE_COUNT || 0
+  el.__COVERAGE_COUNT += 1
+}
+function increment$ElCoverage ($el) {
+  $el.each((index, el) => incrementElCoverage(el))
+}
+
 function STRING_OR_NUMBER_COMPARATOR (a, b) {
   // This should work for numbers or strings (lexicographic sort)
   if (a.sortKey < b.sortKey) {
@@ -168,6 +176,7 @@ FUNCTIONS.push(new FunctionEvaluator('move-here', (evaluator, astNode, $contextE
   assert.equal(evaluator.argLength(), 1, astNode, null, 'use move-here-sorted instead')
   const selector = evaluator.evaluateFirst().join('')
   let ret = $contextEl.find(selector)
+  increment$ElCoverage(ret)
   if (ret.length === 0) {
     showWarning(`Moved 0 items. Maybe add a :has() guard to prevent this warning`, astNode, $contextEl)
   }
@@ -177,6 +186,7 @@ FUNCTIONS.push(new FunctionEvaluator('move-here-sorted', (evaluator, astNode, $c
   assert.is(evaluator.argLength() > 1, astNode, $contextEl, 'missing additional args')
   const selector = evaluator.evaluateFirst().join('')
   let ret = $contextEl.find(selector)
+  increment$ElCoverage(ret)
   if (ret.length === 0) {
     showWarning(`Moved 0 items. Maybe add a :has() guard to prevent this warning`, astNode, $contextEl)
   }
@@ -184,6 +194,7 @@ FUNCTIONS.push(new FunctionEvaluator('move-here-sorted', (evaluator, astNode, $c
   // Sort the elements based on additional args
   let sortCriteria = ret.toArray().map((el) => {
     const $el = $(el)
+    incrementElCoverage(el)
     // Loop through each of the guard functions and see which matches
     for (let index = 1; index < evaluator.argLength(); index++) { // start at 1 because we already evaluated the 1st arg (what to move)
       const argExpr = evaluator.getIthArg(index)
@@ -291,6 +302,7 @@ FUNCTIONS.push(new FunctionEvaluator('target-context',
       } else {
         // $targetEl = $(`[id="${selector.substring(1)}"]`)
         $targetEl = $($contextEl[0].ownerDocument.querySelectorAll(`[id="${selector.substring(1)}"]`))
+        increment$ElCoverage($targetEl)
       }
       return $targetEl
     })
@@ -318,6 +330,7 @@ FUNCTIONS.push(new FunctionEvaluator('ancestor-context',
     const selector = evaluator.evaluateFirst().join('')
 
     const $closestAncestor = $contextEl.closest(selector)
+    increment$ElCoverage($closestAncestor)
     if ($closestAncestor.length !== 1) {
       throwError(`Could not find ancestor-context. Selector was "${selector}"`, astNode, $currentEl)
     }
@@ -343,6 +356,7 @@ FUNCTIONS.push(new FunctionEvaluator('descendant-context',
       const $firstDescendant = $contextEl.find(selector)
       return $firstDescendant
     })
+    increment$ElCoverage($firstDescendant)
     if ($firstDescendant.length !== 1) {
       throwError(`Could not find unique descendant-context when evaluating "${selector}". Found ${$firstDescendant.length}`, astNode, $currentEl)
     }
@@ -363,6 +377,7 @@ FUNCTIONS.push(new FunctionEvaluator('next-sibling-context',
     // Determine the new $contextEl
     const selector = evaluator.evaluateFirst().join('')
     const $nextSibling = $contextEl.next(selector)
+    increment$ElCoverage($nextSibling)
     if ($nextSibling.length !== 1) {
       throwBug(`Could not find unique next-sibling-context. Found ${$contextEl.length}. Consider using ":first" in the argument`, astNode, $currentEl)
     }

@@ -17,6 +17,14 @@ function memoize (el, key, value, fn) {
   return el[key][value]
 }
 
+function incrementElCoverage (el) {
+  el.__COVERAGE_COUNT = el.__COVERAGE_COUNT || 0
+  el.__COVERAGE_COUNT += 1
+}
+function increment$ElCoverage ($el) {
+  $el.each((index, el) => incrementElCoverage(el))
+}
+
 class PseudoClassFilter {
   constructor (name, fn) {
     this._name = name
@@ -77,6 +85,8 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $look
 
   const ret = []
   $newLookupEls.each((index, newLookupEl) => {
+    incrementElCoverage(newLookupEl)
+
     const $newElPromise = $contextElPromise.then(($contextEl) => {
       if (!$contextEl.parents(':last').is('html')) {
         throwBug(`provided element is not attached to the DOM`, null, $contextEl)
@@ -138,7 +148,11 @@ PSEUDO_CLASSES.push(new PseudoClassFilter('target', ($, $el, args, astNode) => {
     const selector = matchSelector.substring(1, matchSelector.length - 1) // Remove the wrapping quotes
     // TODO: Check if this memoizing actually helps or not
     return memoize($targetEl[0], '_is', selector, () => {
-      return $targetEl.is(selector)
+      const is = $targetEl.is(selector)
+      if (is) {
+        increment$ElCoverage($targetEl)
+      }
+      return is
     })
   } else {
     return false
