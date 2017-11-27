@@ -313,7 +313,7 @@ FUNCTIONS.push(new FunctionEvaluator('target-context',
       showWarning(`Could not find target element with id=${selector.substring(1)}`, astNode, $contextEl)
     }
 
-    const vals = evaluator.evaluateRest($targetEl)
+    const vals = evaluator.evaluateRest($targetEl, $targetEl)
     assert.equal(vals.length, 1)
     // skip the 1st arg which is the selector
     // and use the 2nd arg

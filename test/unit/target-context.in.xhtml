@@ -1,0 +1,34 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css-plus+css">
+      a[href^="#"]:target(href, 'figure') {
+        content: target-context(attr(href), collect-all("Figure " ancestor-context('body', count-of-type('chapter')) "." ancestor-context('chapter', count-of-type('figure'))));
+      }
+    </style>
+  </head>
+<body>
+
+
+<chapter id="chap_1">
+  <a href="#fig_1_2">BROKEN</a>
+  <figure id="fig_1_1">Fig A</figure>
+  <figure id="fig_1_2">Fig B</figure>
+  <figure id="fig_1_3">Fig C</figure>
+  <a href="#fig_1_1">BROKEN</a>
+  <a href="#fig_1_2">BROKEN</a>
+  <a href="#fig_1_3">BROKEN</a>
+  <a href="#chap_1">Chapter</a>
+</chapter>
+
+<chapter>
+  <a href="#fig_2_2">BROKEN</a>
+  <figure id="fig_2_1">Fig A</figure>
+  <figure id="fig_2_2">Fig B</figure>
+  <figure id="fig_2_3">Fig C</figure>
+  <a href="#fig_2_1">BROKEN</a>
+  <a href="#fig_2_2">BROKEN</a>
+  <a href="#fig_2_3">BROKEN</a>
+</chapter>
+
+</body>
+</html>
