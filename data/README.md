@@ -5,6 +5,8 @@ Hey! I manually grafted together a Raw HTML file for entrepreneurship and tried 
 
 See the "baked" file here (with devtools sourcemaps): [./entrepreneurship-baked.xhtml](http://philschatz.com/css-plus/data/entrepreneurship-baked.xhtml)
 
+See the PDF file here: [./entrepreneurship-baked.pdf](http://philschatz.com/css-plus/data/entrepreneurship-baked.pdf)
+
 See the "recipe" here (in LESS): [https://github.com/philschatz/css-plus/blob/gh-pages/data/style.less](https://github.com/philschatz/css-plus/blob/gh-pages/data/style.less)
 
 All-in it took about 3 full days of work to build it from scratch (during evenings) + another day of adding/debugging features in `css-plus` to add the features needed (mostly debugging tools and useful warnings/error messages).

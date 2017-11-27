@@ -14,3 +14,5 @@ do_progress_quiet "Compiling LESS file" \
 
 do_progress "Baking HTML file"
 "${bake_command}" --css "${css_file}" --html "${raw_file}" --output "${baked_file}" $@
+
+_say "Baking succeeded. Check out ${baked_file}"
