@@ -1,2 +1,2 @@
-  [2mtest/example/exercise-numbering.less:9:14[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/example/exercise-numbering.less:18:18[22m ([2mtest/example/exercise-numbering.in.xhtml:8:13[22m)
-  [2mtest/example/exercise-numbering.less:8:19[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/example/exercise-numbering.less:17:23[22m ([2mtest/example/exercise-numbering.in.xhtml:8:13[22m)
+  [2mtest/example/exercise-numbering.less:9:15[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/example/exercise-numbering.less:18:19[22m ([2mtest/example/exercise-numbering.in.xhtml:8:13[22m)
+  [2mtest/example/exercise-numbering.less:8:20[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/example/exercise-numbering.less:17:24[22m ([2mtest/example/exercise-numbering.in.xhtml:8:13[22m)

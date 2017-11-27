@@ -1,1 +1,1 @@
-  [2mtest/unit/unused.in.xhtml:8:12[22m [33m[1mWARN[22m[39m Unused selector
+  [2mtest/unit/unused.in.xhtml:8:13[22m [33m[1mWARN[22m[39m Unused selector

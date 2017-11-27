@@ -1,2 +1,2 @@
-  [2mtest/unit/simple-selectors.in.xhtml:8:8[22m [33m[1mWARN[22m[39m Unused selector
-  [2mtest/unit/simple-selectors.in.xhtml:5:41[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/simple-selectors.in.xhtml:6:41[22m ([2mtest/unit/simple-selectors.in.xhtml:19:5[22m)
+  [2mtest/unit/simple-selectors.in.xhtml:8:9[22m [33m[1mWARN[22m[39m Unused selector
+  [2mtest/unit/simple-selectors.in.xhtml:5:42[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/simple-selectors.in.xhtml:6:42[22m ([2mtest/unit/simple-selectors.in.xhtml:19:5[22m)

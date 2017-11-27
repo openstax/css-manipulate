@@ -70,7 +70,7 @@ module.exports = class Converter {
             source: newStartPath,
             start: {
               line: newStartLine,
-              column: newStartColumn
+              column: newStartColumn + 1 // csstree is 1-based while sourcemaps are 0-based
             }
             // end: {
             //   line: newEndLine,
