@@ -14,6 +14,7 @@ const EXAMPLE_FILES_TO_TEST = [
   './example/glossary'
 ]
 const UNIT_FILES_TO_TEST = [
+  './unit/number-to-letter',
   './unit/add',
   './unit/at-rule',
   './unit/unused',

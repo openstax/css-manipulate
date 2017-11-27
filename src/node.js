@@ -182,14 +182,20 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
     csstree.walk(ast, (node) => {
       if (node.loc) {
         const {line, column} = node.loc.start
-        map.addMapping({
-          source: htmlPath,
-          original: {
-            line: styleSourceShiftStart.line + line,
-            column: line === 0 ? styleSourceShiftStart.column + column : column
-          },
-          generated: { line: line, column: column}
-        })
+        const originalLine = styleSourceShiftStart.line + line
+        const originalColumn = line === 0 ? styleSourceShiftStart.column + column : column
+        if (originalLine >= 0 && originalColumn >= 0) {
+          map.addMapping({
+            source: htmlPath,
+            original: {
+              line: originalLine,
+              column: originalColumn
+            },
+            generated: { line: line, column: column}
+          })
+        } else {
+          showWarning(`Missing mapping for style tag. Generated: ${line}:${column + 1} Original: ${originalLine}:${originalColumn + 1}`, node)
+        }
       }
     })
     cssSourceMapJson = map.toJSON()

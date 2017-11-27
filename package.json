@@ -1,6 +1,6 @@
 {
   "name": "css-plus",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "bin": {
     "css-plus": "./bin/css-plus",
     "css-plus-debug": "./bin/css-plus-debug"
@@ -34,7 +34,7 @@
     "yargs": "^10.0.3"
   },
   "devDependencies": {
-    "ava": "^0.23.0",
+    "ava": "^0.24.0",
     "browserify": "^14.0.0",
     "eslint": "^4.10.0",
     "inspect-process": "^0.5.0",

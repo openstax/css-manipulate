@@ -1,3 +1,3 @@
-  [2mtest/unit/x-log.in.xhtml:4:22[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/x-log.in.xhtml:5:22[22m ([2mtest/unit/x-log.in.xhtml:17:7[22m)
-  [2mtest/unit/x-log.in.xhtml:12:19[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/x-log.in.xhtml:13:19[22m ([2mtest/unit/x-log.in.xhtml:17:7[22m)
-  [2mtest/unit/x-log.in.xhtml:6:25[22m [34m[1mLOG[22m[39m encountered a .log-me ([2mtest/unit/x-log.in.xhtml:18:8[22m)
+  [2mtest/unit/x-log.in.xhtml:4:23[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/x-log.in.xhtml:5:23[22m ([2mtest/unit/x-log.in.xhtml:17:7[22m)
+  [2mtest/unit/x-log.in.xhtml:12:20[22m [33m[1mWARN[22m[39m Skipping because this was overridden by [2mtest/unit/x-log.in.xhtml:13:20[22m ([2mtest/unit/x-log.in.xhtml:17:7[22m)
+  [2mtest/unit/x-log.in.xhtml:6:26[22m [34m[1mLOG[22m[39m encountered a .log-me ([2mtest/unit/x-log.in.xhtml:18:8[22m)

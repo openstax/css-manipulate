@@ -212,27 +212,7 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
   })
 
   // record coverage data on the CSS
-  function walkCssAst (astNode, fn) {
-    fn(astNode)
-
-    if (astNode.children) {
-      astNode.children.toArray().forEach((child) => {
-        walkCssAst(child, fn)
-      })
-    }
-    if (astNode.block) {
-      walkCssAst(astNode.block, fn)
-    }
-    if (astNode.selector) {
-      walkCssAst(astNode.selector, fn)
-    }
-    // astNode.type == "Declaration"
-    if (astNode.value) {
-      walkCssAst(astNode.value, fn)
-    }
-  }
-
-  walkCssAst(engine._ast, (astNode) => {
+  csstree.walk(engine._ast, (astNode) => {
     if (astNode.loc && typeof astNode.__COVERAGE_COUNT !== 'undefined') {
       const {source, start, end} = astNode.loc
       addCoverage(source, astNode.__COVERAGE_COUNT, start, end)
