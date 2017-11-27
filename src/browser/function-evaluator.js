@@ -62,23 +62,23 @@ module.exports = class FunctionEvaluator {
     return this._argExprs[index]
   }
 
-  evaluateFirst ($contextEl) {
-    return this.evaluateIth(0, $contextEl)
+  evaluateFirst ($contextEl, $currentEl) {
+    return this.evaluateIth(0, $contextEl, $currentEl)
   }
 
-  evaluateIth (index, $contextEl) {
-    return this.evaluateArg(this._argExprs[index], $contextEl)
+  evaluateIth (index, $contextEl, $currentEl) {
+    return this.evaluateArg(this._argExprs[index], $contextEl, $currentEl)
   }
 
-  evaluateRest ($contextEl) {
+  evaluateRest ($contextEl, $currentEl) {
     return this._argExprs.slice(1).map((argExpr) => {
-      return this.evaluateArg(argExpr, $contextEl)
+      return this.evaluateArg(argExpr, $contextEl, $currentEl)
     })
   }
 
-  evaluateAll ($contextEl) {
+  evaluateAll ($contextEl, $currentEl) {
     return this._argExprs.map((argExpr) => {
-      return this.evaluateArg(argExpr, $contextEl)
+      return this.evaluateArg(argExpr, $contextEl, $currentEl)
     })
   }
 
