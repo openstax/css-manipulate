@@ -44,33 +44,22 @@ function attachToEls ($els, locationInfo) {
 }
 
 // I promise that I will give you back at least 1 element that has been added to el
-PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('after', ($, $lookupEl, $contextElPromise, $newEl) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.append($newEl); return $newEl }), $newLookupEl: $lookupEl}] }))
-PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('before', ($, $lookupEl, $contextElPromise, $newEl) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.prepend($newEl); return $newEl }), $newLookupEl: $lookupEl}] })) // TODO: These are evaluated in reverse order
-PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('outside', ($, $lookupEl, $contextElPromise, $newEl) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { /* HACK */ const $temp = $contextEl.wrap($newEl).parent(); attachToEls($temp, $newEl[0].__cssLocation); return $temp }), $newLookupEl: $lookupEl}] }))
+
+// This should run before any ::after or ::before pseudoelements are evaluated
+// so we do not have to re-add them properly
 PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('inside', ($, $lookupEl, $contextElPromise, $newEl) => {
   const $contentsToWrapBeforeDomManipulationStarts = $lookupEl.contents()
   return [{$newElPromise: $contextElPromise.then(($contextEl) => {
-    const $beforeEl = $contextEl.find('> [data-pseudo^="before"]').last()
-    if ($beforeEl.length !== 0) {
-      $beforeEl.after($newEl)
-    } else {
-      $contextEl.append($newEl)
-    }
+    $contextEl.append($newEl)
     // TODO: Resolve any elements whose tag name might have changed
     $newEl.append($contentsToWrapBeforeDomManipulationStarts)
     return $newEl
-    // $contextEl.wrapInner($newEl)
-    // const $temp = $contextEl.find('> :first-child') // Gotta get the first-child because that is the ::inside element $newEl
-    // attachToEls($temp, $newEl[0].__cssLocation)
-    // move any ::before or ::after elements into their proper place
-    // HACK. It would be better to select all the elements that should end up in the ::inside **before** we started manipulating the DOM
-    // $contextEl.prepend($temp.find('> [data-pseudo^="before"]'))
-    // $contextEl.append($temp.find('> [data-pseudo^="after"]'))
-    // assert.equal($temp.find('> [data-pseudo]:not([data-pseudo^="inside"])').length, 0, secondArg, $lookupEl) // 1 meaning the only pseudo-child is not the inside one
-    // return $temp
   }),
     $newLookupEl: $lookupEl}]
 }))
+PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('after', ($, $lookupEl, $contextElPromise, $newEl) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.append($newEl); return $newEl }), $newLookupEl: $lookupEl}] }))
+PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('before', ($, $lookupEl, $contextElPromise, $newEl) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.prepend($newEl); return $newEl }), $newLookupEl: $lookupEl}] })) // TODO: These are evaluated in reverse order
+PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('outside', ($, $lookupEl, $contextElPromise, $newEl) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { /* HACK */ const $temp = $contextEl.wrap($newEl).parent(); attachToEls($temp, $newEl[0].__cssLocation); return $temp }), $newLookupEl: $lookupEl}] }))
 PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $lookupEl, $contextElPromise, $newEl, secondArg, firstArg) => {
   const locationInfo = $newEl[0].__cssLocation // HACK . Should get the ast node directly
 
@@ -92,7 +81,7 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $look
         throwBug(`provided element is not attached to the DOM`, null, $contextEl)
       }
 
-      const $newEl = $('<div data-pseudo="for-each-descendant-element"/>')
+      const $newEl = $('<pseudoforeachdescendantelement/>')
       $newEl[0].__cssLocation = locationInfo
       $contextEl.append($newEl)
       return $newEl

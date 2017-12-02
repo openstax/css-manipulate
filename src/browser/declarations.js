@@ -260,8 +260,9 @@ DECLARATIONS.push(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise,
 
       $(thisi).after(newElement).remove()
       tags[i] = newElement
-          // Add sourcemap
-      newElement.__cssLocation = astNode
+      // Add sourcemap but prefer the pseudoelement location rather than the exact
+      // place the tag name was set. This could change if needed
+      newElement.__cssLocation = thisi.__cssLocation || astNode
     }
     return $(tags)
   }
