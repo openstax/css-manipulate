@@ -83,7 +83,9 @@ DECLARATIONS.push(new RuleDeclaration('content', ($, $lookupEl, $elPromise, vals
 
         // check if the tagnames of elements were moved (there's a pointer to the new node)
         const $val = val.toArray().map((el) => {
-          if (el.__pointerToNewElement) {
+          if (el.__pointerToOutsideElement) {
+            return el.__pointerToOutsideElement
+          } else if (el.__pointerToNewElement) {
             return el.__pointerToNewElement
           } else {
             return el
@@ -263,6 +265,12 @@ DECLARATIONS.push(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise,
       // Add sourcemap but prefer the pseudoelement location rather than the exact
       // place the tag name was set. This could change if needed
       newElement.__cssLocation = thisi.__cssLocation || astNode
+      // Also, point the original element to this element
+      newElement.__pointerToNewElement = thisi.__pointerToNewElement
+      thisi.__pointerToNewElement = newElement.__pointerToNewElement || newElement
+
+      // propagate the pointer to the outside element
+      newElement.__pointerToOutsideElement = thisi.__pointerToOutsideElement
     }
     return $(tags)
   }

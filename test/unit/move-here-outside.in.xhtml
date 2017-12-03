@@ -3,22 +3,37 @@
     <style type="text/css-plus+css">
       /* ::outside on an element that is moved should move the outside elements too */
 
-      figcaption::outside {
+      figcaption {
+        /* Check to make sure that changing the element name does not affect the ::outside pseudoelement from moving */
+        tag-name-set: 'figcaptioncustom';
+      }
+      figure.opt1 figcaption::outside {
         class-add: "should-be-moved";
       }
-
-      figcaption::outside::outside {
+      figure figcaption::outside::outside {
         class-add: "should-be-moved-too";
       }
-
-      figure::after {
+      figure.opt1::after {
         content: move-here('> figcaption');
+      }
+
+      /* Just reverse the statements to make sure order does not matter */
+      figure.opt2::after {
+        content: move-here('> figcaption');
+      }
+      figure.opt2 figcaption::outside {
+        class-add: "should-be-moved";
       }
     </style>
   </head>
   <body>
 
-    <figure>
+    <figure class="opt1">
+      <figcaption>My caption</figcaption>
+      <div>kittens</div>
+    </figure>
+
+    <figure class="opt2">
       <figcaption>My caption</figcaption>
       <div>kittens</div>
     </figure>
