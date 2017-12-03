@@ -1,0 +1,27 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css-plus+css">
+      /* ::outside on an element that is moved should move the outside elements too */
+
+      figcaption::outside {
+        class-add: "should-be-moved";
+      }
+
+      figcaption::outside::outside {
+        class-add: "should-be-moved-too";
+      }
+
+      figure::after {
+        content: move-here('> figcaption');
+      }
+    </style>
+  </head>
+  <body>
+
+    <figure>
+      <figcaption>My caption</figcaption>
+      <div>kittens</div>
+    </figure>
+
+  </body>
+</html>

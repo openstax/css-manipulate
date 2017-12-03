@@ -59,7 +59,7 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('inside', ($, $lookupEl, $contex
 }))
 PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('after', ($, $lookupEl, $contextElPromise, $newEl) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.append($newEl); return $newEl }), $newLookupEl: $lookupEl}] }))
 PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('before', ($, $lookupEl, $contextElPromise, $newEl) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.prepend($newEl); return $newEl }), $newLookupEl: $lookupEl}] })) // TODO: These are evaluated in reverse order
-PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('outside', ($, $lookupEl, $contextElPromise, $newEl) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { /* HACK */ const $temp = $contextEl.wrap($newEl).parent(); attachToEls($temp, $newEl[0].__cssLocation); return $temp }), $newLookupEl: $lookupEl}] }))
+PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('outside', ($, $lookupEl, $contextElPromise, $newEl) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { /* HACK */ const $temp = $contextEl.wrap($newEl).parent(); attachToEls($temp, $newEl[0].__cssLocation); /* add a pointer because if the element is moved we want all of the ::outside elements to move too */ $contextEl[0].__pointerToNewElement = $temp[0]; return $temp }), $newLookupEl: $lookupEl}] }))
 PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $lookupEl, $contextElPromise, $newEl, secondArg, firstArg) => {
   const locationInfo = $newEl[0].__cssLocation // HACK . Should get the ast node directly
 
