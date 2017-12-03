@@ -83,13 +83,17 @@ DECLARATIONS.push(new RuleDeclaration('content', ($, $lookupEl, $elPromise, vals
 
         // check if the tagnames of elements were moved (there's a pointer to the new node)
         const $val = val.toArray().map((el) => {
-          if (el.__pointerToOutsideElement) {
-            return el.__pointerToOutsideElement
-          } else if (el.__pointerToNewElement) {
-            return el.__pointerToNewElement
-          } else {
-            return el
+          // loop through all the pointers until there are no more pointers
+          // prefer the ::outside ones over the renamed ones
+          let newEl = el
+          let returnEl = el
+          while (newEl) {
+            newEl = newEl.__pointerToOutsideElement || newEl.__pointerToRenamedElement
+            if (newEl) {
+              returnEl = newEl
+            }
           }
+          return returnEl
         })
 
         $el.append($val)
@@ -266,8 +270,8 @@ DECLARATIONS.push(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise,
       // place the tag name was set. This could change if needed
       newElement.__cssLocation = thisi.__cssLocation || astNode
       // Also, point the original element to this element
-      newElement.__pointerToNewElement = thisi.__pointerToNewElement
-      thisi.__pointerToNewElement = newElement.__pointerToNewElement || newElement
+      newElement.__pointerToRenamedElement = thisi.__pointerToRenamedElement
+      thisi.__pointerToRenamedElement = newElement.__pointerToRenamedElement || newElement
 
       // propagate the pointer to the outside element
       newElement.__pointerToOutsideElement = thisi.__pointerToOutsideElement
@@ -284,7 +288,7 @@ DECLARATIONS.push(new RuleDeclaration('tag-name-set', ($, $lookupEl, $elPromise,
     // for things like move-here that remember the old element during the collect phase,
     // we need to give them a way to look up the new element so they can use it instead
     $el.contents('IF_YOU_SEE_THIS_THEN_IT_IS_A_TAG_NAME_SET_BUG_MAYBE_THE_SERIALIZER_SHOULD_THROW_A_BUG_WHEN_IT_SEES_THIS_STRING')
-    $el[0].__pointerToNewElement = $newTagNames[0]
+    $el[0].__pointerToRenamedElement = $newTagNames[0]
 
     // It's very important to edit the existing $el
     // since elements further down the promise chain need to be sure to keep mutating those new elements
