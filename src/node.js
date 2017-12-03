@@ -265,7 +265,7 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
     document.querySelectorAll('script').forEach((el) => el.remove())
   })()`)
   // await page.evaluate(`(function () { ${fs.readFileSync(require.resolve('jquery'))} })()`)
-  // await page.evaluate(`(function () { ${fs.readFileSync(require.resolve('../../dist/browser'))} })()`)
+  // await page.evaluate(`(function () { ${fs.readFileSync(ENGINE_PATH)}; window.CssPlus = CssPlus; })()`)
 
   await page.evaluate(`(function () { window.__HTML_SOURCE_LOOKUP = ${JSON.stringify(htmlSourceLookupMap)}; })()`)
   await page.evaluate(`(function () { window.__CSS_SOURCE_MAP_JSON = ${JSON.stringify(cssSourceMapJson)}; })()`)
