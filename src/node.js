@@ -14,7 +14,7 @@ const renderPacket = require('./packet-render')
 const {showWarning, throwBug} = require('./browser/misc/packet-builder')
 const constructSelector = require('./browser/misc/construct-selector')
 
-const SCRIPT_TIMEOUT = 3 * 60 * 1000
+const SCRIPT_TIMEOUT = 1 * 60 * 1000
 const JQUERY_PATH = require.resolve('jquery')
 const ENGINE_PATH = require.resolve('../dist/browser')
 
