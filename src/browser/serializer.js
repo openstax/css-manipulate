@@ -184,7 +184,7 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
               mapJson.sources = mapJson.sources.map((source) => {
                 return path.relative(path.dirname(htmlOutputPath), source)
               })
-              pushAndMap(node, css)
+              pushAndMap(node, escapeHtml(css))
               // base64encode the sourcemap
               pushAndMap(node, `\n/*# sourceMappingURL=data:application/json;utf-8,${encodeURIComponent(JSON.stringify(mapJson))} */`)
               // validate the output sourcemap
