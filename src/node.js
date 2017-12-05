@@ -113,13 +113,16 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
       }
     }
 
-    if (local === 'span' && isSelfClosing) {
-      // do not count because chrome eats this element
-    } else {
-      htmlSourceLookupMap[str] = [parserStartTagPosition.line + 1, parserStartTagPosition.column + 1]
-      // Count the elements for checksumming later with what Chrome found
-      saxCount += 1
-    }
+    // Chrome does not eat this element when in XHTML mode so keep it.
+    // In the future we should check if the filename ends in `.xhtml`
+    // and enable this check when the extension is not `.xhtml`
+    // if (local === 'span' && isSelfClosing) {
+    //   // do not count because chrome eats this element
+    // } else {
+    htmlSourceLookupMap[str] = [parserStartTagPosition.line + 1, parserStartTagPosition.column + 1]
+    // Count the elements for checksumming later with what Chrome found
+    saxCount += 1
+    // }
   }
   parser.ontextstart = () => {
     // remember the line/col from the parser so we can use it instead of the position of the end of the open tag

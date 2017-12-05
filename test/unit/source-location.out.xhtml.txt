@@ -1,0 +1,2 @@
+  [2mtest/unit/source-location.in.xhtml:6:18[22m [34m[1mLOG[22m[39m Hit ([2mtest/unit/source-location.in.xhtml:11:9[22m)
+  [2mtest/unit/source-location.in.xhtml:6:18[22m [34m[1mLOG[22m[39m Hit ([2mtest/unit/source-location.in.xhtml:13:9[22m)

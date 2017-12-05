@@ -178,7 +178,7 @@ function renderPacket(cwd, json, htmlSourceLookupMap, argv, justRenderToConsole)
     }
     if (currentProgressBar && (currentProgressBar.complete || currentProgressBar.total === 0)) {
       currentProgressBar = null
-    } else {
+    } else if (currentProgressBar){
       throw new Error('BUG: progress bar ended prematurely')
     }
     return null // return falsy so we do not console.log('')
