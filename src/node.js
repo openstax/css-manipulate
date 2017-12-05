@@ -14,6 +14,7 @@ const renderPacket = require('./packet-render')
 const {showWarning, throwBug} = require('./browser/misc/packet-builder')
 const constructSelector = require('./browser/misc/construct-selector')
 
+const SCRIPT_TIMEOUT = 3 * 60 * 1000
 const JQUERY_PATH = require.resolve('jquery')
 const ENGINE_PATH = require.resolve('../dist/browser')
 
@@ -209,7 +210,7 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
   if (!browserPromise) {
     const devtools = process.env['NODE_ENV'] == 'debugger'
     const headless = devtools ? false : !options.debug
-    browserPromise = puppeteer.launch({headless: headless, devtools: devtools, timeout: 60000})
+    browserPromise = puppeteer.launch({headless: headless, devtools: devtools, timeout: SCRIPT_TIMEOUT})
   }
   const browser = await browserPromise
   const page = await browser.newPage()
@@ -240,7 +241,7 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
   if (options.verbose) {
     console.log(`Opening HTML in Chrome... ${url}`)
   }
-  await page.goto(url, {waitUntil: 'networkidle'})
+  await page.goto(url, {waitUntil: 'networkidle', timeout: SCRIPT_TIMEOUT})
   if (options.verbose) {
     console.log('Opened HTML in Chrome')
   }
