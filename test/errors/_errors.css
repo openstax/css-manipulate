@@ -34,3 +34,5 @@ body { content: number-to-letter(27, lower-latin); }
 body { content: number-to-letter(5000, upper-roman); }
 body { content: number-to-letter(5000, lower-roman); }
 body { content: number-to-letter(1, foo); }
+body { content: count-of-type('.i-do-not-match-this-selector-so-error'); }
+/*div { x-display: none; } div::for-each-descendant(1, '> span') { content: 'parent-is-detached-so-error'; }*/

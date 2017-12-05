@@ -248,6 +248,9 @@ FUNCTIONS.push(new FunctionEvaluator('count-of-type', (evaluator, astNode, $cont
         count += 1
       }
     })
+    if (!isDoneCounting) {
+      throwError(`Did not find the element that was being counted. If you want a total number of items then use count-all-of-type. But this is likely because you did not use :not(...) to exclude`, astNode, $contextEl)
+    }
     return count
   })
 }))

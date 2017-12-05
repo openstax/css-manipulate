@@ -1,0 +1,1 @@
+  [2mtest/errors/error-37.css:1:18[22m [31m[1mERROR[22m[39m Did not find the element that was being counted. If you want a total number of items then use count-all-of-type. But this is likely because you did not use :not(...) to exclude ([2mtest/errors/_errors.in.xhtml:2:7[22m)
