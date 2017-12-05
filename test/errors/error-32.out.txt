@@ -1,1 +1,1 @@
-  [2mtest/errors/error-32.css:1:18[22m [31m[1mERROR[22m[39m Counter numbering not supported for list type upper-alpha ([2mtest/errors/_errors.in.xhtml:2:7[22m)
+  [2mtest/errors/error-32.css:1:18[22m [31m[1mERROR[22m[39m number out of range (must be 1...26) but was 27 ([2mtest/errors/_errors.in.xhtml:2:7[22m)

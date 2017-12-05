@@ -29,8 +29,8 @@ body::has(.foo) { }
 body { content: add(456, 567, 'not a number4'); }
 body { content: add(678 789, 890); }
 body { content: add(901, move-here('.move-source')); }
-body { content: number-to-letter(27, upper-alpha); }
-body { content: number-to-letter(27, lower-alpha); }
+body { content: number-to-letter(27, upper-latin); }
+body { content: number-to-letter(27, lower-latin); }
 body { content: number-to-letter(5000, upper-roman); }
 body { content: number-to-letter(5000, lower-roman); }
 body { content: number-to-letter(1, foo); }
