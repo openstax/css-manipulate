@@ -127,18 +127,24 @@ function renderPacket(cwd, json, htmlSourceLookupMap, argv, justRenderToConsole)
       throw new Error('BUG: starting a progress bar when another one is already running')
     }
     if (json.details.type === 'MATCHING') {
-      currentProgressBar = new ProgressBar(`${chalk.bold('Matching')} :percent ${sourceColor(':etas')} ${chalk.green("':selector'")}`, { // ${sourceColor(':sourceLocation')}
-        renderThrottle: 200,
-        total: json.details.total
-      })
+      // redirecting stderr to a file causes this not to be available and ProgressBar throws an exception
+      if (process.stderr.clearLine) {
+        currentProgressBar = new ProgressBar(`${chalk.bold('Matching')} :percent ${sourceColor(':etas')} ${chalk.green("':selector'")}`, { // ${sourceColor(':sourceLocation')}
+          renderThrottle: 200,
+          total: json.details.total
+        })
+      }
     } else if (json.details.type === 'CONVERTING') {
-      currentProgressBar = new ProgressBar(`${chalk.bold('Converting')} :percent ${sourceColor(':etas')} [${chalk.green(':bar')}] #:current`, { // ${sourceColor(':sourceLocation')}
-        renderThrottle: 50,
-        complete: '=',
-        incomplete: ' ',
-        width: 40,
-        total: json.details.total
-      })
+      // redirecting stderr to a file causes this not to be available and ProgressBar throws an exception
+      if (process.stderr.clearLine) {
+        currentProgressBar = new ProgressBar(`${chalk.bold('Converting')} :percent ${sourceColor(':etas')} [${chalk.green(':bar')}] #:current`, { // ${sourceColor(':sourceLocation')}
+          renderThrottle: 50,
+          complete: '=',
+          incomplete: ' ',
+          width: 40,
+          total: json.details.total
+        })
+      }
     } else {
       throw new Error('BUG: new progress bar type')
     }
@@ -155,9 +161,13 @@ function renderPacket(cwd, json, htmlSourceLookupMap, argv, justRenderToConsole)
       if (selector.length > width) {
         selector = `${selector.substring(0, (width - 5) / 2)} ... ${selector.substring(selector.length - (width - 5) / 2)}`
       }
-      currentProgressBar.tick({selector: selector, sourceLocation: `${loc.source}:${loc.start.line}:${loc.start.column}`})
+      if (currentProgressBar) {
+        currentProgressBar.tick({selector: selector, sourceLocation: `${loc.source}:${loc.start.line}:${loc.start.column}`})
+      }
     } else if (json.details.type === 'CONVERTING') {
-      currentProgressBar.tick(json.details.ticks)
+      if (currentProgressBar) {
+        currentProgressBar.tick(json.details.ticks)
+      }
     } else {
       throw new Error('BUG: new progress bar type')
     }
@@ -166,7 +176,7 @@ function renderPacket(cwd, json, htmlSourceLookupMap, argv, justRenderToConsole)
     if (argv.noprogress) {
       return null
     }
-    if (currentProgressBar.complete || currentProgressBar.total === 0) {
+    if (currentProgressBar && (currentProgressBar.complete || currentProgressBar.total === 0)) {
       currentProgressBar = null
     } else {
       throw new Error('BUG: progress bar ended prematurely')
