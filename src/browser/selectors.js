@@ -1,6 +1,6 @@
 const assert = require('./misc/assert')
 const PseudoElementEvaluator = require('./misc/pseudo-element')
-const {showWarning, throwBug} = require('./misc/packet-builder')
+const {showWarning} = require('./misc/packet-builder')
 
 const PSEUDO_ELEMENTS = []
 const PSEUDO_CLASSES = []
@@ -86,9 +86,9 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $look
     incrementElCoverage(newLookupEl)
 
     const $newElPromise = $contextElPromise.then(($contextEl) => {
-      if (!$contextEl.parents(':last').is('html')) {
-        throwBug(`provided element is not attached to the DOM`, null, $contextEl)
-      }
+      // if (!$contextEl.parents(':last').is('html')) {
+      //   throwBug(`provided element is not attached to the DOM`, secondArg, $contextEl)
+      // }
 
       const $newEl = $('<pseudoforeachdescendantelement/>')
       $newEl[0].__cssLocation = locationInfo
