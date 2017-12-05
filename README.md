@@ -15,6 +15,21 @@ Book authors need a way to style their book for a PDF and ePUB. Sometimes they n
 Rather than letting them write JavaScript and execute arbitrary code, authors can describe both the styling and the movement of elements in the same file.
 
 
+# So, What's the gist of this thing?
+
+When converting HTML there are 3 basic things one needs to do:
+
+1. lookup attributes or elements (to move)
+1. change (or delete) an element (attributes, tag name)
+1. add new elements
+
+Each of these are accomplished using different parts of CSS:
+
+1. declaration functions are used to look up information (ie `attr(id)`)
+1. declarations are used to modify an element (ie `class-add: "foo", "bar";` or `tag-name-set: "h3";`)
+1. pseudoelements are used to create new elements (ie `::before { content: "Example"; }`)
+
+
 # Motivation/Examples
 
 The [Motivation Page](./motivation.md) has a step-by-step introduction to the CSS features or just play around with the **[JSFiddle of all the steps combined](https://jsfiddle.net/philschatz/hjk2z4af/)**
