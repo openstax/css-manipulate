@@ -213,7 +213,7 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
     browserPromise = puppeteer.launch({headless: headless, devtools: devtools, timeout: SCRIPT_TIMEOUT, args: [
       // https://peter.sh/experiments/chromium-command-line-switches/#shill-stub
       // https://github.com/GoogleChrome/puppeteer/blob/HEAD/docs/api.md#puppeteerlaunchoptions
-      '--shill-stub wifi=none' // Disable network traffic
+      '--shill-stub=wifi=none' // Disable network traffic
     ]})
   }
   const browser = await browserPromise
