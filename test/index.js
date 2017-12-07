@@ -14,6 +14,7 @@ const EXAMPLE_FILES_TO_TEST = [
   './example/glossary'
 ]
 const UNIT_FILES_TO_TEST = [
+  './unit/siblings',
   './unit/source-location',
   './unit/escaped-css',
   './unit/move-here-outside',

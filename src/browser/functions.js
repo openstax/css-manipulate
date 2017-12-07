@@ -235,14 +235,14 @@ FUNCTIONS.push(new FunctionEvaluator('count-of-type', (evaluator, astNode, $cont
 
   // TODO: Separately memoize the $contextEl.find(selector) code
   // Check if we have already memoized this query
-  return memoize($currentEl[0], '_COUNT_OF_TYPE', selector, () => {
+  return memoize($contextEl[0], '_COUNT_OF_TYPE', selector, () => {
     // const $matches = $contextEl.find(selector)
     // const $closest = $currentEl.closest(selector)
     const $matches = memoize($closestAncestor[0], '_find', selector, () => {
       return $closestAncestor.find(selector)
     })
-    const $closest = memoize($currentEl[0], '_closest', selector, () => {
-      return $currentEl.closest(selector)
+    const $closest = memoize($contextEl[0], '_closest', selector, () => {
+      return $contextEl.closest(selector)
     })
 
     let count = 0
