@@ -281,7 +281,7 @@ Desired HTML:
 
 **Note:** this does not actually seem to depend on moving happening 1st
 
-This introduces `count-of-type(${SELECTOR}, ${CONTEXT_SELECTOR})`
+This introduces `count-of-type(${CONTEXT_SELECTOR}, ${SELECTOR})`
 which works as a replacement of `counter-increment:` and `counter(counterName)`.
 It counts the number of items matching `${SELECTOR}` (up to the current element)
 inside `${CONTEXT_SELECTOR}`.
@@ -298,7 +298,7 @@ exercise.homework,
 exercise.conceptual {
   &::before(1) {
     class-add: "number";
-    content: ancestor-context('chapter', count-of-type('exercise.homework, exercise.conceptual'));
+    content: count-of-type('chapter', 'exercise.homework, exercise.conceptual');
   }
 }
 ```
@@ -334,10 +334,10 @@ a:target('href', 'exercise.homework, exercise.conceptual') {
   content:
     "See Exercise "
     // Chapter number
-    target-context(attr(href), ancestor-context('body', count-of-type('chapter')))
+    target-context(attr(href), count-of-type('body', 'chapter'))
     "."
     // Exercise number
-    target-context(attr(href), ancestor-context('chapter', count-of-type('exercise.homework, exercise.conceptual')));
+    target-context(attr(href), count-of-type('chapter', 'exercise.homework, exercise.conceptual'));
 }
 ```
 
@@ -482,10 +482,10 @@ exercise.conceptual {
   > answer::before(1) {
     content:
       // Chapter number
-      ancestor-context('body', count-of-type('chapter'))
+      count-of-type('body', 'chapter')
       "."
       // Exercise number
-      ancestor-context('chapter', count-of-type('exercise.homework, exercise.conceptual'));
+      count-of-type('chapter', 'exercise.homework, exercise.conceptual');
   }
 }
 

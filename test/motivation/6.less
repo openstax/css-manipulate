@@ -8,8 +8,8 @@ a:target(href, 'exercise.homework, exercise.conceptual') {
   content:
     "See Exercise "
     /* Chapter number */
-    target-context(attr(href), ancestor-context('body', count-of-type('chapter')))
+    target-context(attr(href), count-of-type('body', 'chapter'))
     "."
     /* Exercise number */
-    target-context(attr(href), ancestor-context('chapter', count-of-type('exercise.homework, exercise.conceptual')));
+    target-context(attr(href), count-of-type('chapter', 'exercise.homework, exercise.conceptual'));
 }

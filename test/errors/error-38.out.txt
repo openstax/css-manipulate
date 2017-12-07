@@ -1,0 +1,1 @@
+  [2mtest/errors/error-38.css:1:18[22m [31m[1mERROR[22m[39m Could not find Ancestor Context for count-of-type. Selector was ".non-existant-ancestor" ([2mtest/errors/_errors.in.xhtml:2:7[22m)

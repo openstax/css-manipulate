@@ -1,0 +1,20 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css-plus+css">
+      note::before { content: previous-sibling-context('example:first', count-of-type('body', 'example')); }
+      note::after  { content:     next-sibling-context('example:first', count-of-type('body', 'example')); }
+    </style>
+  </head>
+<body>
+
+<example/>
+<note/>
+<note/>
+<example/>
+<example/>
+<note/>
+<example/>
+<example/>
+
+</body>
+</html>

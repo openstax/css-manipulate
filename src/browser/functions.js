@@ -220,19 +220,26 @@ FUNCTIONS.push(new FunctionEvaluator('move-here-sorted', (evaluator, astNode, $c
   return ret
 }))
 FUNCTIONS.push(new FunctionEvaluator('count-of-type', (evaluator, astNode, $contextEl, $, $currentEl) => {
-  const vals = evaluator.evaluateAll()
+  const ancestorSel = evaluator.evaluateFirst().join('')
+  const vals = evaluator.evaluateRest()
   assert.equal(vals.length, 1, astNode, $contextEl)
   assert.is(Array.isArray(vals[0]), astNode, $contextEl)
   const selector = vals[0].join(' ')  // vals[0] = ['li'] (notice vals is a 2-Dimensional array. If each FunctionEvaluator had a .join() method then this function could be simpler and more intuitive to add more features)
   assert.equal(typeof selector, 'string', astNode, $contextEl)
+
+  const $closestAncestor = $contextEl.closest(ancestorSel)
+  increment$ElCoverage($closestAncestor)
+  if ($closestAncestor.length !== 1) {
+    throwError(`Could not find Ancestor Context for count-of-type. Selector was "${ancestorSel}"`, astNode, $currentEl)
+  }
 
   // TODO: Separately memoize the $contextEl.find(selector) code
   // Check if we have already memoized this query
   return memoize($currentEl[0], '_COUNT_OF_TYPE', selector, () => {
     // const $matches = $contextEl.find(selector)
     // const $closest = $currentEl.closest(selector)
-    const $matches = memoize($contextEl[0], '_find', selector, () => {
-      return $contextEl.find(selector)
+    const $matches = memoize($closestAncestor[0], '_find', selector, () => {
+      return $closestAncestor.find(selector)
     })
     const $closest = memoize($currentEl[0], '_closest', selector, () => {
       return $currentEl.closest(selector)
@@ -255,14 +262,17 @@ FUNCTIONS.push(new FunctionEvaluator('count-of-type', (evaluator, astNode, $cont
   })
 }))
 FUNCTIONS.push(new FunctionEvaluator('count-all-of-type', (evaluator, astNode, $contextEl) => {
-  const vals = evaluator.evaluateAll()
-  assert.equal(vals.length, 1, astNode, $contextEl, 'Exactly 1 argument is allowed')
+  const ancestorSel = evaluator.evaluateFirst().join('')
+  const vals = evaluator.evaluateRest()
+  assert.equal(vals.length, 1, astNode, $contextEl, `Exactly 2 arguments are allowed but found ${1 + vals.length}`)
   assert.is(Array.isArray(vals[0]), astNode, $contextEl)
   const selector = vals[0].join(' ')  // vals[0] = ['li'] (notice vals is a 2-Dimensional array. If each FunctionEvaluator had a .join() method then this function could be simpler and more intuitive to add more features)
   assert.equal(typeof selector, 'string', astNode, $contextEl)
+  const $ancestor = $contextEl.closest(ancestorSel)
+  assert.equal($ancestor.length, 1, astNode, $contextEl, `Expected to find 1 ancestor but found ${$ancestor.length}`)
 
-  const $matches = memoize($contextEl[0], '_find', selector, () => {
-    const $matches = $contextEl.find(selector)
+  const $matches = memoize($ancestor[0], '_find', selector, () => {
+    const $matches = $ancestor.find(selector)
     return $matches
   })
   return $matches.length
@@ -375,17 +385,38 @@ FUNCTIONS.push(new FunctionEvaluator('descendant-context',
     assert.is(vals[0][0] !== null) // TODO: Move this assertion test to the enginelier
     return vals[0][0]
   }))
+FUNCTIONS.push(new FunctionEvaluator('previous-sibling-context',
+  (evaluator, astNode, $contextEl, $, $currentEl) => {
+    // Determine the new $contextEl
+    const selector = evaluator.evaluateFirst().join('')
+    const $sibling = $contextEl.prevAll(selector)
+    increment$ElCoverage($sibling)
+    if ($sibling.length !== 1) {
+      throwBug(`Could not find unique previous-sibling-context. Found ${$sibling.length}. Consider using ":first" in the argument`, astNode, $currentEl)
+    }
+
+    const vals = evaluator.evaluateRest($sibling)
+    assert.equal(vals.length, 1) // TODO: This should be validated before the function is enginelied so a better error message can be made
+    // skip the 1st arg which is the selector
+    // and return the 2nd arg
+
+    // The argument to this `-context` function needs to be fully-evaluated, hence this
+    // assertion below: (TODO: Change this in the future to not require full-evaluation)
+    assert.equal(vals[0].length, 1)
+    assert.is(vals[0][0] !== null) // TODO: Move this assertion test to the enginelier
+    return vals[0][0]
+  }))
 FUNCTIONS.push(new FunctionEvaluator('next-sibling-context',
   (evaluator, astNode, $contextEl, $, $currentEl) => {
     // Determine the new $contextEl
     const selector = evaluator.evaluateFirst().join('')
-    const $nextSibling = $contextEl.next(selector)
-    increment$ElCoverage($nextSibling)
-    if ($nextSibling.length !== 1) {
-      throwBug(`Could not find unique next-sibling-context. Found ${$contextEl.length}. Consider using ":first" in the argument`, astNode, $currentEl)
+    const $sibling = $contextEl.nextAll(selector)
+    increment$ElCoverage($sibling)
+    if ($sibling.length !== 1) {
+      throwBug(`Could not find unique next-sibling-context. Found ${$sibling.length}. Consider using ":first" in the argument`, astNode, $currentEl)
     }
 
-    const vals = evaluator.evaluateRest($nextSibling)
+    const vals = evaluator.evaluateRest($sibling)
     assert.equal(vals.length, 1) // TODO: This should be validated before the function is enginelied so a better error message can be made
     // skip the 1st arg which is the selector
     // and return the 2nd arg

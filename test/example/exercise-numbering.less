@@ -6,7 +6,7 @@ exercise {
   // Number exercises by how they occur in the chapter
   &::before(1) {
     tag-name-set: 'strong';
-    content: ancestor-context('chapter', count-of-type('exercise:not(@{collated-exercise-sel})')) '. ';
+    content: count-of-type('chapter', 'exercise:not(@{collated-exercise-sel})') '. ';
   }
 
   .loop(@counter) when (@counter <= length(@collated-exercise-classes)) {
@@ -15,7 +15,7 @@ exercise {
     &@{selector} {
       &::before(1) {
         tag-name-set: 'strong';
-        content: ancestor-context('chapter', count-of-type('@{collated-exercise-sel}')) '. ';
+        content: count-of-type('chapter', '@{collated-exercise-sel}') '. ';
       }
     }
   }

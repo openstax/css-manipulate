@@ -37,7 +37,7 @@ $NUMBERED_EXERCISES_SEL_STR: 'exercise.conceptual, exercise.homework'; // TODO: 
     // STEP 5
     &::before {
       class-add: "number";
-      content: ancestor-context('chapter', count-of-type($sel));
+      content: count-of-type('chapter', $sel);
     }
 
     > answer::before {
@@ -49,10 +49,10 @@ $NUMBERED_EXERCISES_SEL_STR: 'exercise.conceptual, exercise.homework'; // TODO: 
       // Number exercise answers (STEP 9)
       content:
         // Chapter number
-        ancestor-context('body', count-of-type('chapter'))
+        count-of-type('body', 'chapter')
         "."
         // Exercise number
-        ancestor-context('chapter', count-of-type($sel));
+        count-of-type('chapter', $sel);
     }
 
     // (STEP 10)
@@ -72,10 +72,10 @@ $NUMBERED_EXERCISES_SEL_STR: 'exercise.conceptual, exercise.homework'; // TODO: 
     content:
       "See Exercise "
       // Chapter number
-      target-context(attr(href), ancestor-context('body', count-of-type('chapter')))
+      target-context(attr(href), count-of-type('body', 'chapter'))
       "."
       // Exercise number
-      target-context(attr(href), ancestor-context('chapter', count-of-type($sel)));
+      target-context(attr(href), count-of-type('chapter', $sel));
   }
 }
 

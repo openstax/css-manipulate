@@ -6,24 +6,22 @@ exercise {
   // Number exercises by how they occur in the chapter
   &::before {
     tag-name-set: 'strong';
-    content: ancestor-context('chapter', count-of-type('exercise:not(@{collated-exercise-classes})')) '. ';
+    content: count-of-type('chapter', 'exercise:not(@{collated-exercise-classes})') '. ';
   }
 
   &.homework {
     &::before {
-      content: ancestor-context('chapter', count-of-type('exercise.homework')) '. ';
+      content: count-of-type('chapter', 'exercise.homework') '. ';
     }
     answer::before {
-      content: ancestor-context('chapter', count-of-type('exercise.homework')) '. ';
+      content: count-of-type('chapter', 'exercise.homework') '. ';
     }
   }
 
   &.conceptual {
-    &::before {
-      content: ancestor-context('chapter', add(count-all-of-type('exercise.homework'), count-of-type('exercise.conceptual'))) '. ';
-    }
+    &::before,
     answer::before {
-      content: ancestor-context('chapter', add(count-all-of-type('exercise.homework'), count-of-type('exercise.conceptual'))) '. ';
+      content: add(count-all-of-type('chapter', 'exercise.homework'), count-of-type('chapter', 'exercise.conceptual')) '. ';
     }
   }
 }
@@ -59,7 +57,7 @@ chapter::after(2) {
 body::after {
   &::before { content: 'Answer Key'; }
   content: move-here-sorted('answer',
-    'exercise.homework answer' ancestor-context('chapter', count-of-type('exercise.homework')),
-    'exercise.conceptual answer' ancestor-context('chapter', add(count-all-of-type('exercise.homework'), count-of-type('exercise.conceptual')))
+    'exercise.homework answer' count-of-type('chapter', 'exercise.homework'),
+    'exercise.conceptual answer' add(count-all-of-type('chapter', 'exercise.homework'), count-of-type('chapter', 'exercise.conceptual'))
   );
 }

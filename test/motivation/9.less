@@ -10,10 +10,10 @@ exercise.conceptual {
   > answer::before {
     content:
       /* Chapter number */
-      ancestor-context('body', count-of-type('chapter'))
+      count-of-type('body', 'chapter')
       "."
       /* Exercise number */
-      ancestor-context('chapter', count-of-type('exercise.homework, exercise.conceptual'));
+      count-of-type('chapter', 'exercise.homework, exercise.conceptual');
   }
 }
 

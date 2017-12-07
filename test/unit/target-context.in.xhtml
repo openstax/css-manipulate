@@ -2,7 +2,7 @@
   <head>
     <style type="text/css-plus+css">
       a[href^="#"]:target(href, 'figure') {
-        content: target-context(attr(href), collect-all("Figure " ancestor-context('body', count-of-type('chapter')) "." ancestor-context('chapter', count-of-type('figure'))));
+        content: target-context(attr(href), collect-all("Figure " count-of-type('body', 'chapter') "." count-of-type('chapter', 'figure')));
       }
     </style>
   </head>

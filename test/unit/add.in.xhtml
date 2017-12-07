@@ -2,10 +2,10 @@
   <head>
     <style type="text/css-plus+css">
       body::after(1) {
-        content: add(0, count-all-of-type('.type-a'));
+        content: add(0, count-all-of-type('body', '.type-a'));
       }
       body::after(2) {
-        content: add(0, count-all-of-type('.type-a'), count-all-of-type('.type-b'));
+        content: add(0, count-all-of-type('body', '.type-a'), count-all-of-type('body', '.type-b'));
       }
     </style>
   </head>
