@@ -1,6 +1,6 @@
 const assert = require('./misc/assert')
 const PseudoElementEvaluator = require('./misc/pseudo-element')
-const {showWarning, throwError} = require('./misc/packet-builder')
+const {showWarning} = require('./misc/packet-builder')
 
 const PSEUDO_ELEMENTS = []
 const PSEUDO_CLASSES = []
@@ -86,9 +86,10 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $look
     incrementElCoverage(newLookupEl)
 
     const $newElPromise = $contextElPromise.then(($contextEl) => {
-      if (!$contextEl.parents(':last').is('html')) {
-        throwError(`provided element was detached from the DOM. The location of what caused the element to be detached is in this message`, secondArg, $contextEl.parents(':last'))
-      }
+      // A detached element is OK. For example, we could remove the page-level glossary but move all the terms in it
+      // if (!$contextEl.parents(':last').is('html')) {
+      //   throwError(`provided element was detached from the DOM. The location of what caused the element to be detached is in this message`, secondArg, $contextEl.parents(':last'))
+      // }
 
       const $newEl = $('<pseudoforeachdescendantelement/>')
       $newEl[0].__cssLocation = locationInfo
