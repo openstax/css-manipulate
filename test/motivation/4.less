@@ -7,7 +7,7 @@
 chapter::after(1) {
   /* At this point the current context is the chapter */
 
-  &::for-each-descendant(1, '> section') { /* This pseudo-element creates a new element in the DOM */
+  &::for-each(1, descendant, '> section') { /* This pseudo-element creates a new element in the DOM */
     /* Now, the current context is the section (as if you had written `chapter > section` in a vanilla CSS selector) */
     /* but any declarations are applied to the new pseudo-element that was created */
 
@@ -29,7 +29,7 @@ chapter::after(1) {
 
 /* This is the same as above except for the Homework Page */
 chapter::after(2) {
-  &::for-each-descendant(1, '> section') {
+  &::for-each(1, descendant, '> section') {
     &:has(exercise.homework) {
       &::before {
         tag-name-set: "h3";

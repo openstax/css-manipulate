@@ -8,7 +8,7 @@ chapter {
     &::after {
       tag-name-set: "ul";
 
-      &::for-each-descendant(1, 'dt') {
+      &::for-each(1, descendant, 'dt') {
         tag-name-set: "li";
 
         // Add the term

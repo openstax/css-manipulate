@@ -25,25 +25,30 @@ module.exports = class RuleWithPseudos {
       // so we need to split it here
       let firstArg
       let secondArg
+      let thirdArg
       if (args.length >= 1) { // sometimes it is just `::before` (no args)
         if (args[0].type === 'Raw') {
           const rawArgs = args[0].value.split(',')
-          // just verify that more than 2 args are not supported yet
-          assert.is(rawArgs.length <= 2)
+          assert.is(rawArgs.length <= 3, args[0], null, 'just verify that more than 2 args are not supported yet')
           firstArg = {type: 'HackRaw', value: rawArgs[0].trim(), loc: args[0].loc}
           if (rawArgs[1]) {
             secondArg = {type: 'HackRaw', value: rawArgs[1].trim(), loc: args[0].loc}
           }
+          if (rawArgs[2]) {
+            thirdArg = {type: 'HackRaw', value: rawArgs[2].trim(), loc: args[0].loc}
+          }
         } else {
           firstArg = args[0]
           secondArg = args[1]
+          thirdArg = args[2]
         }
       }
       return {
         astNode: pseudoElement,
         name: pseudoElement.name,
         firstArg: firstArg,
-        secondArg: secondArg // Some pseudoelement selectors have an additional arg (like `::for-each`)
+        secondArg: secondArg, // Some pseudoelement selectors have an additional arg (like `::for-each`)
+        thirdArg: thirdArg
       }
     })
   }

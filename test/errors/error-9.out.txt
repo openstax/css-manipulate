@@ -1,1 +1,1 @@
-  [2mtest/errors/error-9.css:1:28[22m [31m[1mBUG[22m[39m Assertion failed. Reason: Argument missing. It is required for ::for-each-descendant ([2mtest/errors/_errors.in.xhtml:2:7[22m)
+  [2mtest/errors/error-9.css:1:17[22m [31m[1mBUG[22m[39m Assertion failed. Reason: Argument missing. It (the axis: descendant, ancestor, follwing-sibling, etc) is required for ::for-each ([2mtest/errors/_errors.in.xhtml:2:7[22m)

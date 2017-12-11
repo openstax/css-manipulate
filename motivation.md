@@ -216,7 +216,7 @@ Desired HTML:
 
 Similar to previous item but with added section separators...
 
-This introduces a `::for-each-descendant(${SELECTOR})` which changes the context
+This introduces a `::for-each(1, descendant, ${SELECTOR})` which changes the context
 of declarations inside to be what is matched by `${SELECTOR}`.
 
 This also introduces `target-context(${SELECTOR}, ${EXPRESSIONS})` which evaluates
@@ -228,7 +228,7 @@ CSS:
 // Generic styling for all end-of-chapter items
 chapter::after(1),
 chapter::after(2) {
-  &::for-each-descendant(1, '> section') {
+  &::for-each(1, descendant, '> section') {
     &::before(1) {
       class-add: "title";
       content: descendant-context('> .title', text-contents());

@@ -33,7 +33,7 @@ These all add a node(s) in the vicinity of this node.
 - `::before` or `::before(1)` : adds a new child element before the existing content
 - `::inside` or `::inside(1)` : wraps all children of this element into this new element
 - `::outside` or `::outside(1)` : wraps the current element with this new element
-- `::for-each-descendant(1, '> .selector .of.descendants > .to-match')` : creates a new child element in the current element for each element that is matched by the selector and changes the context to be the matched element
+- `::for-each(1, descendant, '> .selector .of.descendants > .to-match')` : creates a new child element in the current element for each element that is matched by the selector and changes the context to be the matched element
   - any sub pseudo-class selectors are used to filter the selector that was matched
   - any sub pseudo-element selectors are used to continue constructing elements
 
@@ -76,7 +76,7 @@ Usually the current context is the DOM element that was matched in the selector.
 
 Changing the current context:
 
-- `::for-each-descendant(...)` (defined earlier)
+- `::for-each(...)` (defined earlier)
 - `parent-context(fn())` changes the context that `fn()` is evaluated to be the parent element
   - this is "syntactic-sugar" for `ancestor-context('*', fn())`
 - `ancestor-context('.selector', fn())` changes the context that `fn()` is evaluated to be the first ancestor that matches

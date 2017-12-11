@@ -295,7 +295,7 @@ To pause when evaluating an element, add `data-debugger="true"` to the element.
 - [x] Support `tag-name-set:`
 - [x] Support selector specificity
 - [x] Support `!important`
-- [x] Add `::for-each-descendant(1, ${SELECTOR})`
+- [x] Add `::for-each(1, descendant, ${SELECTOR})`
 - [x] Add `:target(${ATTRIBUTE_NAME}, ${MATCH_SELECTORS...})`
 - [x] Use Promises to defer DOM Manipulation to all be after selector/rule/attribute evaluation is done
 - [x] Add a command-line script to run the conversion
@@ -316,7 +316,7 @@ To pause when evaluating an element, add `data-debugger="true"` to the element.
   - [x] build all the JS into 1 file (minus maybe jQuery)
   - [x] show console warnings/errors in the output HTML area
 - [x] Support `attrs-remove: *` instead of `attrs-set:` because they are as interchangeable and the order-of-evaluation is easier (only need to know 2: `attrs-add:` and `attrs-remove:`)
-- [x] `::for-each-descendant(1, ${SELECTOR}):has(${SELECTOR_FOR_MATCHES})` should have an additional selector argument
+- [x] `::for-each(1, descendant, ${SELECTOR}):has(${SELECTOR_FOR_MATCHES})` should have an additional selector argument
   - [x] so it only creates the element if there is something matching the selector
   - This way a "Homework" section will not be created if there are no Homework problems to show
 - [x] Show colorful error messages

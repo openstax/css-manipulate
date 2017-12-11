@@ -31,7 +31,7 @@ chapter::after(1) {
     tag-name-set: "h2";
     content: "Homework Exercises";
   }
-  &::for-each-descendant(1, 'section') {
+  &::for-each(1, descendant, 'section') {
     &::before {
       tag-name-set: "h3";
       content: descendant-context('> title', text-contents());
@@ -45,7 +45,7 @@ chapter::after(2) {
     tag-name-set: "h2";
     content: "Conceptual Questions";
   }
-  &::for-each-descendant(1, 'section') {
+  &::for-each(1, descendant, 'section') {
     &::before {
       tag-name-set: "h3";
       content: descendant-context('> title', text-contents());

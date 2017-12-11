@@ -1,8 +1,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <style type="text/css-plus+css">
-      chapter::for-each-descendant(1, 'dt') { tag-name-set: "li"; }
-      chapter::for-each-descendant(1, 'dt')::after(1) { class-add: "term"; }
+      chapter::for-each(1, descendant, 'dt') { tag-name-set: "li"; }
+      chapter::for-each(1, descendant, 'dt')::after(1) { class-add: "term"; }
     </style>
   </head>
 <body>

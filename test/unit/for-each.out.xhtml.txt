@@ -1,2 +1,2 @@
-  [2mtest/unit/for-each.in.xhtml:17:108[22m [33m[1mWARN[22m[39m Moved 0 items. Maybe add a :has() guard to prevent this warning ([2mtest/unit/for-each.in.xhtml:30:12[22m)
-  [2mtest/unit/for-each.in.xhtml:18:110[22m [33m[1mWARN[22m[39m Moved 0 items. Maybe add a :has() guard to prevent this warning ([2mtest/unit/for-each.in.xhtml:36:12[22m)
+  [2mtest/unit/for-each.in.xhtml:11:109[22m [33m[1mWARN[22m[39m Moved 0 items. Maybe add a :has() guard to prevent this warning ([2mtest/unit/for-each.in.xhtml:24:12[22m)
+  [2mtest/unit/for-each.in.xhtml:12:111[22m [33m[1mWARN[22m[39m Moved 0 items. Maybe add a :has() guard to prevent this warning ([2mtest/unit/for-each.in.xhtml:30:12[22m)

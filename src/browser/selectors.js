@@ -1,6 +1,6 @@
 const assert = require('./misc/assert')
 const PseudoElementEvaluator = require('./misc/pseudo-element')
-const {showWarning} = require('./misc/packet-builder')
+const {showWarning, throwError} = require('./misc/packet-builder')
 
 const PSEUDO_ELEMENTS = []
 const PSEUDO_CLASSES = []
@@ -70,6 +70,7 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('outside', ($, $lookupEl, $conte
     $newLookupEl: $lookupEl}]
 }))
 PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $lookupEl, $contextElPromise, $newEl, secondArg, firstArg) => {
+  showWarning("::for-each-descendant is deprecated in favor of ::for-each(1, descendant, '> .my-selector')", firstArg)
   const locationInfo = $newEl[0].__cssLocation // HACK . Should get the ast node directly
 
   assert.is(secondArg, firstArg, $lookupEl, 'Argument missing. It is required for ::for-each-descendant') // it is required for for-each
@@ -92,6 +93,52 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $look
       // }
 
       const $newEl = $('<pseudoforeachdescendantelement/>')
+      $newEl[0].__cssLocation = locationInfo
+      $contextEl.append($newEl)
+      return $newEl
+    })
+    ret.push({
+      $newElPromise: $newElPromise,
+      $newLookupEl: $(newLookupEl)
+    })
+  })
+  return ret
+}))
+PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each', ($, $lookupEl, $contextElPromise, $newEl, secondArg, firstArg, thirdArg) => {
+  const locationInfo = $newEl[0].__cssLocation // HACK . Should get the ast node directly
+
+  assert.is(secondArg, firstArg, $lookupEl, 'Argument missing. It (the axis: descendant, ancestor, follwing-sibling, etc) is required for ::for-each') // it is required for for-each
+  assert.is(thirdArg, firstArg, $lookupEl, 'Argument missing. It (the selector) is required for ::for-each') // it is required for for-each
+  assert.equal(secondArg.type, 'HackRaw', secondArg, $lookupEl, 'Wrong type. Should be a token')
+  assert.equal(thirdArg.type, 'HackRaw', secondArg, $lookupEl, 'Wrong type. Should be a string')
+  // Strip off the quotes in secondArg.value
+  const selector = thirdArg.value.substring(1, thirdArg.value.length - 1)
+  let $newLookupEls
+  switch (secondArg.value) {
+    case 'descendant':
+      $newLookupEls = $lookupEl.find(selector)
+      break
+    case 'following-sibling':
+      $newLookupEls = $lookupEl.nextAll(selector)
+      break
+    default:
+      throwError('Unsupported axis. Valid ones are "descendant" and "following-sibling"')
+  }
+  if ($newLookupEls.length === 0) {
+    showWarning(`This for-loop does not match any elements`, secondArg, $lookupEl)
+  }
+
+  const ret = []
+  $newLookupEls.each((index, newLookupEl) => {
+    incrementElCoverage(newLookupEl)
+
+    const $newElPromise = $contextElPromise.then(($contextEl) => {
+      // A detached element is OK. For example, we could remove the page-level glossary but move all the terms in it
+      // if (!$contextEl.parents(':last').is('html')) {
+      //   throwError(`provided element was detached from the DOM. The location of what caused the element to be detached is in this message`, secondArg, $contextEl.parents(':last'))
+      // }
+
+      const $newEl = $('<pseudoforeachelement/>')
       $newEl[0].__cssLocation = locationInfo
       $contextEl.append($newEl)
       return $newEl

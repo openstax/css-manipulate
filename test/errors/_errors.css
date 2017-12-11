@@ -6,9 +6,9 @@
 body { attrs-add: 'data-with-no-value'; }
 /*::after(non-numeric-arg) { content: "bug"; }*/
 body { content: ancestor-context('invalid-element-name', text-content()); }
-body::for-each-descendant(123,) { content: "no 2nd arg specified"; }
+body::for-each(123,) { content: "no 2nd arg specified"; }
 /*body::for-each-descendant(1,0) { content: "2nd arg must be a string"; }*/
-/*body::for-each-descendant(1, '.no-matches') { content: "no elements were matched (may become a warning)"; }*/
+/*body::for-each(1, descendant, '.no-matches') { content: "no elements were matched (may become a warning)"; }*/
 /*body { contentssss: "bug"; }*/
 body { content: attr(hreffooo); } /* non-existant attribute */
 body { x-throw: now; }
@@ -36,4 +36,8 @@ body { content: number-to-letter(5000, lower-roman); }
 body { content: number-to-letter(1, foo); }
 body { content: count-of-type('html', '.i-do-not-match-this-selector-so-error'); }
 body { content: count-of-type('.non-existant-ancestor', 'body'); }
-/*div { x-display: none; } div::for-each-descendant(1, '> span') { content: 'parent-is-detached-so-error'; }*/
+/*div { x-display: none; } div::for-each(1, descendant, '> span') { content: 'parent-is-detached-so-error'; }*/
+body::for-each(123, descendant) { content: "no 3nd arg specified"; }
+body::for-each(123, 'descendant', 'p') { content: "2nd arg must be a token, not a string"; }
+body::for-each(123, unsupported-axis, 'p') { content: "2nd arg must be a valid axis"; }
+/*body::for-each(123, descendant, p) { content: "3rd arg must be a string"; }*/

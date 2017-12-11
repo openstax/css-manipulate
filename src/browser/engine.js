@@ -674,7 +674,7 @@ module.exports = class Applier extends EventEmitter {
           case 'before':
           case 'outside':
           case 'inside':
-          case 'for-each-descendant':
+          case 'for-each':
           case 'deferred': // Hack for parsing the book.css file // FIXME by removing
             if (includePseudoElements) {
               if (sel.children) {
@@ -770,7 +770,7 @@ module.exports = class Applier extends EventEmitter {
           // TODO: Fix this annoying off-by-one error
           const rulesAtDepth = rulesWithPseudos.filter((matchedRuleWithPseudo) => {
             // Check if additional pseudoClasses have caused this to end prematurely.
-            // For example: `::for-each-descendant('section'):has(exercise)::....`
+            // For example: `::for-each(1, descendant, 'section'):has(exercise)::....`
             // will stop evaluating if the `section` does not contain an `exercise`
             if (this._filterByPseudoClassName($lookupEl, matchedRuleWithPseudo.getMatchedSelector(), depth - 1).length === 0) {
               return false
@@ -805,10 +805,10 @@ module.exports = class Applier extends EventEmitter {
                 //   return $newEl
                 // })
 
-                // This loop-and-check is here to support ::for-each-descendant(1, 'section'):has('exercise.homework')
+                // This loop-and-check is here to support ::for-each(1, descendant, 'section'):has('exercise.homework')
                 const rulesAtDepth = reducedRules[index].filter((matchedRuleWithPseudo) => {
                   // Check if additional pseudoClasses have caused this to end prematurely.
-                  // For example: `::for-each-descendant('section'):has(exercise)::....`
+                  // For example: `::for-each(1, descendant, 'section'):has(exercise)::....`
                   // will stop evaluating if the `section` does not contain an `exercise`
                   if (this._filterByPseudoClassName($newLookupEl, matchedRuleWithPseudo.getMatchedSelector(), depth).length === 0) {
                     return false

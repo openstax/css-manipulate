@@ -13,7 +13,7 @@ $NUMBERED_EXERCISES_SEL_STR: 'exercise.conceptual, exercise.homework'; // TODO: 
     attrs-add: "data-type" "eoc-item";
 
     // STEP 4
-    &::for-each-descendant(1, '> section') {
+    &::for-each(1, descendant, '> section') {
       &:has(#{$exerciseSelStr}) {
         &::before {
           tag-name-set: "h3";
@@ -28,7 +28,7 @@ $NUMBERED_EXERCISES_SEL_STR: 'exercise.conceptual, exercise.homework'; // TODO: 
         content: move-here($exerciseSelStr);
       }
     }
-  } // for-each-descendant
+  } // ::for-each
 }
 
 

@@ -20,7 +20,7 @@ To run these examples, you can do:
 | [1.less](./1.less)     | creating elements      | `::before`, `::after` |
 | [2.less](./2.less)     | attributes and classes | `attrs-add:`, `class-add:`, `tag-name-set:` |
 | [3.less](./3.less)     | moving elements        | `content: move-here(...)` |
-| [4.less](./4.less)     | group by section       | `::for-each-descendant`, `descendant-context(...)` |
+| [4.less](./4.less)     | group by section       | `::for-each`, `descendant-context(...)` |
 | [5.less](./5.less)     | simple numbering       | `count-of-type(...)`, `ancestor-context(...)` |
 | [6.less](./6.less)     | computed link text     | `:target(...)`, `target-context(...)` |
 | [7.less](./7.less)     | wrap outside           | `::outside` |
