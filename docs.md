@@ -97,6 +97,8 @@ The rest:
 - `add(12, 23, 34)` adds 2 or more numbers (used for adjusting the result of `count-of-type(...)`)
 - `number-to-letter(12, upper-latin)` converts a number to another format. Valid values are `decimal`, `decimal-leading-zero`, `lower-roman`, `upper-roman`, `lower-latin`, `upper-latin`. In the future it might be necessary to implement https://www.w3.org/TR/css-counter-styles-3/
 - `collect-all("Figure" 1 "." 3)` collects all the fields into a string. Useful for computing a link target because `target-context(...)` only allows 2 arguments
+- `if(1, true-condition, false-condition)` allows you to conditionally return something. An example would be to combine this with `is-even(...)` to remove all even answers from the back of the Book
+- `is-even(123)` returns `0` if the number is odd, and `111111` otherwise (truthy)
 - `x-tag-name()` find out current elements' tag name (ie 'div', 'pre', 'h1')
 - `x-throw()` throws an error (useful for unit tests)
 

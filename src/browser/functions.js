@@ -277,6 +277,41 @@ FUNCTIONS.push(new FunctionEvaluator('count-all-of-type', (evaluator, astNode, $
   })
   return $matches.length
 }))
+FUNCTIONS.push(new FunctionEvaluator('if', (evaluator, astNode, $contextEl) => {
+  // TODO: valudate that there are always 3 args
+  assert.equal(evaluator.argLength(), 3, astNode, $contextEl, 'Expected 3 arguments')
+  const condition = evaluator.evaluateFirst().join('')
+  const conditionNum = Number.parseInt(condition)
+
+  let ith
+  if (Number.isNaN(condition)) {
+    throwError(`Expected 1st argument to be a number (0 or some other number for "truthy") but it was not a number. it was "${condition}"`, astNode, $contextEl)
+  } else if (conditionNum === 0) {
+    // evaluate the true branch
+    ith = evaluator.evaluateIth(1)
+  } else {
+    // evaluate the false branch
+    ith = evaluator.evaluateIth(2)
+  }
+  return ith[0]
+}))
+FUNCTIONS.push(new FunctionEvaluator('is-even', (evaluator, astNode, $contextEl) => {
+  // TODO: valudate that there are always 3 args
+  assert.equal(evaluator.argLength(), 1, astNode, $contextEl, 'Expected 1 argument')
+  const arg1 = evaluator.evaluateFirst()
+  if (arg1.length !== 1) {
+    throwError(`The argument to is-even should be a single number. Instead, it was a list of length ${arg1.length}`, astNode, $contextEl)
+  }
+  const num = Number.parseInt(arg1[0])
+  if (Number.isNaN(num)) {
+    throwError(`The argument to is-even should be a single number. It was not a number.`, astNode, $contextEl)
+  }
+  // TODO: Support negative numbers
+  if (num < 0) {
+    throwError(`Negative numbers are not supported yet. Number was ${num}`, astNode, $contextEl)
+  }
+  return (num % 2 === 0) ? 111111 : 0 // Truthy but still a number
+}))
 FUNCTIONS.push(new FunctionEvaluator('number-to-letter', (evaluator, astNode, $contextEl) => {
   const vals = evaluator.evaluateAll()
   assert.equal(vals.length, 2, astNode, $contextEl, 'Exactly 2 arguments are allowed')

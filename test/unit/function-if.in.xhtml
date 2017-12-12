@@ -1,0 +1,20 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css-plus+css">
+      /* Hide even items (like even answers in a textbook) */
+      item {
+        content: count-of-type('list', 'item');
+        x-display: if(is-even(count-of-type('list', 'item')), none, default);
+      }
+    </style>
+  </head>
+<body>
+  <list>
+    <item/>
+    <item/>
+    <item/>
+    <item/>
+    <item/>
+  </list>
+</body>
+</html>
