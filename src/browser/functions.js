@@ -277,7 +277,7 @@ FUNCTIONS.push(new FunctionEvaluator('count-all-of-type', (evaluator, astNode, $
   })
   return $matches.length
 }))
-FUNCTIONS.push(new FunctionEvaluator('if', (evaluator, astNode, $contextEl) => {
+function ifFunction(evaluator, astNode, $contextEl) {
   // TODO: valudate that there are always 3 args
   assert.equal(evaluator.argLength(), 3, astNode, $contextEl, 'Expected 3 arguments')
   const condition = evaluator.evaluateFirst().join('')
@@ -294,7 +294,9 @@ FUNCTIONS.push(new FunctionEvaluator('if', (evaluator, astNode, $contextEl) => {
     ith = evaluator.evaluateIth(2)
   }
   return ith[0]
-}))
+}
+FUNCTIONS.push(new FunctionEvaluator('if', ifFunction))
+FUNCTIONS.push(new FunctionEvaluator('x-if', ifFunction)) // sass defines a function named if() so use x-if instead. http://sass-lang.com/documentation/Sass/Script/Functions.html#if-instance_method
 FUNCTIONS.push(new FunctionEvaluator('is-even', (evaluator, astNode, $contextEl) => {
   // TODO: valudate that there are always 3 args
   assert.equal(evaluator.argLength(), 1, astNode, $contextEl, 'Expected 1 argument')
