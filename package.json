@@ -1,6 +1,6 @@
 {
   "name": "css-plus",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "bin": {
     "css-plus": "./bin/css-plus",
     "css-plus-debug": "./bin/css-plus-debug"
