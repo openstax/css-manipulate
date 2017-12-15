@@ -116,13 +116,29 @@ FUNCTIONS.push(new FunctionEvaluator('x-id-gen', (evaluator, astNode, $contextEl
   return `css-plus-autogen-id-${idCounter}`
 }))
 FUNCTIONS.push(new FunctionEvaluator('attr', (evaluator, astNode, $contextEl) => {
-  const vals = evaluator.evaluateAll()
+  const attributeName = evaluator.evaluateFirst()
   // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
   assert.equal($contextEl.length, 1, astNode, $contextEl, `Expected to find 1 element but found ${$contextEl.length}`)
-  const ret = $contextEl.attr(vals.join(''))
+  const ret = $contextEl.attr(attributeName.join(''))
   if (ret == null) {
-    throwError(`tried to look up an attribute that was not available attr(${vals.join('')}).`, astNode, $contextEl)
+    throwError(`tried to look up an attribute that was not available attr(${attributeName.join('')}).`, astNode, $contextEl)
     return ''
+  }
+  return ret
+}))
+FUNCTIONS.push(new FunctionEvaluator('x-attr-with-default', (evaluator, astNode, $contextEl) => {
+  const attributeName = evaluator.evaluateFirst()
+  // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
+  assert.equal($contextEl.length, 1, astNode, $contextEl, `Expected to find 1 element but found ${$contextEl.length}`)
+  const ret = $contextEl.attr(attributeName.join(''))
+  if (ret == null) {
+    if (evaluator.argLength() === 2) {
+      const defaultAttributeValue = evaluator.evaluateIth(1)
+      return defaultAttributeValue.join('')
+    } else {
+      throwError(`tried to look up an attribute that was not available attr(${attributeName.join('')}).`, astNode, $contextEl)
+      return ''
+    }
   }
   return ret
 }))

@@ -1,15 +1,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <style type="text/css-plus+css">
-      body *:not(:has([id])) {
-        attrs-add: "id" x-id-gen();
+      body * {
+        attrs-add: "id" x-attr-with-default(id, x-id-gen());
       }
     </style>
   </head>
 <body>
   <list>
     <item/>
-    <item/>
+    <item id="itemid"/>
     <item/>
     <item/>
     <item/>
