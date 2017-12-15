@@ -108,6 +108,13 @@ FUNCTIONS.push(new FunctionEvaluator('x-throw', (evaluator, astNode) => {
   const vals = evaluator.evaluateAll()
   throwError(`"x-throw()" was called. ${vals[0]}`, astNode)
 }))
+let idCounter = 0
+FUNCTIONS.push(new FunctionEvaluator('x-id-gen', (evaluator, astNode, $contextEl) => {
+  const vals = evaluator.evaluateAll()
+  assert.is(vals.length <= 1, astNode, $contextEl, `Expected 0 arguments but found ${vals.length}`)
+  idCounter += 1
+  return `css-plus-autogen-id-${idCounter}`
+}))
 FUNCTIONS.push(new FunctionEvaluator('attr', (evaluator, astNode, $contextEl) => {
   const vals = evaluator.evaluateAll()
   // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
@@ -277,11 +284,10 @@ FUNCTIONS.push(new FunctionEvaluator('count-all-of-type', (evaluator, astNode, $
   })
   return $matches.length
 }))
-function ifFunction(evaluator, astNode, $contextEl) {
+function ifFunction (evaluator, astNode, $contextEl) {
   // TODO: valudate that there are always 3 args
   assert.equal(evaluator.argLength(), 3, astNode, $contextEl, 'Expected 3 arguments')
   const condition = evaluator.evaluateFirst().join('')
-  const conditionNum = Number.parseInt(condition)
 
   let ith
   switch (condition) {
