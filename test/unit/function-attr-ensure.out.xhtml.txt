@@ -1,0 +1,1 @@
+  [2mtest/unit/function-attr-ensure.in.xhtml:5:27[22m [33m[1mWARN[22m[39m Generating attribute value because attribute was not present ([2mtest/unit/function-attr-ensure.in.xhtml:10:9[22m)

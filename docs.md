@@ -86,7 +86,7 @@ Changing the current context:
 The rest:
 
 - `attr(href)` or `attr(src)` . Looks up an attribute on the current element. Errors if the attribute does not exist.
-- `x-attr-with-default(id, 'DEFAULT_ID')`. Looks up an attribute on the current element. If the attribute does not exist, the default is used.
+- `x-attr-ensure-id()`. Looks up the `id` attribute on the current element. If the attribute does not exist, a string is created.
 - `text-contents()` all text nodes combined together as a string
 - `move-here('.selector')` finds all descendants (use `ancestor-context(...)` if you need to find non-descendants)
   - similar in concept to `move-to: bucketName` and then `content: pending(bucketName)` but very different in implementation

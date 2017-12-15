@@ -108,37 +108,30 @@ FUNCTIONS.push(new FunctionEvaluator('x-throw', (evaluator, astNode) => {
   const vals = evaluator.evaluateAll()
   throwError(`"x-throw()" was called. ${vals[0]}`, astNode)
 }))
-let idCounter = 0
-FUNCTIONS.push(new FunctionEvaluator('x-id-gen', (evaluator, astNode, $contextEl) => {
-  const vals = evaluator.evaluateAll()
-  assert.is(vals.length <= 1, astNode, $contextEl, `Expected 0 arguments but found ${vals.length}`)
-  idCounter += 1
-  return `css-plus-autogen-id-${idCounter}`
-}))
 FUNCTIONS.push(new FunctionEvaluator('attr', (evaluator, astNode, $contextEl) => {
-  const attributeName = evaluator.evaluateFirst()
+  const attrName = evaluator.evaluateFirst().join('')
   // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
   assert.equal($contextEl.length, 1, astNode, $contextEl, `Expected to find 1 element but found ${$contextEl.length}`)
-  const ret = $contextEl.attr(attributeName.join(''))
+  const ret = $contextEl.attr(attrName)
   if (ret == null) {
-    throwError(`tried to look up an attribute that was not available attr(${attributeName.join('')}).`, astNode, $contextEl)
+    throwError(`tried to look up an attribute that was not available attr(${attrName}).`, astNode, $contextEl)
     return ''
   }
   return ret
 }))
-FUNCTIONS.push(new FunctionEvaluator('x-attr-with-default', (evaluator, astNode, $contextEl) => {
-  const attributeName = evaluator.evaluateFirst()
+let idCounter = 0
+FUNCTIONS.push(new FunctionEvaluator('x-attr-ensure-id', (evaluator, astNode, $contextEl) => {
+  const attrName = 'id'
   // check that we are only operating on 1 element at a time since this returns a single value while $.attr(x,y) returns an array
-  assert.equal($contextEl.length, 1, astNode, $contextEl, `Expected to find 1 element but found ${$contextEl.length}`)
-  const ret = $contextEl.attr(attributeName.join(''))
+  const ret = $contextEl.attr(attrName)
   if (ret == null) {
-    if (evaluator.argLength() === 2) {
-      const defaultAttributeValue = evaluator.evaluateIth(1)
-      return defaultAttributeValue.join('')
-    } else {
-      throwError(`tried to look up an attribute that was not available attr(${attributeName.join('')}).`, astNode, $contextEl)
-      return ''
-    }
+    idCounter += 1
+    showWarning(`Generating attribute value because attribute was not present`, astNode, $contextEl)
+    const attrValue = `css-plus-autogen-id-${idCounter}`
+    // This is the one place where we break the contract and change the DOM immediately, rather than waiting for a promise
+    // It is done here because 1. there is no $elPromise and 2. subsequent calls for attr(id) should still work
+    $contextEl.attr(attrName, attrValue)
+    return attrValue
   }
   return ret
 }))
