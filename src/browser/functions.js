@@ -284,14 +284,20 @@ function ifFunction(evaluator, astNode, $contextEl) {
   const conditionNum = Number.parseInt(condition)
 
   let ith
-  if (Number.isNaN(condition)) {
-    throwError(`Expected 1st argument to be a number (0 or some other number for "truthy") but it was not a number. it was "${condition}"`, astNode, $contextEl)
-  } else if (conditionNum === 0) {
-    // evaluate the true branch
-    ith = evaluator.evaluateIth(1)
-  } else {
-    // evaluate the false branch
-    ith = evaluator.evaluateIth(2)
+  switch (condition) {
+    case '':
+    case 'none':
+    case 'false':
+    case '0':
+    case false:
+    case null:
+    case 0:
+      // evaluate the false branch
+      ith = evaluator.evaluateIth(2)
+      break
+    default:
+      // evaluate the true branch
+      ith = evaluator.evaluateIth(1)
   }
   return ith[0]
 }
@@ -312,7 +318,7 @@ FUNCTIONS.push(new FunctionEvaluator('is-even', (evaluator, astNode, $contextEl)
   if (num < 0) {
     throwError(`Negative numbers are not supported yet. Number was ${num}`, astNode, $contextEl)
   }
-  return (num % 2 === 0) ? 111111 : 0 // Truthy but still a number
+  return (num % 2 === 0) ? 'true' : 'false' // Truthy but still a number
 }))
 FUNCTIONS.push(new FunctionEvaluator('number-to-letter', (evaluator, astNode, $contextEl) => {
   const vals = evaluator.evaluateAll()
