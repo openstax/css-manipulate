@@ -117,7 +117,7 @@ As you click in the left pane, the right pane updates.
 
 ![html-sourcemaps-wtf](https://cloud.githubusercontent.com/assets/253202/22572879/4745fa28-e974-11e6-936c-d56d2791cf47.gif)
 
-_(there is no trickery here, this is real working code using a slightly modified [atom-source-preview](https://github.com/aki77/atom-source-preview))_
+_(there is no trickery here, this is real working code using the plugin [atom-sourcemap](https://github.com/philschatz/atom-sourcemap))_
 
 
 <details>
