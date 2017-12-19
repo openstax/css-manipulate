@@ -1,5 +1,6 @@
 const EventEmitter = require('events')
 const csstree = require('css-tree')
+const createSha = require('sha.js')
 const assert = require('./misc/assert')
 const jqueryXmlns = require('./misc/jquery.xmlns')
 const RuleWithPseudos = require('./misc/rule-with-pseudos')
@@ -63,7 +64,6 @@ module.exports = class Applier extends EventEmitter {
     this._$ = $
     this._options = options || {}
 
-    this._autogenClassNameCounter = 0
     this._unprocessedRulesAndClassNames = {}
   }
 
@@ -321,9 +321,11 @@ module.exports = class Applier extends EventEmitter {
     return evaluator.evaluateAll()
   }
 
-  _newClassName () {
-    this._autogenClassNameCounter += 1
-    return `-css-plus-autogen-${this._autogenClassNameCounter}`
+  _newClassName (strToHash) {
+    const hash = createSha('sha256')
+    hash.update(strToHash)
+    const classNameSuffix = hash.digest('hex')
+    return `-css-plus-autogen-${classNameSuffix.substring(0, 6)}`
   }
 
   _addVanillaRules (declarationsMap) {
@@ -342,7 +344,7 @@ module.exports = class Applier extends EventEmitter {
       if (this._unprocessedRulesAndClassNames[hash]) {
         autogenClassNames.push(this._unprocessedRulesAndClassNames[hash].className)
       } else {
-        const className = this._newClassName()
+        const className = this._newClassName(csstree.translate(astNode))
         this._unprocessedRulesAndClassNames[hash] = {
           className,
           declaration
