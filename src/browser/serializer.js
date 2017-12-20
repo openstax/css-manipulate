@@ -144,7 +144,14 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
 
         for (let index = 0; index < node.attributes.length; index++) {
           const attribute = node.attributes[index]
-          pushAndMap(attribute, ` ${attribute.name}="${escapeHtml(attribute.value)}"` + DEBUGGING_NEWLINE)
+          let attributeValue
+          // Strip out any unused classes from the resulting HTML file (for diffing)
+          if (engine._options.diffmodeclassnames && attribute.name === 'class') {
+            attributeValue = attribute.value.split(' ').filter((val) => (/^-css-plus-autogen-/).test(val)).join(' ')
+          } else {
+            attributeValue = attribute.value
+          }
+          pushAndMap(attribute, ` ${attribute.name}="${escapeHtml(attributeValue)}"` + DEBUGGING_NEWLINE)
         }
         if (SELF_CLOSING_TAGS.indexOf(tagName) >= 0) {
           pushAndMap(node, `/>` + DEBUGGING_NEWLINE)

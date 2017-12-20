@@ -64,6 +64,7 @@ module.exports = class Applier extends EventEmitter {
     this._$ = $
     this._options = options || {}
 
+    this._autogenClassNumber = -1 // it gets incremented before use
     this._unprocessedRulesAndClassNames = {}
   }
 
@@ -336,30 +337,37 @@ module.exports = class Applier extends EventEmitter {
     declarations = declarations.sort(SPECIFICITY_COMPARATOR)
     declarations.forEach((declaration) => {
       const {selector, astNode} = declaration
-      let strToHash
+
+      let hashKey
+      let classNameSuffix
       if (this._options.diffmodeclassnames) {
         // for diff mode it is useful to know what the actual CSS declaration was
         // so where it came from is not important.
         // Therefore, the string to hash only contains the declaration,
         // and not the selector that originall matched.
-        strToHash = csstree.translate(astNode)
+        const strToHash = csstree.translate(astNode)
         delete astNode.loc // since the source mapping is no longer accurate we just remove the source info
+
+        const hashFn = createSha('sha256')
+        hashFn.update(strToHash)
+        hashKey = hashFn.digest('hex').substring(0, 6)
+        classNameSuffix = hashKey
       } else {
         // For dev mode it is useful to include multiple occurrences of the
         // same declaration because they could/do point to different places in
         // the source files.
         // Therefore, the string to hash should contain the original selector.
-        strToHash = `${csstree.translate(selector)} { ${csstree.translate(astNode)} }`
+        this._autogenClassNumber += 1
+        hashKey = `${csstree.translate(selector)} { ${csstree.translate(astNode)} }`
+        classNameSuffix = this._autogenClassNumber
       }
 
-      const hashFn = createSha('sha256')
-      hashFn.update(strToHash)
-      const className = `-css-plus-autogen-${hashFn.digest('hex').substring(0, 6)}`
+      const className = `-css-plus-autogen-${classNameSuffix}`
 
-      if (this._unprocessedRulesAndClassNames[className]) {
-        autogenClassNames.push(this._unprocessedRulesAndClassNames[className].className)
+      if (this._unprocessedRulesAndClassNames[hashKey]) {
+        autogenClassNames.push(this._unprocessedRulesAndClassNames[hashKey].className)
       } else {
-        this._unprocessedRulesAndClassNames[className] = {
+        this._unprocessedRulesAndClassNames[hashKey] = {
           className,
           declaration
         }
