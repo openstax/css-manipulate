@@ -321,11 +321,8 @@ module.exports = class Applier extends EventEmitter {
     return evaluator.evaluateAll()
   }
 
-  _newClassName (strToHash) {
-    const hash = createSha('sha256')
-    hash.update(strToHash)
-    const classNameSuffix = hash.digest('hex')
-    return `-css-plus-autogen-${classNameSuffix.substring(0, 6)}`
+  _newClassName (sha) {
+    return `-css-plus-autogen-${sha.substring(0, 6)}`
   }
 
   _addVanillaRules (declarationsMap) {
@@ -339,13 +336,30 @@ module.exports = class Applier extends EventEmitter {
     declarations = declarations.sort(SPECIFICITY_COMPARATOR)
     declarations.forEach((declaration) => {
       const {selector, astNode} = declaration
-      const hash = `${csstree.translate(selector)} {{ ${csstree.translate(astNode)} }}`
-
-      if (this._unprocessedRulesAndClassNames[hash]) {
-        autogenClassNames.push(this._unprocessedRulesAndClassNames[hash].className)
+      let strToHash
+      if (this._options.diffmodeclassnames) {
+        // for diff mode it is useful to know what the actual CSS declaration was
+        // so where it came from is not important.
+        // Therefore, the string to hash only contains the declaration,
+        // and not the selector that originall matched.
+        strToHash = csstree.translate(astNode)
+        delete astNode.loc // since the source mapping is no longer accurate we just remove the source info
       } else {
-        const className = this._newClassName(csstree.translate(astNode))
-        this._unprocessedRulesAndClassNames[hash] = {
+        // For dev mode it is useful to include multiple occurrences of the
+        // same declaration because they could/do point to different places in
+        // the source files.
+        // Therefore, the string to hash should contain the original selector.
+        strToHash = `${csstree.translate(selector)} { ${csstree.translate(astNode)} }`
+      }
+
+      const hashFn = createSha('sha256')
+      hashFn.update(strToHash)
+      const className = `-css-plus-autogen-${hashFn.digest('hex').substring(0, 6)}`
+
+      if (this._unprocessedRulesAndClassNames[className]) {
+        autogenClassNames.push(this._unprocessedRulesAndClassNames[className].className)
+      } else {
+        this._unprocessedRulesAndClassNames[className] = {
           className,
           declaration
         }

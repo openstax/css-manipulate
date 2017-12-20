@@ -84,7 +84,7 @@ function coverageDataToLcov (htmlOutputPath, coverageData) {
 }
 
 function buildTest (htmlFilename, cssFilename) {
-  const argv = {noprogress: true}
+  const argv = {noprogress: true, diffmodeclassnames: (/sandbox/).test(htmlFilename)}
   let cssPath
   if (cssFilename) {
     cssPath = `test/${cssFilename}`

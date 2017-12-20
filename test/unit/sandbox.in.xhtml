@@ -15,6 +15,12 @@
         border: 1px solid blue;
         border-color: yellow;
       }
+      /* This test has the --diffmodeclassnames flag set so we can verify that
+       * the following classes collapse into one
+       * (at the expense of not having the CSS sourcemap)
+       */
+      p.aaa {  background-color: /*test that comments do not matter*/   blue;  }
+      p.bbb {  background-color: /*test that comments do not matter*/   blue;  }
     </style>
   </head>
 <body>
@@ -22,6 +28,10 @@
 <div class="foo"></div>
 <div class="foo" id="special-snowflake"></div>
 <div class="foo"></div>
+
+<p class="aaa"></p>
+<p class="bbb"></p>
+<p class="aaa bbb"></p>
 
 </body>
 </html>
