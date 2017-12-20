@@ -9,19 +9,8 @@
 # /dist/browser.js
 # /dist/browser.js.map
 
-/test/apphysics.css
-/test/apphysics.css.skip
-/test/apphysics.in.html
-/test/apphysics.out.html
-
-
-/test/motivation/*.css
-/test/motivation/*.css.map
-
-/test/example/*.css
-/test/example/*.css.map
-
-/test/*/*.out.html.map
-/test/*/*.out.html.lcov
-/test/*/*.out.xhtml.map
-/test/*/*.out.xhtml.lcov
+/node_modules*
+/src/browser/
+/script/
+/test/
+/.*
