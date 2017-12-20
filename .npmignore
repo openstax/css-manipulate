@@ -10,7 +10,6 @@
 # /dist/browser.js.map
 
 /node_modules*
-/src/browser/
 /script/
 /test/
 /.*
