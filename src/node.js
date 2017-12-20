@@ -11,7 +11,7 @@ const jquery = require('jquery')
 const {SourceMapConsumer, SourceMapGenerator} = require('source-map')
 
 const renderPacket = require('./packet-render')
-const {showWarning, throwBug} = require('./browser/misc/packet-builder')
+const {showWarning, throwBug, throwError} = require('./browser/misc/packet-builder')
 const constructSelector = require('./browser/misc/construct-selector')
 
 const SCRIPT_TIMEOUT = 1 * 60 * 1000
@@ -333,7 +333,7 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
             // to change the type of this node
             break
           default:
-            throwBug(`Unsupported url argument type ${node.value.type}`)
+            throwBug(`Unsupported url argument type ${node.value.type}`, node)
         }
 
         // skip if the URL is a real https?:// URL
@@ -350,22 +350,27 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
 
       const magic = new Magic(MAGIC_MIME_TYPE)
       const detect = pify(magic.detectFile.bind(magic))
-      const mimeType = await detect(absPath)
-      const buffer = fs.readFileSync(absPath)
+      // The file may not exist
+      try {
+        const mimeType = await detect(absPath)
+        const buffer = fs.readFileSync(absPath)
 
-      let dataUri
-      // SVG is more efficient if it is just URI-Encoded (since it is not binary)
-      // Other image types should be base64-encoded
-      switch (mimeType) {
-        case 'text/html': // For some reason some SVG images are interpreted as text/html
-        case 'image/svg+xml':
-          dataUri = `data:image/svg+xml;charset%3Dutf-8,${encodeURIComponent(buffer.toString('utf8'))}`
-          break
-        // case 'image/png':
-        default:
-          dataUri = `data:${mimeType};base64,${buffer.toString('base64')}`
+        let dataUri
+        // SVG is more efficient if it is just URI-Encoded (since it is not binary)
+        // Other image types should be base64-encoded
+        switch (mimeType) {
+          case 'text/html': // For some reason some SVG images are interpreted as text/html
+          case 'image/svg+xml':
+            dataUri = `data:image/svg+xml;charset%3Dutf-8,${encodeURIComponent(buffer.toString('utf8'))}`
+            break
+          // case 'image/png':
+          default:
+            dataUri = `data:${mimeType};base64,${buffer.toString('base64')}`
+        }
+        node.value.value = `"${dataUri}"`
+      } catch (err) {
+        throwError(`Problem loading file ${absPath}. Message: ${err.message}`, node)
       }
-      node.value.value = `"${dataUri}"`
     }
 
 
