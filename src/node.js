@@ -275,7 +275,8 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
   // await page.evaluate(`(function () { ${fs.readFileSync(require.resolve('jquery'))} })()`)
   // await page.evaluate(`(function () { ${fs.readFileSync(ENGINE_PATH)}; window.CssPlus = CssPlus; })()`)
 
-  await page.evaluate(`(function () { window.__HTML_SOURCE_LOOKUP = ${JSON.stringify(htmlSourceLookupMap)}; })()`)
+  // For large files this will cause chrome to crash
+  // await page.evaluate(`(function () { window.__HTML_SOURCE_LOOKUP = ${JSON.stringify(htmlSourceLookupMap)}; })()`)
   await page.evaluate(`(function () { window.__CSS_SOURCE_MAP_JSON = ${JSON.stringify(cssSourceMapJson)}; })()`)
   function escaped(str) {
     return str.toString().replace(/\\/g, '\\\\').replace(/`/g, '\\`')

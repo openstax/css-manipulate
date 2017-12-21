@@ -89,6 +89,7 @@ module.exports = class Converter {
     this._engine.prepare(walker)
     // console.profile('CPU Profile')
     const allElementsDoneProcessingPromise = this._engine.process()
+
     // console.profileEnd()
 
     // Types of Promises we need:
@@ -114,14 +115,11 @@ module.exports = class Converter {
         return null // It has a CSS location so we are OK
       }
     }
-    const source = window.__HTML_SOURCE_LOOKUP[node.__sourceSelector]
-    if (source) {
-      const [line, col] = source
-      return {line, col}
+    // const source = window.__HTML_SOURCE_LOOKUP[node.__sourceSelector]
+    if (node.__sourceSelector) {
+      return node.__sourceSelector
     } else {
-      if (node.__sourceSelector === 'head') {
-        showWarning('Could not find source for this element. It seems the original XHTML did not have a <head> but that is invalid XHTML', null, [node], null)
-      } else if (node.nodeType === 1 /* ELEMENT_NODE */) {
+      if (node.nodeType === 1 /* ELEMENT_NODE */) {
         showWarning('Could not find source for this element', null, [node], null)
       } else {
         // Do nothing. it's an attribute, text, comment, etc
