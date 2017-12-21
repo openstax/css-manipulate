@@ -14,7 +14,6 @@ const renderPacket = require('./packet-render')
 const {showWarning, throwBug, throwError} = require('./browser/misc/packet-builder')
 const constructSelector = require('./browser/misc/construct-selector')
 
-const SCRIPT_TIMEOUT = 1 * 60 * 1000
 const JQUERY_PATH = require.resolve('jquery')
 const ENGINE_PATH = require.resolve('../dist/browser')
 
@@ -213,7 +212,7 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
   if (!browserPromise) {
     const devtools = process.env['NODE_ENV'] == 'debugger'
     const headless = devtools ? false : !options.debug
-    browserPromise = puppeteer.launch({headless: headless, devtools: devtools, timeout: SCRIPT_TIMEOUT, args: [
+    browserPromise = puppeteer.launch({headless: headless, devtools: devtools, timeout: options.timeout * 1000, args: [
       // https://peter.sh/experiments/chromium-command-line-switches/#shill-stub
       // https://github.com/GoogleChrome/puppeteer/blob/HEAD/docs/api.md#puppeteerlaunchoptions
       '--shill-stub=wifi=none' // Disable network traffic
@@ -248,7 +247,7 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
   if (options.verbose) {
     console.log(`Opening HTML in Chrome... ${url}`)
   }
-  await page.goto(url, {waitUntil: 'networkidle', timeout: SCRIPT_TIMEOUT})
+  await page.goto(url, {waitUntil: 'networkidle', timeout: options.timeout * 1000})
   if (options.verbose) {
     console.log('Opened HTML in Chrome')
   }

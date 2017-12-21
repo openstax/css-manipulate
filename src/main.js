@@ -41,6 +41,11 @@ const argv = require('yargs')
   type: 'boolean',
   describe: 'Show elapsed time rather than the ETA'
 })
+.option('timeout', {
+  type: 'number',
+  default: 60,
+  describe: 'Specify the timeout for opening a page (in seconds). Set to 0 to disable'
+})
 .argv
 
 let cssPath = argv.css
