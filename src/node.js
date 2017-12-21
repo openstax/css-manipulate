@@ -336,8 +336,8 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
             throwBug(`Unsupported url argument type ${node.value.type}`, node)
         }
 
-        // skip if the URL is a real https?:// URL
-        if (! /https?:\/\//.test(relPath)) {
+        // skip if the URL is a real https?:// URL or begins with data:
+        if (! /https?:\/\//.test(relPath) && ! /^data:/.test(relPath)) {
           const absPath = path.resolve(path.dirname(cssPath), relPath)
           urls.push({node, absPath})
         }

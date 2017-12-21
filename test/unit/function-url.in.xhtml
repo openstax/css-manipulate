@@ -1,0 +1,15 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <style type="text/css-plus+css">
+      /* Test that the url is preserved in the output css */
+      .preserve1 { content: url("https://cnx.org"); }
+      .preserve2 { content: url("data:image/svg+xml;charset%3Dutf-8,gibberishXML"); }
+      .embed { content: url("./vanilla.png"); }
+    </style>
+  </head>
+<body>
+  <div class="preserve1"></div>
+  <div class="preserve2"></div>
+  <div class="embed"></div>
+</body>
+</html>

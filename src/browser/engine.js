@@ -169,7 +169,9 @@ module.exports = class Applier extends EventEmitter {
             this._$.xmlns[nsPrefix] = ns
             break
           default:
-            showWarning('Unrecognized at-rule. Skipping processing but including in the output', rule)
+            if (this._options.verbose) {
+              showWarning('Unrecognized at-rule. Skipping processing but including in the output', rule)
+            }
             return
         }
         return
@@ -513,7 +515,9 @@ module.exports = class Applier extends EventEmitter {
       const ret = doStuff(ruleDeclarationPlugin, declarations)
       if (ret instanceof UnsupportedFunctionError) {
         // use the || clause when the function is `url("foo.png")`
-        showWarning(`Skipped declaration containing unsupported function "${ret.astNode.name || ret.astNode.type}(...)"`, ret.astNode, ret.$el)
+        if (this._options.verbose) {
+          showWarning(`Skipped declaration containing unsupported function "${ret.astNode.name || ret.astNode.type}(...)"`, ret.astNode, ret.$el)
+        }
         return null
       } else {
         // remove it when it is processed. Anything remaining will be output to CSS

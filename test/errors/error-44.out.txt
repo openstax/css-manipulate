@@ -1,1 +1,0 @@
-  [2mtest/errors/error-44.css:1:18[22m [33m[1mWARN[22m[39m Skipped declaration containing unsupported function "Url(...)" ([2mtest/errors/_errors.in.xhtml:2:7[22m)
