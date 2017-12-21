@@ -1,0 +1,1 @@
+  [2mtest/errors/error-45.css:1:6[22m [31m[1mERROR[22m[39m Unsupported PseudoClassSelector. Add an additional colon to make it a PseudoElementSelector

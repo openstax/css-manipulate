@@ -686,6 +686,10 @@ module.exports = class Applier extends EventEmitter {
               }
             })
             return `:${sel.name}(${nthChildren.join(', ')})` // not sure if adding the comma is correct
+          case 'before':
+          case 'after':
+            throwError('Unsupported PseudoClassSelector. Add an additional colon to make it a PseudoElementSelector', sel)
+            break
           default:
             throwError(`Unsupported Pseudoclass ":${sel.name}"`, sel)
         }

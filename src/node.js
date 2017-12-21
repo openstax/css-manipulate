@@ -369,7 +369,11 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
         }
         node.value.value = `"${dataUri}"`
       } catch (err) {
-        throwError(`Problem loading file ${absPath}. Message: ${err.message}`, node)
+        if (options.nostrict) {
+          showWarning(`Problem loading file ${absPath}. Message: ${err.message}`, node)
+        } else {
+          throwError(`Problem loading file ${absPath}. Message: ${err.message}`, node)
+        }
       }
     }
 

@@ -84,6 +84,12 @@ module.exports = class Converter {
           }
         }
       }
+
+      // Convert :before and :after (pseudoclass) to ::before and ::after (pseudoelement)
+      if (options.nostrict && astNode.type === 'PseudoClassSelector' && (astNode.name === 'before' || astNode.name === 'after')) {
+        showWarning(`PseudoElement :${astNode.name} needs to have 2 colons but only has one`, astNode)
+        astNode.type = 'PseudoElementSelector'
+      }
     }
 
     this._engine.prepare(walker)

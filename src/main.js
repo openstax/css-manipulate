@@ -46,6 +46,10 @@ const argv = require('yargs')
   default: 60,
   describe: 'Specify the timeout for opening a page (in seconds). Set to 0 to disable'
 })
+.option('nostrict', {
+  type: 'boolean',
+  describe: 'Offer more lenient processing (`:before` is OK, invalid images loaded via `url(...)` are OK)'
+})
 .argv
 
 let cssPath = argv.css

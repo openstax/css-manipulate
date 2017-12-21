@@ -1,0 +1,3 @@
+  [2mtest/unit/invalid-pseudoelements.in.xhtml:4:13[22m [33m[1mWARN[22m[39m PseudoElement :before needs to have 2 colons but only has one
+  [2mtest/unit/invalid-pseudoelements.in.xhtml:5:13[22m [33m[1mWARN[22m[39m PseudoElement :after needs to have 2 colons but only has one
+  [2mtest/unit/invalid-pseudoelements.in.xhtml:6:25[22m [33m[1mWARN[22m[39m Skipped declaration containing unsupported function "Url(...)" ([2mtest/unit/invalid-pseudoelements.in.xhtml:9:7[22m)

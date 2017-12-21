@@ -42,3 +42,5 @@ body::for-each(123, 'descendant', 'p') { content: "2nd arg must be a token, not 
 body::for-each(123, unsupported-axis, 'p') { content: "2nd arg must be a valid axis"; }
 /*body::for-each(123, descendant, p) { content: "3rd arg must be a string"; }*/
 body { content: url('./path/to/invalid/image.svg'); }
+body:before { content: 'missing a colon'; }
+body:after { content: 'missing a colon'; }

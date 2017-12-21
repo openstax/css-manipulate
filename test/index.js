@@ -1,6 +1,8 @@
 /* eslint-disable no-sync, dot-location */
+const assert = require('assert')
 const fs = require('fs')
 const path = require('path')
+const glob = require('glob')
 const test = require('ava')
 const {convertNodeJS} = require('../src/node')
 const renderPacket = require('../src/packet-render')
@@ -8,47 +10,10 @@ const {SPECIFICITY_COMPARATOR} = require('../src/browser/misc/specificity')
 
 const {WRITE_TEST_RESULTS} = process.env
 
-const EXAMPLE_FILES_TO_TEST = [
-  './example/exercise-numbering',
-  './example/exercise-numbering-advanced',
-  './example/glossary'
-]
-const UNIT_FILES_TO_TEST = [
-  './unit/function-attr-ensure',
-  './unit/function-if',
-  './unit/siblings',
-  './unit/source-location',
-  './unit/escaped-css',
-  './unit/move-here-outside',
-  './unit/target-context',
-  './unit/number-to-letter',
-  './unit/add',
-  './unit/at-rule',
-  './unit/unused',
-  './unit/move-here',
-  './unit/before-after',
-  './unit/selectors',
-  './unit/simple-selectors',
-  './unit/functions',
-  './unit/functions2',
-  './unit/functions3',
-  './unit/ancestor-context',
-  './unit/inside',
-  './unit/attrs',
-  './unit/class',
-  './unit/specificity',
-  './unit/for-each',
-  './unit/for-each-advanced',
-  './unit/target',
-  './unit/tag-name-set',
-  './unit/html-serialization',
-  './unit/x-log',
-  './unit/display-none',
-  './unit/has',
-  './unit/namespace-attributes',
-  './unit/vanilla',
-  './unit/sandbox'
-]
+const EXAMPLE_FILES_TO_TEST = glob.sync(`./example/*.in.xhtml`, {cwd: __dirname}).map((path) => path.replace('.in.xhtml', ''))
+const UNIT_FILES_TO_TEST = glob.sync(`./unit/*.in.xhtml`, {cwd: __dirname}).map((path) => path.replace('.in.xhtml', ''))
+assert(EXAMPLE_FILES_TO_TEST.length > 0)
+assert(UNIT_FILES_TO_TEST.length > 0)
 
 const MOTIVATION_INPUT_HTML_PATH = `./motivation/_input.xhtml`
 const MOTIVATION_FILES_TO_TEST = [
@@ -84,7 +49,11 @@ function coverageDataToLcov (htmlOutputPath, coverageData) {
 }
 
 function buildTest (htmlFilename, cssFilename) {
-  const argv = {noprogress: true, diffmodeclassnames: (/sandbox/).test(htmlFilename)}
+  const argv = {
+    noprogress: true,
+    diffmodeclassnames: (/sandbox/).test(htmlFilename),
+    nostrict: (/invalid-pseudoelements/).test(htmlFilename)
+  }
   let cssPath
   if (cssFilename) {
     cssPath = `test/${cssFilename}`
