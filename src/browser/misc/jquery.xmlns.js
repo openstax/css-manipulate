@@ -206,63 +206,71 @@ if(div.localName && div.localName == "div") {
 div = null;
 
 
-// //  Modify the TAG find function to account for a namespace selector.
-// //
-// $.expr.find.TAG = function(match,context,isXML) {
-//     var ns = getNamespaceURI(match[2]);
-//     var ln = match[3];
-//     var res;
-//     if(typeof context.getElementsByTagNameNS != "undefined") {
-//         //  Easy case - we have getElementsByTagNameNS
-//         res = context.getElementsByTagNameNS(ns,ln);
-//     } else if(typeof context.selectNodes != "undefined") {
-//         //  Use xpath if possible (not available on HTML DOM nodes in IE)
-//         if(context.ownerDocument) {
-//             context.ownerDocument.setProperty("SelectionLanguage","XPath");
-//         } else {
-//             context.setProperty("SelectionLanguage","XPath");
-//         }
-//         var predicate = "";
-//         if(ns != "*") {
-//             if(ln != "*") {
-//                 predicate="namespace-uri()='"+ns+"' and local-name()='"+ln+"'";
-//             } else {
-//                 predicate="namespace-uri()='"+ns+"'";
-//             }
-//         } else {
-//             if(ln != "*") {
-//                 predicate="local-name()='"+ln+"'";
-//             }
-//         }
-//         if(predicate) {
-//             res = context.selectNodes("descendant-or-self::*["+predicate+"]");
-//         } else {
-//             res = context.selectNodes("descendant-or-self::*");
-//         }
-//     } else {
-//         //  Otherwise, we need to simulate using getElementsByTagName
-//         res = context.getElementsByTagName(ln);
-//         if(gebtn_yields_comments && ln == "*") {
-//             var tmp = [];
-//             for(var i=0; res[i]; i++) {
-//                 if(res[i].nodeType == 1) {
-//                     tmp.push(res[i]);
-//                 }
-//             }
-//             res = tmp;
-//         }
-//         if(res && ns != "*") {
-//             var tmp = [];
-//             for(var i=0; res[i]; i++) {
-//                if(res[i].namespaceURI == ns || res[i].tagUrn == ns) {
-//                    tmp.push(res[i]);
-//                }
-//             }
-//             res = tmp;
-//         }
-//     }
-//     return res;
-// };
+//  Modify the TAG find function to account for a namespace selector.
+//
+var $_expr_find_TAG = $.expr.find.TAG;
+$.expr.find.TAG = function(match,context,isXML) {
+    if (/\|/.test(match)) {
+      var matchNs = match.split('|')[0] + '|';
+      var matchTagName = match.split('|')[1];
+      var ns = getNamespaceURI(matchNs);
+      var ln = matchTagName;
+      var res;
+      if(typeof context.getElementsByTagNameNS != "undefined") {
+          //  Easy case - we have getElementsByTagNameNS
+          res = context.getElementsByTagNameNS(ns,ln);
+      } else if(typeof context.selectNodes != "undefined") {
+          //  Use xpath if possible (not available on HTML DOM nodes in IE)
+          if(context.ownerDocument) {
+              context.ownerDocument.setProperty("SelectionLanguage","XPath");
+          } else {
+              context.setProperty("SelectionLanguage","XPath");
+          }
+          var predicate = "";
+          if(ns != "*") {
+              if(ln != "*") {
+                  predicate="namespace-uri()='"+ns+"' and local-name()='"+ln+"'";
+              } else {
+                  predicate="namespace-uri()='"+ns+"'";
+              }
+          } else {
+              if(ln != "*") {
+                  predicate="local-name()='"+ln+"'";
+              }
+          }
+          if(predicate) {
+              res = context.selectNodes("descendant-or-self::*["+predicate+"]");
+          } else {
+              res = context.selectNodes("descendant-or-self::*");
+          }
+      } else {
+          //  Otherwise, we need to simulate using getElementsByTagName
+          res = context.getElementsByTagName(ln);
+          if(gebtn_yields_comments && ln == "*") {
+              var tmp = [];
+              for(var i=0; res[i]; i++) {
+                  if(res[i].nodeType == 1) {
+                      tmp.push(res[i]);
+                  }
+              }
+              res = tmp;
+          }
+          if(res && ns != "*") {
+              var tmp = [];
+              for(var i=0; res[i]; i++) {
+                 if(res[i].namespaceURI == ns || res[i].tagUrn == ns) {
+                     tmp.push(res[i]);
+                 }
+              }
+              res = tmp;
+          }
+      }
+      return res;
+
+    } else {
+      return $_expr_find_TAG(match, context);
+    }
+};
 
 
 //  Check whether a node is part of an XML document.

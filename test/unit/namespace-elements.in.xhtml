@@ -1,0 +1,16 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:test="urn:test">
+  <head>
+    <style type="text/css-plus+css">
+      @namespace test "urn:test";
+      test|*::before {
+        tag-name-set: div;
+        content: "Hello!";
+      }
+    </style>
+  </head>
+  <body>
+    <test:test>
+        <test:a>Hello!</test:a>
+    </test:test>
+  </body>
+</html>
