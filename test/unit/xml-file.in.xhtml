@@ -1,0 +1,18 @@
+<document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml" xmlns:test="urn:test">
+  <style type="text/css-plus+css">
+    /* Note: The style element is not valid CNXML. It is just here to make the tests easier */
+    @namespace md "http://cnx.rice.edu/mdml";
+    @namespace test "urn:test";
+    md|foo[test|attr='kittens']{
+      content: "Kittens";
+    }
+    test|foo {
+      content: "Kittens";
+    }
+  </style>
+  <title>Module Title</title>
+  <metadata mdml-version="0.5">
+    <md:foo test:attr="kittens">INVALID</md:foo>
+    <test:foo>INVALID</test:foo>
+  </metadata>
+</document>

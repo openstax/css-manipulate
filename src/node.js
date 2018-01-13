@@ -6,6 +6,7 @@ const csstree = require('css-tree')
 const pify = require('pify')
 const {Magic, MAGIC_MIME_TYPE} = require('mmmagic')
 const mkdirp = require('mkdirp')
+const tmp = require('tmp')
 const sax = require('sax')
 const jquery = require('jquery')
 const {SourceMapConsumer, SourceMapGenerator} = require('source-map')
@@ -81,7 +82,10 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
   let encounteredHeadElement = false
   let useStyleTagForCssContents = false
   let styleSourceShiftStart = null
+  let isHtml = false
+  let elementCount = 0
   parser.onopentagstart = () => {
+    elementCount += 1
     // remember the line/col from the parser so we can use it instead of the position of the end of the open tag
     parserStartTagPosition = {line: parser.line, column: parser.column}
   }
@@ -92,6 +96,11 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
     depthSelectorPrefix[currentDepth + 1] = str
     currentDepth += 1
     // console.log(`sax: ${str}`)
+
+    // Check if the file is (X)HTML or not
+    if (1 === elementCount) {
+      isHtml = local === 'html'
+    }
 
     // chrome auto-adds a <head> so increment the count so the checksum matches
     // NOTE: there are other elements that Chrome adds (like <dbody> so this is not a good general solution)
@@ -206,7 +215,11 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
 
 
 
-
+  // If isHtml is false then we need to create a file that wraps the XML inside `<html><body>`
+  if (!isHtml) {
+    htmlPath = tmp.fileSync({prefix: 'css-plus-', postfix: '.tmp.xhtml'}).name
+    fs.writeFileSync(htmlPath, `<html xmlns="http://www.w3.org/1999/xhtml"><body>\n${htmlContents}\n</body></html>`)
+  }
 
 
   if (!browserPromise) {
