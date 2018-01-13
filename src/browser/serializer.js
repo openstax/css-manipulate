@@ -174,10 +174,6 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
     switch (node.nodeType) {
       case node.ELEMENT_NODE:
         tagName = node.tagName.toLowerCase()
-        // Output the sourceMapPath (if provided) just before the close </html>
-        if (tagName === 'html' && htmlSourceMapPath) {
-          pushAndMap(node, `\n<!-- //# sourceMappingURL=${htmlSourceMapPath} -->`, true /* isEndTag */)
-        }
         // If we have vanilla rules then we need to inject them as a <style> tag with a sourceMappingURL
         if (tagName === 'head') {
           if (vanillaRules) {
@@ -212,6 +208,10 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
         }
         if (!(SELF_CLOSING_TAGS.indexOf(tagName) >= 0)) {
           pushAndMap(node, `</${node.tagName.toLowerCase()}>` + DEBUGGING_NEWLINE, true /* isEndTag */)
+        }
+        // Output the sourceMapPath (if provided) just after the close </html>
+        if (tagName === 'html' && htmlSourceMapPath) {
+          pushAndMap(node, `\n<!-- //# sourceMappingURL=${htmlSourceMapPath} -->`, true /* isEndTag */)
         }
         break
       default:
