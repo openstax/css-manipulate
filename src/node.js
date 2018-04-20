@@ -241,7 +241,10 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
 
   const url = `file://${htmlPath}`
 
-  page.on('console', ({type, text}) => {
+  page.on('console', (consoleMessage) => {
+    const type = consoleMessage.type()
+    const text = consoleMessage.text()
+
     if (type === 'warning') {
       console.warn(text)
     } else if (type === 'error') {
@@ -265,7 +268,7 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
   if (options.verbose) {
     console.log(`Opening HTML in Chrome... ${url}`)
   }
-  await page.goto(url, {waitUntil: 'networkidle', timeout: options.timeout * 1000})
+  await page.goto(url, {waitUntil: 'networkidle2', timeout: options.timeout * 1000})
   if (options.verbose) {
     console.log('Opened HTML in Chrome')
   }
@@ -402,6 +405,10 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
     ret = await page.evaluate(`(function () {
       return window.__instance.serialize(${JSON.stringify(vanillaRules)})
     }) ()`)
+    // Ensure ret is defined
+    if (!ret) {
+      throwBug('.serialize(...) returned a non-serializable value (according to puppeteer)')
+    }
     await saveCoverage()
     await page.close()
   } catch (e) {
