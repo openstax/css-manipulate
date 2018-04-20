@@ -225,11 +225,16 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
   if (!browserPromise) {
     const devtools = process.env['NODE_ENV'] == 'debugger'
     const headless = devtools ? false : !options.debug
-    browserPromise = puppeteer.launch({headless: headless, devtools: devtools, timeout: options.timeout * 1000, args: [
+    const puppeteerArgs = [
       // https://peter.sh/experiments/chromium-command-line-switches/#shill-stub
       // https://github.com/GoogleChrome/puppeteer/blob/HEAD/docs/api.md#puppeteerlaunchoptions
       '--shill-stub=wifi=none' // Disable network traffic
-    ]})
+    ]
+    // See https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-on-travis-ci
+    if (process.env['CI'] === 'true') {
+      puppeteerArgs.push('--no-sandbox')
+    }
+    browserPromise = puppeteer.launch({headless: headless, devtools: devtools, timeout: options.timeout * 1000, args: puppeteerArgs})
   }
   const browser = await browserPromise
   const page = await browser.newPage()
