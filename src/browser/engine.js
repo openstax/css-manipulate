@@ -601,7 +601,7 @@ module.exports = class Applier extends EventEmitter {
             case 'String': // `[data-type="foo"]`
               val = value.value
               break
-            case 'Identifier':  // `[data-type=foo]`
+            case 'Identifier': // `[data-type=foo]`
               val = value.name
               break
             default:

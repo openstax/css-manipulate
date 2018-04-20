@@ -240,7 +240,7 @@ FUNCTIONS.push(new FunctionEvaluator('count-of-type', (evaluator, astNode, $cont
   const vals = evaluator.evaluateRest()
   assert.equal(vals.length, 1, astNode, $contextEl)
   assert.is(Array.isArray(vals[0]), astNode, $contextEl)
-  const selector = vals[0].join(' ')  // vals[0] = ['li'] (notice vals is a 2-Dimensional array. If each FunctionEvaluator had a .join() method then this function could be simpler and more intuitive to add more features)
+  const selector = vals[0].join(' ') // vals[0] = ['li'] (notice vals is a 2-Dimensional array. If each FunctionEvaluator had a .join() method then this function could be simpler and more intuitive to add more features)
   assert.equal(typeof selector, 'string', astNode, $contextEl)
 
   const $closestAncestor = $contextEl.closest(ancestorSel)
@@ -282,7 +282,7 @@ FUNCTIONS.push(new FunctionEvaluator('count-all-of-type', (evaluator, astNode, $
   const vals = evaluator.evaluateRest()
   assert.equal(vals.length, 1, astNode, $contextEl, `Exactly 2 arguments are allowed but found ${1 + vals.length}`)
   assert.is(Array.isArray(vals[0]), astNode, $contextEl)
-  const selector = vals[0].join(' ')  // vals[0] = ['li'] (notice vals is a 2-Dimensional array. If each FunctionEvaluator had a .join() method then this function could be simpler and more intuitive to add more features)
+  const selector = vals[0].join(' ') // vals[0] = ['li'] (notice vals is a 2-Dimensional array. If each FunctionEvaluator had a .join() method then this function could be simpler and more intuitive to add more features)
   assert.equal(typeof selector, 'string', astNode, $contextEl)
   const $ancestor = $contextEl.closest(ancestorSel)
   assert.equal($ancestor.length, 1, astNode, $contextEl, `Expected to find 1 ancestor but found ${$ancestor.length}`)
