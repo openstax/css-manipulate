@@ -9,8 +9,14 @@
     test|foo {
       content: "Kittens";
     }
+    document::after {
+      tag-name-set: 'destination';
+      content: move-here('test|source');
+    }
   </style>
   <title>Module Title</title>
+  <test:source>Source to move with a namespace defined at the top of the doc</test:source>
+  <source xmlns="urn:test">Source to move with a namespace declared on the element</source>
   <metadata mdml-version="0.5">
     <md:foo test:attr="kittens">INVALID</md:foo>
     <test:foo>INVALID</test:foo>

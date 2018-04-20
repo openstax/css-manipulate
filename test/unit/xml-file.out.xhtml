@@ -2,11 +2,13 @@
 <document xmlns="http://cnx.rice.edu/cnxml" xmlns:md="http://cnx.rice.edu/mdml" xmlns:test="urn:test">
   
   <title>Module Title</title>
+  
+  
   <metadata mdml-version="0.5">
     <md:foo test:attr="kittens">Kittens</md:foo>
     <test:foo>Kittens</test:foo>
     <foo xmlns="urn:test">Kittens</foo>
     <foo>Should NOT be Kittens and should not be changed</foo>
   </metadata>
-</document>
+<destination><test:source>Source to move with a namespace defined at the top of the doc</test:source><source xmlns="urn:test"/>Source to move with a namespace declared on the element</destination></document>
 
