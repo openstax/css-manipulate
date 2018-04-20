@@ -17,9 +17,11 @@ function walkDOMNodesInOrder (el, startFn, endFn) {
 }
 
 const SELF_CLOSING_TAGS = ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr']
+// XML files are wrapped in a `<html><body>` so Chrome can open and operate on them. When serializing, we need to remove them again.
+const XML_SKIP_TAGNAMES = ['html', 'head', 'body']
 
 // We use a custom serializer so sourcemaps can be generated (we know the output line and columns for things)
-module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, vanillaRules, htmlOutputPath) => {
+module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, vanillaRules, htmlOutputPath, isXml) => {
   const coverageData = {}
   const documentElement = engine.getRoot()
 
@@ -140,6 +142,12 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
     switch (node.nodeType) {
       case node.ELEMENT_NODE:
         tagName = node.tagName.toLowerCase()
+
+        // If the original file was XML then skip serializing the <html>, <head>, and <body> tags
+        if (isXml && XML_SKIP_TAGNAMES.indexOf(tagName) >= 0) {
+          return
+        }
+
         pushAndMap(node, `<${tagName}`)
 
         for (let index = 0; index < node.attributes.length; index++) {
@@ -174,6 +182,10 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
     switch (node.nodeType) {
       case node.ELEMENT_NODE:
         tagName = node.tagName.toLowerCase()
+        // If the original file was XML then skip serializing the <html>, <head>, and <body> tags
+        if (isXml && XML_SKIP_TAGNAMES.indexOf(tagName) >= 0) {
+          return
+        }
         // If we have vanilla rules then we need to inject them as a <style> tag with a sourceMappingURL
         if (tagName === 'head') {
           if (vanillaRules) {

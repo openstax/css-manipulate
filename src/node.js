@@ -82,7 +82,7 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
   let encounteredHeadElement = false
   let useStyleTagForCssContents = false
   let styleSourceShiftStart = null
-  let isHtml = false
+  let isXml = false
   let elementCount = 0
   parser.onopentagstart = () => {
     elementCount += 1
@@ -99,7 +99,7 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
 
     // Check if the file is (X)HTML or not
     if (1 === elementCount) {
-      isHtml = local === 'html'
+      isXml = local !== 'html'
     }
 
     // chrome auto-adds a <head> so increment the count so the checksum matches
@@ -215,8 +215,8 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
 
 
 
-  // If isHtml is false then we need to create a file that wraps the XML inside `<html><body>`
-  if (!isHtml) {
+  // If isXml is true then we need to create a file that wraps the XML inside `<html><body>`
+  if (isXml) {
     htmlPath = tmp.fileSync({prefix: 'css-plus-', postfix: '.tmp.xhtml'}).name
     fs.writeFileSync(htmlPath, `<html xmlns="http://www.w3.org/1999/xhtml"><body>\n${htmlContents}\n</body></html>`)
   }
@@ -318,6 +318,7 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
     htmlSourcePath: htmlPath,
     sourceMapPath: sourceMapFileName,
     htmlOutputPath,
+    isXml,
     options
   }
   try {
