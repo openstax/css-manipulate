@@ -100,6 +100,7 @@ The rest:
 - `collect-all("Figure" 1 "." 3)` collects all the fields into a string. Useful for computing a link target because `target-context(...)` only allows 2 arguments
 - `if(1, true-condition, false-condition)` allows you to conditionally return something. An example would be to combine this with `is-even(...)` to remove all even answers from the back of the Book
 - `is-even(123)` returns `0` if the number is odd, and `111111` otherwise (truthy)
+- `fetch-url('./icon.svg')` injects the contents of the file into the element
 - `x-tag-name()` find out current elements' tag name (ie 'div', 'pre', 'h1')
 - `x-throw()` throws an error (useful for unit tests)
 

@@ -136,8 +136,8 @@ module.exports = class Converter {
     }
   }
 
-  serialize (vanillaRules) {
+  serialize (vanillaRules, transcludedFilesMap) {
     vanillaRules = csstree.fromPlainObject(vanillaRules)
-    return serializer(this._engine, this._htmlSourceLookup, this._htmlSourcePath, this._sourceMapPath, vanillaRules, this._htmlOutputPath, this._isXml)
+    return serializer(this._engine, this._htmlSourceLookup, this._htmlSourcePath, this._sourceMapPath, vanillaRules, this._htmlOutputPath, this._isXml, transcludedFilesMap)
   }
 }

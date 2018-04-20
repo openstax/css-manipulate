@@ -21,7 +21,7 @@ const SELF_CLOSING_TAGS = ['area', 'base', 'br', 'col', 'command', 'embed', 'hr'
 const XML_SKIP_TAGNAMES = ['html', 'head', 'body']
 
 // We use a custom serializer so sourcemaps can be generated (we know the output line and columns for things)
-module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, vanillaRules, htmlOutputPath, isXml) => {
+module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, vanillaRules, htmlOutputPath, isXml, transcludedFilesMap) => {
   const coverageData = {}
   const documentElement = engine.getRoot()
 
@@ -148,6 +148,17 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
           return
         }
 
+        // Inject any files that should be injected (SVG icons)
+        if (tagName === 'transcludeduringserialization') {
+          const url = node.getAttribute('url')
+          if (!transcludedFilesMap[url]) {
+            throwBug(`Could not find file named ${url}`)
+          }
+          pushAndMap(node, `<!-- DEBUG: Transcluding file '${escapeHtml(url)}' -->`)
+          pushAndMap(node, transcludedFilesMap[url])
+          return
+        }
+
         pushAndMap(node, `<${tagName}`)
 
         for (let index = 0; index < node.attributes.length; index++) {
@@ -184,6 +195,10 @@ module.exports = (engine, htmlSourceLookup, htmlSourcePath, htmlSourceMapPath, v
         tagName = node.tagName.toLowerCase()
         // If the original file was XML then skip serializing the <html>, <head>, and <body> tags
         if (isXml && XML_SKIP_TAGNAMES.indexOf(tagName) >= 0) {
+          return
+        }
+        // If the element is a _magic_ transclusion element then ignore it in the close as well
+        if (tagName === 'transcludeduringserialization') {
           return
         }
         // If we have vanilla rules then we need to inject them as a <style> tag with a sourceMappingURL

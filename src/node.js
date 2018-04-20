@@ -12,7 +12,7 @@ const jquery = require('jquery')
 const {SourceMapConsumer, SourceMapGenerator} = require('source-map')
 
 const renderPacket = require('./packet-render')
-const {showWarning, throwBug, throwError} = require('./browser/misc/packet-builder')
+const {showLog, showWarning, throwBug, throwError} = require('./browser/misc/packet-builder')
 const constructSelector = require('./browser/misc/construct-selector')
 
 const JQUERY_PATH = require.resolve('jquery')
@@ -399,8 +399,29 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
 
 
     vanillaRules = csstree.toPlainObject(vanillaRules)
+    const filesThatNeedToBeFetched = await page.evaluate(`(function () {
+      const urls = new Set()
+      const nodes = [...window.document.querySelectorAll('transcludeduringserialization')]
+      nodes.forEach(node => urls.add(node.getAttribute('url')))
+      return [...urls.values()] // return a list so it is serialized
+    }) ()`)
+    // Fetch all the SVG files
+    if (filesThatNeedToBeFetched.length > 0) {
+      showLog(`fetching... ${JSON.stringify(filesThatNeedToBeFetched)}`)
+    }
+    const transcludedFilesMap = {} // use an object so it serializes easily (rather than a Map)
+    for (const url of filesThatNeedToBeFetched) {
+      if (url.startsWith('http')) {
+        throwError(`fetch-url() does not support remote URLs yet: ${url}`)
+      }
+      const rootDir = path.dirname(cssPath)
+      const contents = await fs.readFileSync(path.join(rootDir, url), 'utf-8')
+      // Strip out any <?xml version="1.0" encoding="UTF-8" ?> if it exists
+      transcludedFilesMap[url] = contents.replace(/<\?xml.*?\?>/, '')
+    }
+
     ret = await page.evaluate(`(function () {
-      return window.__instance.serialize(${JSON.stringify(vanillaRules)})
+      return window.__instance.serialize(${JSON.stringify(vanillaRules)}, ${JSON.stringify(transcludedFilesMap)})
     }) ()`)
     await saveCoverage()
     await page.close()
