@@ -5,6 +5,10 @@
       @namespace epub 'http://www.idpf.org/2007/ops';
       @namespace epub url('http://www.idpf.org/2007/ops');
 
+      /* This type of selection does not work. css-tree parse error
+       * * { content: attr(epub|type); }
+       */
+
       [epub|type="glossary"] {
         content: "kittens";
       }

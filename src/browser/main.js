@@ -9,10 +9,11 @@ const {init: errorInit, throwBug, showWarning, sendElementCount, sendProgressSta
 const constructSelector = require('./misc/construct-selector')
 
 module.exports = class Converter {
-  convertElements (document, $, consol, {cssContents, cssSourcePath, htmlSourcePath, sourceMapPath, htmlOutputPath, options}) {
+  convertElements (document, $, consol, {cssContents, cssSourcePath, htmlSourcePath, sourceMapPath, htmlOutputPath, isXml, options}) {
     this._htmlSourcePath = htmlSourcePath
     this._sourceMapPath = sourceMapPath
     this._htmlOutputPath = htmlOutputPath
+    this._isXml = isXml
 
     errorInit(consol, this._htmlSourceLookup, this._htmlSourcePath, options)
 
@@ -137,6 +138,6 @@ module.exports = class Converter {
 
   serialize (vanillaRules) {
     vanillaRules = csstree.fromPlainObject(vanillaRules)
-    return serializer(this._engine, this._htmlSourceLookup, this._htmlSourcePath, this._sourceMapPath, vanillaRules, this._htmlOutputPath)
+    return serializer(this._engine, this._htmlSourceLookup, this._htmlSourcePath, this._sourceMapPath, vanillaRules, this._htmlOutputPath, this._isXml)
   }
 }

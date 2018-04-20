@@ -6,6 +6,7 @@ const csstree = require('css-tree')
 const pify = require('pify')
 const {Magic, MAGIC_MIME_TYPE} = require('mmmagic')
 const mkdirp = require('mkdirp')
+const tmp = require('tmp')
 const sax = require('sax')
 const jquery = require('jquery')
 const {SourceMapConsumer, SourceMapGenerator} = require('source-map')
@@ -81,7 +82,10 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
   let encounteredHeadElement = false
   let useStyleTagForCssContents = false
   let styleSourceShiftStart = null
+  let isXml = false
+  let elementCount = 0
   parser.onopentagstart = () => {
+    elementCount += 1
     // remember the line/col from the parser so we can use it instead of the position of the end of the open tag
     parserStartTagPosition = {line: parser.line, column: parser.column}
   }
@@ -92,6 +96,11 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
     depthSelectorPrefix[currentDepth + 1] = str
     currentDepth += 1
     // console.log(`sax: ${str}`)
+
+    // Check if the file is (X)HTML or not
+    if (1 === elementCount) {
+      isXml = local !== 'html'
+    }
 
     // chrome auto-adds a <head> so increment the count so the checksum matches
     // NOTE: there are other elements that Chrome adds (like <dbody> so this is not a good general solution)
@@ -206,17 +215,26 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
 
 
 
-
+  // If isXml is true then we need to create a file that wraps the XML inside `<html><body>`
+  if (isXml) {
+    htmlPath = tmp.fileSync({prefix: 'css-plus-', postfix: '.tmp.xhtml'}).name
+    fs.writeFileSync(htmlPath, `<html xmlns="http://www.w3.org/1999/xhtml"><body>\n${htmlContents}\n</body></html>`)
+  }
 
 
   if (!browserPromise) {
     const devtools = process.env['NODE_ENV'] == 'debugger'
     const headless = devtools ? false : !options.debug
-    browserPromise = puppeteer.launch({headless: headless, devtools: devtools, timeout: options.timeout * 1000, args: [
+    const puppeteerArgs = [
       // https://peter.sh/experiments/chromium-command-line-switches/#shill-stub
       // https://github.com/GoogleChrome/puppeteer/blob/HEAD/docs/api.md#puppeteerlaunchoptions
       '--shill-stub=wifi=none' // Disable network traffic
-    ]})
+    ]
+    // See https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-on-travis-ci
+    if (process.env['CI'] === 'true') {
+      puppeteerArgs.push('--no-sandbox')
+    }
+    browserPromise = puppeteer.launch({headless: headless, devtools: devtools, timeout: options.timeout * 1000, args: puppeteerArgs})
   }
   const browser = await browserPromise
   const page = await browser.newPage()
@@ -305,6 +323,7 @@ async function convertNodeJS(cssPath, htmlPath, htmlOutputPath, options, packetH
     htmlSourcePath: htmlPath,
     sourceMapPath: sourceMapFileName,
     htmlOutputPath,
+    isXml,
     options
   }
   try {
