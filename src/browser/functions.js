@@ -119,6 +119,12 @@ FUNCTIONS.push(new FunctionEvaluator('attr', (evaluator, astNode, $contextEl) =>
   }
   return ret
 }))
+FUNCTIONS.push(new FunctionEvaluator('fetch-url', (evaluator, astNode, $contextEl, $) => {
+  const url = evaluator.evaluateFirst()
+  const fetchNode = $(`<transcludeduringserialization url="${url}"/>`)
+  fetchNode[0].__cssLocation = astNode
+  return fetchNode
+}))
 let idCounter = 0
 FUNCTIONS.push(new FunctionEvaluator('x-attr-ensure-id', (evaluator, astNode, $contextEl) => {
   const attrName = 'id'
