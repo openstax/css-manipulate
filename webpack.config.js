@@ -13,6 +13,7 @@ if (process.env['ADD_COVERAGE'] === 'true') {
 }
 
 module.exports = {
+  mode: 'development', // so that debugging statements are included and source is not minified
   devtool: 'inline-source-map',
   // devtool: 'source-map',
   entry: './src/browser/main',
