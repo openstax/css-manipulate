@@ -163,26 +163,26 @@ function buildErrorTests () {
       }
 
       return convertNodeJS(cssPath, htmlPath, htmlOutputPath, argv, packetHandler)
-      .then(() => {
-        t.fail(`Expected to fail but succeeded. See _errors.css:${lineNumber + 1}`)
-      })
-      .catch((e) => {
+        .then(() => {
+          t.fail(`Expected to fail but succeeded. See _errors.css:${lineNumber + 1}`)
+        })
+        .catch((e) => {
         // TODO: Test if the Error is useful for the end user or if it is just an assertion error
         // If the error occurred while manipulating the DOM it will show up here (in a Promise rejection)
-        if (e instanceof TypeError) {
+          if (e instanceof TypeError) {
           // checking for path.relative was causing an TypeError which caused this test to not fail
-          t.fail(e)
-        } else {
-          if (WRITE_TEST_RESULTS === 'true') {
-            fs.writeFileSync(stdoutPath, actualStdout.join('\n'))
-            t.is(true, true) // just so ava counts that 1 assertion was made
+            t.fail(e)
           } else {
-            t.is(actualStdout.join('\n').trim(), expectedStdoutContents.trim())
-          }
+            if (WRITE_TEST_RESULTS === 'true') {
+              fs.writeFileSync(stdoutPath, actualStdout.join('\n'))
+              t.is(true, true) // just so ava counts that 1 assertion was made
+            } else {
+              t.is(actualStdout.join('\n').trim(), expectedStdoutContents.trim())
+            }
 
-          t.pass(e)
-        }
-      })
+            t.pass(e)
+          }
+        })
     })
   })
 }

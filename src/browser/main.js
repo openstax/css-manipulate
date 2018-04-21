@@ -138,6 +138,9 @@ module.exports = class Converter {
 
   serialize (vanillaRules) {
     vanillaRules = csstree.fromPlainObject(vanillaRules)
-    return serializer(this._engine, this._htmlSourceLookup, this._htmlSourcePath, this._sourceMapPath, vanillaRules, this._htmlOutputPath, this._isXml)
+    const ret = serializer(this._engine, this._htmlSourceLookup, this._htmlSourcePath, this._sourceMapPath, vanillaRules, this._htmlOutputPath, this._isXml)
+    // For some reason puppeteer did not like some of the values in ret.
+    // See https://github.com/GoogleChrome/puppeteer/blob/master/docs/api.md#pageevaluatepagefunction-args
+    return JSON.parse(JSON.stringify(ret))
   }
 }

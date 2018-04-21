@@ -55,7 +55,7 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('inside', ($, $lookupEl, $contex
     $newEl.append($contentsToWrapBeforeDomManipulationStarts)
     return $newEl
   }),
-    $newLookupEl: $lookupEl}]
+  $newLookupEl: $lookupEl}]
 }))
 PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('after', ($, $lookupEl, $contextElPromise, $newEl) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.append($newEl); return $newEl }), $newLookupEl: $lookupEl}] }))
 PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('before', ($, $lookupEl, $contextElPromise, $newEl) => { return [{$newElPromise: $contextElPromise.then(($contextEl) => { $contextEl.prepend($newEl); return $newEl }), $newLookupEl: $lookupEl}] })) // TODO: These are evaluated in reverse order
@@ -67,7 +67,7 @@ PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('outside', ($, $lookupEl, $conte
     $contextEl[0].__pointerToOutsideElement = $temp[0].__pointerToOutsideElement || $temp[0]
     return $temp
   }),
-    $newLookupEl: $lookupEl}]
+  $newLookupEl: $lookupEl}]
 }))
 PSEUDO_ELEMENTS.push(new PseudoElementEvaluator('for-each-descendant', ($, $lookupEl, $contextElPromise, $newEl, secondArg, firstArg) => {
   showWarning("::for-each-descendant is deprecated in favor of ::for-each(1, descendant, '> .my-selector')", firstArg)
