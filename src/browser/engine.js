@@ -138,16 +138,16 @@ module.exports = class Applier extends EventEmitter {
           case 'import':
             // this is included in the vanilla CSS so no need to warn
             break
-          case 'namespace': // eslint-disable-line no-case-declarations
+          case 'namespace':
             assert.is(rule.prelude, rule, null)
             assert.equal(rule.prelude.type, 'AtrulePrelude', rule.prelude, null)
-            const args = rule.prelude.children.toArray()
+            const args = rule.prelude.children.toArray() // eslint-disable-line no-case-declarations
             assert.equal(args.length, 3)
             assert.equal(args[0].type, 'Identifier', args[0])
             assert.equal(args[1].type, 'WhiteSpace', args[1])
 
-            const nsPrefix = args[0].name
-            let ns
+            const nsPrefix = args[0].name // eslint-disable-line no-case-declarations
+            let ns // eslint-disable-line no-case-declarations
             switch (args[2].type) {
               case 'Url':
                 assert.equal(args[2].value.type, 'String')
@@ -584,9 +584,9 @@ module.exports = class Applier extends EventEmitter {
         } else {
           return ` ${sel.name} `
         }
-      case 'AttributeSelector': // eslint-disable-line no-case-declarations
-        const {name, value} = sel
-        let nam
+      case 'AttributeSelector':
+        const {name, value} = sel // eslint-disable-line no-case-declarations
+        let nam // eslint-disable-line no-case-declarations
         switch (name.type) {
           case 'Identifier':
             nam = name.name
@@ -594,7 +594,7 @@ module.exports = class Applier extends EventEmitter {
           default:
             throwBug(`Unmatched nameType=${name.type}`, name)
         }
-        let val
+        let val // eslint-disable-line no-case-declarations
         if (value) {
           assert.is(sel.matcher, sel, null, 'AttributeSelector is missing an operator/matcher')
           switch (value.type) {
@@ -639,10 +639,10 @@ module.exports = class Applier extends EventEmitter {
               return ''
             }
           // keep these
-          case 'not-has': // eslint-disable-line no-case-declarations
+          case 'not-has':
             // This was added because SASS has a bug and silently drops `:not(:has(foo))`. A more-hacky way would be to write `:not(:not(SASS_HACK):has(foo))`
             assert.is(sel.children)
-            const children = sel.children.map((child) => {
+            const children = sel.children.map((child) => { // eslint-disable-line no-case-declarations
               assert.equal(child.type, 'Raw')
               return child.value
             })
@@ -667,12 +667,12 @@ module.exports = class Applier extends EventEmitter {
           // from https://github.com/jquery/sizzle/wiki
           case 'nth-child':
           case 'nth-of-type': // Just vanilla CSS, not tested yet
-          case 'nth-last-of-type': // eslint-disable-line no-case-declarations
-            const nthChildren = sel.children.map((child) => {
+          case 'nth-last-of-type':
+            const nthChildren = sel.children.map((child) => { // eslint-disable-line no-case-declarations
               assert.equal(child.type, 'Nth', child)
               switch (child.nth.type) {
-                case 'AnPlusB': // eslint-disable-line no-case-declarations
-                  const {a, b} = child.nth
+                case 'AnPlusB':
+                  const {a, b} = child.nth // eslint-disable-line no-case-declarations
                   if (a && b) {
                     return `${a}n+${b}`
                   } else if (a) {

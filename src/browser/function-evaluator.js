@@ -118,13 +118,13 @@ module.exports = class FunctionEvaluator {
 
           // Too complex to parse because commas can occur inside selector strings so punt
           return arg.value
-        case 'Function': // eslint-disable-line no-case-declarations
-          const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0]
+        case 'Function':
+          const theFunction = this._functionPlugins.filter((fnPlugin) => arg.name === fnPlugin.getFunctionName())[0] // eslint-disable-line no-case-declarations
           if (!theFunction) {
             throw new UnsupportedFunctionError(`Unsupported function named ${arg.name}`, arg, $currentEl)
           }
-          const evaluator = new FunctionEvaluator(this._functionPlugins, this._$, $contextEl, $currentEl, arg)
-          const fnReturnVal = theFunction.evaluateFunction(evaluator, arg /* AST node */, $contextEl, this._$, $currentEl)
+          const evaluator = new FunctionEvaluator(this._functionPlugins, this._$, $contextEl, $currentEl, arg) // eslint-disable-line no-case-declarations
+          const fnReturnVal = theFunction.evaluateFunction(evaluator, arg /* AST node */, $contextEl, this._$, $currentEl) // eslint-disable-line no-case-declarations
           if (!(typeof fnReturnVal === 'string' || typeof fnReturnVal === 'number' || (typeof fnReturnVal === 'object' && typeof fnReturnVal.appendTo === 'function'))) {
             throwBug(`CSS function should return a string or number. Found ${typeof fnReturnVal} while evaluating ${theFunction.getFunctionName()}.`, arg, $currentEl)
           }
