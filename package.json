@@ -21,7 +21,7 @@
     "coverage-report": "rm -rf ./coverage/; genhtml --output-directory ./coverage/ ./test/*/*.lcov"
   },
   "dependencies": {
-    "chalk": "^2.3.0",
+    "chalk": "^4.0.0",
     "css-tree": "https://github.com/philschatz/csstree#validate-sourcemap",
     "escape-html": "^1.0.3",
     "glob": "^7.1.2",
